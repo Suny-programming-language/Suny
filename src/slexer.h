@@ -4,12 +4,13 @@
 #include "stok.h"
 #include "sbuff.h"
 #include "stool.h"
+#include "serror.h"
 
 #define newline(lexer) (lexer->line++, lexer->column = 0)
 
-#define down(lexer) (lexer->index--)
+#define down(lexer) (lexer->index--, lexer->column--)
 
-#define up(lexer) (lexer->index++)
+#define up(lexer) (lexer->index++, lexer->column++)
 
 #define whitespace(lexer) (lexer->cur == ' ' || lexer->cur == '\t' || lexer->cur == '\n')
 
@@ -23,7 +24,7 @@
 
 #define is_potential_digit_char(lexer) (isdigit(lexer) || lexer->cur == '.')
 
-#define get_next_c(lexer) (lexer->cur = lexer->input[lexer->index++])
+#define get_next_c(lexer) (lexer->cur = lexer->input[lexer->index++], lexer->column++)
 
 #define current(lexer) (lexer->cur = lexer->input[lexer->index], lexer->next = lexer->input[lexer->index + 1], lexer->prev = lexer->input[lexer->index - 1])
 

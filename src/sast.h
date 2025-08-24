@@ -5,8 +5,15 @@
 #include <string.h>
 
 #include "stok.h"
+#include "slexer.h"
 
 #define AST(t, v, l) Sast_init(t, v, l)
+
+#define is_expr(ast) ((ast)->type == AST_EXPRESSION                         \
+                        || (ast)->type == AST_BINARY_EXPRESSION             \
+                        || (ast)->type == AST_IDENTIFIER                    \
+                        || (ast)->type == AST_LITERAL                       \
+                        || (ast)->type == AST_STRING_EXPRESSION)
 
 enum Sast_t {
     AST_PROGRAM,
@@ -45,7 +52,14 @@ struct Sast {
 
     int child_count;
     int child_capacity;
+
+    int ast_line;
+    int ast_column;
+
+    struct Slexer *lexer;
 };
+
+int Sast_set_line(struct Slexer *lexer, struct Sast *sast);
 
 struct Sast* 
 Sast_new(void);

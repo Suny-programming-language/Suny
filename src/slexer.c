@@ -13,8 +13,8 @@ Slexer_new(void) {
     lexer->next = 0;
     lexer->prev = 0;
 
-    lexer->line = 1;
-    lexer->column = 1;
+    lexer->line = 0;
+    lexer->column = 0;
 
     return lexer;
 }
@@ -41,6 +41,7 @@ char
 Slexer_get_next_c
 (struct Slexer *lexer) {
     lexer->cur = lexer->input[lexer->index++];
+    lexer->column++;
 
     if (lexer->cur == '\n') {
         newline(lexer);
@@ -121,7 +122,9 @@ Slexer_tokenize_string
 
     while (lexer->cur != '"' && lexer->cur != '\0') {
         if (lexer->cur == '\n') {
-            newline(lexer);
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid string", lexer);
+            Serror_syntax_error(error);
+            return NULL_TOKEN;
         }
 
         lexeme[len++] = lexer->cur;
@@ -161,6 +164,8 @@ Slexer_tokenize_number
     while (is_potential_digit_char(lexer)) {
         if (lexer->cur == '.') {
             if (has_dot) {
+                struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid number", lexer);
+                Serror_syntax_error(error);
                 return NULL_TOKEN;
             }
 
@@ -171,6 +176,12 @@ Slexer_tokenize_number
 
         get_next_c(lexer);
         current(lexer);
+
+        if (!isdigit(lexer) && lexer->cur != '.' && !whitespace(lexer)) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid number", lexer);
+            Serror_syntax_error(error);
+            return NULL_TOKEN;
+        }
     }
 
     current(lexer);
@@ -203,7 +214,7 @@ Slexer_tokenize_identifier
 
     current(lexer);
 
-    while (is_potential_identifier_char(lexer)) {
+    while (is_potential_identifier_char(lexer) || isdigit(lexer)) {
         lexeme[len++] = lexer->cur;
 
         get_next_c(lexer);

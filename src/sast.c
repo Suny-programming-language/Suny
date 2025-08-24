@@ -1,5 +1,12 @@
 #include "sast.h"
 
+int Sast_set_line(struct Slexer *lexer, struct Sast *sast) {
+    sast->ast_line = lexer->line;
+    sast->ast_column = lexer->column;
+    sast->lexer = lexer;
+    return 0;
+}
+
 struct Sast* 
 Sast_new(void) {
     struct Sast *sast = malloc(sizeof(struct Sast));
@@ -20,6 +27,13 @@ Sast_new(void) {
 
     sast->var_name = NULL;
     sast->var_value = NULL;
+
+    sast->print_value = NULL;
+
+    sast->ast_line = 0;
+    sast->ast_column = 0;
+
+    sast->lexer = Slexer_new();
 
     return sast;
 }

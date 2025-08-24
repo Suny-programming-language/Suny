@@ -43,6 +43,15 @@ Sparser_parse_program
 
     while (parser->token->type != EOF_TOK) {
         struct Sast *statement = Sparser_parse(parser);
+
+        Sast_set_line(parser->lexer, statement);
+
+        if (!statement) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected statement", parser->lexer);
+            Serror_syntax_error(error);
+            return NULL;
+        }
+
         Sast_add_child(ast, statement);
     }
 
@@ -66,12 +75,22 @@ struct Sast *
 Sparser_parse_primary_expression
 (struct Sparser *parser) {
     if (parser->token->type == NUMBER) {
-        return AST(AST_LITERAL, parser->token->value, parser->token->lexeme);
+        struct Sast *node = AST(AST_LITERAL, parser->token->value, parser->token->lexeme);
+
+        Sast_set_line(parser->lexer, node);
+        return node;
     }
 
     if (IS_TOK_EXPR_START(parser->token)) {
-        return AST(AST_IDENTIFIER, parser->token->value, parser->token->lexeme);
+        struct Sast *node = AST(AST_IDENTIFIER, parser->token->value, parser->token->lexeme);
+
+        Sast_set_line(parser->lexer, node);
+        return node;
     }
+
+    struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected primary expression", parser->lexer);
+    Serror_syntax_error(error);
+    return NULL;
 }
 
 struct Sast *
@@ -85,6 +104,12 @@ Sparser_parse_additive_expression
         parser->token = Slexer_get_next_token(parser->lexer);
         struct Sast *right = Sparser_parse_multiplicative_expression(parser);
 
+        if (!right) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected multiplicative expression", parser->lexer);
+            Serror_syntax_error(error);
+            return NULL;
+        }
+
         struct Sast *node = AST(AST_BINARY_EXPRESSION, 0, NULL);
 
         node->left = left;
@@ -93,7 +118,8 @@ Sparser_parse_additive_expression
         
         left = node;
     }
-    
+
+    Sast_set_line(parser->lexer, left);
     return left;
 }
 
@@ -109,6 +135,12 @@ Sparser_parse_multiplicative_expression
         parser->token = Slexer_get_next_token(parser->lexer);
         struct Sast *right = Sparser_parse_primary_expression(parser);
 
+        if (!right) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected primary expression", parser->lexer);
+            Serror_syntax_error(error);
+            return NULL;
+        }
+
         struct Sast *node = AST(AST_BINARY_EXPRESSION, 0, NULL);
 
         node->left = left;
@@ -120,6 +152,7 @@ Sparser_parse_multiplicative_expression
         parser->token = Slexer_get_next_token(parser->lexer);
     }
 
+    Sast_set_line(parser->lexer, left);
     return left;
 }
 
@@ -133,7 +166,8 @@ Sparser_parse_assignment
         node->var_name = parser->token->lexeme;
 
     } else {
-        printf("Expected identifier, got %s\n", Stok_t_print(parser->token->type));
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected identifier", parser->lexer);
+        Serror_syntax_error(error);
         return NULL;
     }
 
@@ -142,11 +176,22 @@ Sparser_parse_assignment
     if (parser->token->type == ASSIGN) {
         parser->token = Slexer_get_next_token(parser->lexer);
 
-        node->var_value = Sparser_parse_additive_expression(parser);
+        node->var_value = Sparser_parse(parser);
+
+        if (!is_expr(node->var_value)) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected expression", parser->lexer);
+            Serror_syntax_error(error);
+            return NULL;
+        }
+
+        Sast_set_line(parser->lexer, node->var_value);
+        
+        Sast_set_line(parser->lexer, node);
 
         return node;
     } else {
-        printf("Expected =, got %s\n", Stok_t_print(parser->token->type));
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected assignment operator", parser->lexer);
+        Serror_syntax_error(error);
         return NULL;
     }
 
@@ -160,7 +205,14 @@ Sparser_parse_print
 
     parser->token = Slexer_get_next_token(parser->lexer);
 
-    node->print_value = Sparser_parse_additive_expression(parser);
+    node->print_value = Sparser_parse(parser);
 
+    if (!is_expr(node->print_value)) {
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected expression", parser->lexer);
+        Serror_syntax_error(error);
+        return NULL;
+    }
+
+    Sast_set_line(parser->lexer, node->print_value);
     return node;
 }

@@ -15,33 +15,35 @@ struct Serror {
     struct Slexer *lexer;
 };
 
+int break_loop();
+
 struct Serror *
 Serror_new(void);
 
 struct Serror *
 Serror_set(char *type, char *message, struct Slexer *lexer);
 
-struct Serror *
+int
 Serror_syntax_error
 (struct Serror *error);
 
-void
+int
 Serror_print
 (struct Serror *error);
 
-void
+int
 Serror_free
 (struct Serror *error);
 
-struct Serror *
+int
 Serror_runtime_error
 (char *message, struct Slexer *lexer);
 
-struct Serror *
+int
 Serror_compile_error
 (char *message, struct Slexer *lexer);
 
-struct Serror *
+int
 Serror_unknown_error
 (char *message, struct Slexer *lexer);
 

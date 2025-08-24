@@ -34,7 +34,8 @@ Scompile
         case AST_PRINT:
             return Scompile_print(ast, compiler);
         default:
-            printf("Unknown ast type");
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
+            Serror_syntax_error(error);
             return NULL;
     }
 
@@ -83,6 +84,8 @@ Scompile_binary_expression
             PUSH(code, BINARY_DIV);
             break;
         default:
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown operator", ast->lexer);
+            Serror_syntax_error(error);
             break;
     }
 
@@ -96,6 +99,8 @@ Scompile_identifier
 
     char* name = ast->lexeme;
 
+    int found = 0;
+
     for (int i = 0; i < compiler->scope_index; i++) {
         struct Scope scope = compiler->scope[i];
 
@@ -105,11 +110,18 @@ Scompile_identifier
             PUSH(code, LOAD_GLOBAL);
             PUSH(code, address);
 
-            return code;
+            found = 1;
+            break;
         }
     }
 
-    return NULL;
+    if (!found) {
+        struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown identifier", ast->lexer);
+        Serror_syntax_error(error);
+        return NULL;
+    }
+
+    return code;
 }
 
 struct Scode*
@@ -137,6 +149,16 @@ Scompile_assignment
 (struct Sast *ast, struct Scompiler *compiler) {
     struct Scode *code = Scode_new();
     struct Scode *value = Scompile(ast->var_value, compiler);
+
+    for (int i = 0; i < compiler->scope_index; i++) {
+        struct Scope scope = compiler->scope[i];
+
+        if (strcmp(scope.name, ast->var_name) == 0) {
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Variable already defined", ast->lexer);
+            Serror_syntax_error(error);
+            return NULL;
+        }
+    }
 
     struct Scope scope = new_scope();
 
