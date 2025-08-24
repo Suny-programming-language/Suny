@@ -14,4 +14,7 @@
 #define LOAD_GLOBAL '\x08'
 #define STORE_GLOBAL '\x09'
 
+#define PROGRAM_START '\x10'
+#define PROGRAM_END '\x11'
+
 #endif 

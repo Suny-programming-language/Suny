@@ -30,6 +30,18 @@ Stok_t_print
             return "NULL_TOK";
         case EOF_TOK:
             return "EOF_TOK";
+        case LET:
+            return "LET";
+        case ASSIGN:
+            return "=";
+        case IF:
+            return "IF";
+        case WHILE:
+            return "WHILE";
+        case DO:
+            return "DO";
+        case FOR:
+            return "FOR";
         default:
             return "UNKNOWN"; 
     }
@@ -87,6 +99,8 @@ get_1_char
             return LBRACKET;
         case ']':
             return RBRACKET;
+        case '=':
+            return ASSIGN;
         default:
             return NULL_TOK;
     }

@@ -51,6 +51,14 @@ Sparser_parse_program
 
 struct Sast *
 Sparser_parse(struct Sparser *parser) {
+    if (parser->token->type == LET) {
+        return Sparser_parse_assignment(parser);
+    } 
+
+    if (parser->token->type == PRINT_T) {
+        return Sparser_parse_print(parser);
+    }
+
     return Sparser_parse_additive_expression(parser);
 }
 
@@ -113,4 +121,46 @@ Sparser_parse_multiplicative_expression
     }
 
     return left;
+}
+
+struct Sast *
+Sparser_parse_assignment
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_ASSIGNMENT, 0, NULL);
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type == IDENTIFIER) {
+        node->var_name = parser->token->lexeme;
+
+    } else {
+        printf("Expected identifier, got %s\n", Stok_t_print(parser->token->type));
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type == ASSIGN) {
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        node->var_value = Sparser_parse_additive_expression(parser);
+
+        return node;
+    } else {
+        printf("Expected =, got %s\n", Stok_t_print(parser->token->type));
+        return NULL;
+    }
+
+    return NULL;
+}
+
+struct Sast *
+Sparser_parse_print
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_PRINT, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    node->print_value = Sparser_parse_additive_expression(parser);
+
+    return node;
 }

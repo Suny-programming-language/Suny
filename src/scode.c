@@ -78,6 +78,22 @@ Scode_print
             case BINARY_DIV:
                 printf("BINARY_DIV\n");
                 break;
+
+            case STORE_GLOBAL:
+                printf("STORE_GLOBAL ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+                break;
+            case PROGRAM_START:
+                printf("PROGRAM_START\n");
+                break;
+            case PROGRAM_END:
+                printf("PROGRAM_END\n");
+                break;
             default:
                 printf("%d\n", c);
                 break;

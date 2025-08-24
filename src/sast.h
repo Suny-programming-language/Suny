@@ -13,6 +13,7 @@ enum Sast_t {
     AST_BLOCK,
     AST_STATEMENT,
     AST_EXPRESSION,
+    AST_PRINT,
     AST_ASSIGNMENT,
     AST_IF,
     AST_WHILE,
@@ -31,9 +32,14 @@ struct Sast {
     float value;
     char *lexeme;
 
+    struct Sast *print_value;
+
     struct Sast *left;
     struct Sast *right;
     enum Stok_t op;
+
+    struct Sast *var_value;
+    char *var_name;
     
     struct Sast **children;
 

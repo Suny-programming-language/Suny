@@ -53,7 +53,6 @@ int
 Slexer_skip_whitespace
 (struct Slexer *lexer) {
     while (whitespace(lexer)) {
-        current(lexer);
         Slexer_get_next_c(lexer);
         current(lexer);
     }
@@ -92,6 +91,11 @@ Slexer_get_next_token
 
         if (is_lexer_key(lexer)) {
             return Slexer_tokenize_keyword(lexer);
+        }
+
+        if (c == '\n') {
+            current(lexer);
+            newline(lexer);
         }
 
         if (c == '"') {
@@ -195,15 +199,28 @@ Slexer_tokenize_identifier
 
     int len = 0;
 
+    lexeme[len++] = lexer->cur;
+
+    current(lexer);
+
     while (is_potential_identifier_char(lexer)) {
         lexeme[len++] = lexer->cur;
 
         get_next_c(lexer);
+        current(lexer);
     }
 
     lexeme[len] = '\0';
 
     char* new_lexeme = Sto_char(lexeme, len);
 
-    return TOKEN(IDENTIFIER, 0, new_lexeme);
+    if (strcmp(new_lexeme, "let") == 0) {
+        return TOKEN(LET, 0, new_lexeme);
+    } else if (strcmp(new_lexeme, "print") == 0) {
+        return TOKEN(PRINT_T, 0, new_lexeme);  
+    } else {
+        return TOKEN(IDENTIFIER, 0, new_lexeme);
+    }
+
+    return NULL_TOKEN;
 }

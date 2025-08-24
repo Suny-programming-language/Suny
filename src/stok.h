@@ -27,7 +27,6 @@
     (t)->type == LBRACKET   || \
     (t)->type == RBRACKET   )
 
-
 enum Stok_t {
     DIV,
     MUL,
@@ -40,8 +39,18 @@ enum Stok_t {
     RPAREN,
     LBRACKET,
     RBRACKET,
+    PRINT_T,
+    ASSIGN,
+    EQUALS,
     NULL_TOK,
+    LET,
+    IF,
+    WHILE,
+    DO,
+    FOR,
+    RETURN,
     EOF_TOK,
+    UNKNOWN_T,
 };
 
 struct Stok {

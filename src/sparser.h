@@ -44,4 +44,12 @@ struct Sast *
 Sparser_parse_multiplicative_expression
 (struct Sparser *parser);
 
+struct Sast *
+Sparser_parse_assignment
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_print
+(struct Sparser *parser);
+
 #endif // SPARSER_H

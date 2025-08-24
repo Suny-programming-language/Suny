@@ -4,6 +4,7 @@
 #include "scode.h"
 #include "suny.h"
 #include "sparser.h"
+#include "sobj.h"
 
 struct Scope {
     char *name;
@@ -15,7 +16,11 @@ struct Scompiler {
     
     int scope_index;
     int scope_size;
+    int address;
 };
+
+struct Scope
+new_scope(void);
 
 struct Scompiler*
 Scompiler_new(void);
@@ -38,6 +43,14 @@ Scompile_identifier
 
 struct Scode*
 Scompile_literal
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_assignment
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_print
 (struct Sast *ast, struct Scompiler *compiler);
 
 #endif // SCOMPILE_H

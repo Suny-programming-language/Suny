@@ -6,6 +6,9 @@ all:
 	./src/stool.c \
 	./src/serror.c \
 	./src/stok.c \
+	./src/sframe.c \
+	./src/sobj.c \
+	./src/svm.c \
 	./src/sbuff.c \
 	./src/scode.c \
 	./src/scompile.c \

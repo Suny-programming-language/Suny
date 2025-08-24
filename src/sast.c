@@ -4,6 +4,7 @@ struct Sast*
 Sast_new(void) {
     struct Sast *sast = malloc(sizeof(struct Sast));
     sast->type = AST_NULL;
+    sast->lexeme = NULL;
     
     sast->value = 0;
     sast->child_count = 0;
@@ -11,9 +12,14 @@ Sast_new(void) {
 
     sast->children = NULL;
 
+    sast->print_value = NULL;
+
     sast->left = NULL;
     sast->right = NULL;
     sast->op = NULL_TOK;
+
+    sast->var_name = NULL;
+    sast->var_value = NULL;
 
     return sast;
 }

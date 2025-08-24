@@ -7,9 +7,9 @@
 
 #define newline(lexer) (lexer->line++, lexer->column = 0)
 
-#define down(lexer) (lexer->column--, lexer->index--)
+#define down(lexer) (lexer->index--)
 
-#define up(lexer) (lexer->column++, lexer->index++)
+#define up(lexer) (lexer->index++)
 
 #define whitespace(lexer) (lexer->cur == ' ' || lexer->cur == '\t' || lexer->cur == '\n')
 
@@ -34,7 +34,7 @@
     (c) == '/'  || (c) == '<'  || (c) == '>'  || (c) == ';'  || \
     (c) == '\'' || (c) == '{'  || (c) == '}'  || (c) == '['  || \
     (c) == ']'  || (c) == '\\' || (c) == '~'  || (c) == '='  || \
-    (c) == '|'  || (c) == ':'  || (c) == '?'  || (c) == '-'                    \
+    (c) == '|'  || (c) == ':'  || (c) == '?'  || (c) == '-'     \
 )
 
 #define is_lexer_key(lexer) (is_keyword(lexer->cur))

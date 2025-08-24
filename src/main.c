@@ -1,4 +1,4 @@
-#include "scompile.h"
+#include "svm.h"
 
 int main(int argc, char** argv) {
     char* file_name = argv[1];
@@ -10,7 +10,9 @@ int main(int argc, char** argv) {
     struct Sast *ast = Sparser_parse_program(parser);
     struct Scompiler *compiler = Scompiler_new();
     struct Scode *code = Scompile_program(ast, compiler);
+    struct Sframe *frame = Sframe_init(code);
 
-    Scode_print(code);
+    frame = Svm_run_program(frame);
+
     return 0;
 }
