@@ -1,2 +1,2 @@
-# Suny
-my new program langluage
+# ☀️ Suny programming language ☀️
+
