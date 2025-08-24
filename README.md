@@ -40,13 +40,13 @@ suny main.suny          # run .suny file
 
 **Output**
 ```
-print 1 + 1
+print 1 + 1 * 2 / 2
 ```
 
 **Variable**
 ```
 let a = 1
-let b = 2
+let b = 2 + a
 print a + b * 2 / a
 ```
 
@@ -58,3 +58,4 @@ print a + b * 2 / a
 
 
 **My gmail: dinhsonhai440@gmail.com**
+
