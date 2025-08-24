@@ -33,7 +33,6 @@
 **Running Suny**
 
 ```
-suny                    # launch REPL
 suny main.suny          # run .suny file
 ```
 

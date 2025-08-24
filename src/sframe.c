@@ -35,8 +35,7 @@ Sframe_free
 
 struct Sframe *
 Sframe_init
-(struct Scode *code) {
-    struct Sframe *frame = sframe_new();
+(struct Sframe *frame, struct Scode *code) {
     frame->f_code = code;
     return frame;
 }

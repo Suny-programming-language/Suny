@@ -3,12 +3,6 @@
 byte_t
 get_next_code
 (struct Sframe *frame) {
-    if (frame->f_code_index >= frame->f_code->size) {
-        printf("Error: end of code reached (code index: %d >= code size: %d)\n", 
-            frame->f_code_index, frame->f_code->size);
-        return 0;
-    };
-
     return frame->f_code->code[frame->f_code_index++];
 }
 

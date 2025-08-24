@@ -22,7 +22,7 @@ Scode_add
     code->code[code->size++] = c;
 
     if (code->size > MAX_CODE_SIZE) {
-        printf("Error: code size limit exceeded (max size: %d, current size: %d)\n", 
+        printf("Error: code size limit exceeded (max size: %d < current size: %d)\n", 
             MAX_CODE_SIZE, code->size);
         return -1;
     }
