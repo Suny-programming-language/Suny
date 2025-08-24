@@ -46,7 +46,8 @@ print 1 + 1
 **Variable**
 ```
 let a = 1
-print a
+let b = 2
+print a + b * 2 / a
 ```
 
 ## Credit 👨
@@ -54,5 +55,6 @@ print a
 **My youtube: https://www.youtube.com/@haidinhson** 
 
 **My Github: https://github.com/dinhsonhai132**
+
 
 **My gmail: dinhsonhai440@gmail.com**
