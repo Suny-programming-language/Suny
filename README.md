@@ -40,14 +40,21 @@ suny main.suny          # run .suny file
 
 **Output**
 ```
-print 1 + 1 * 2 / 2
+print("hello " + "world")
 ```
+
 
 **Variable**
 ```
-let a = 1
-let b = 2 + a
-print a + b * 2 / a
+let a = "hello"
+print(a)
+```
+
+**Function**
+```
+function add(a, b) do
+    return a + b
+end
 ```
 
 ## Credit 👨
@@ -56,6 +63,4 @@ print a + b * 2 / a
 
 **My Github: https://github.com/dinhsonhai132**
 
-
 **My gmail: dinhsonhai440@gmail.com**
-
