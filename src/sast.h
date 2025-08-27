@@ -7,11 +7,18 @@
 #include "stok.h"
 #include "slexer.h"
 
+#define MAX_STATEMENT_SIZE 1024
+
 #define AST(t, v, l) Sast_init(t, v, l)
 
 #define is_expr(ast) ((ast)->type == AST_EXPRESSION                         \
                         || (ast)->type == AST_BINARY_EXPRESSION             \
                         || (ast)->type == AST_IDENTIFIER                    \
+                        || (ast)->type == AST_FUNCTION_CALL_EXPRESSION       \
+                        || (ast)->type == AST_AND_EXPRESSION                \
+                        || (ast)->type == AST_OR_EXPRESSION                 \
+                        || (ast)->type == AST_NOT_EXPRESSION                \
+                        || (ast)->type == AST_COMPARE_EXPRESSION            \
                         || (ast)->type == AST_LITERAL                       \
                         || (ast)->type == AST_STRING_EXPRESSION)
 
@@ -25,6 +32,13 @@ enum Sast_t {
     AST_IF,
     AST_WHILE,
     AST_DO_LOOP,
+    AST_COMPARE_EXPRESSION,
+    AST_AND_EXPRESSION,
+    AST_RETURN_STATEMENT,
+    AST_OR_EXPRESSION,
+    AST_NOT_EXPRESSION,
+    AST_FUNCTION_CALL_EXPRESSION,
+    AST_FUNCTION_STATEMENT,
     AST_FOR,
     AST_BINARY_EXPRESSION,
     AST_IDENTIFIER,
@@ -45,6 +59,18 @@ struct Sast {
     struct Sast *right;
     enum Stok_t op;
 
+    struct Sast **params;
+    struct Sast **body;
+    int body_size;
+    char **param_names;
+    int is_having_params;
+
+    int param_count;
+    int args_count;
+
+    struct Sast **block;
+    int block_size;
+
     struct Sast *var_value;
     char *var_name;
     
@@ -53,8 +79,13 @@ struct Sast {
     int child_count;
     int child_capacity;
 
+    int block_count;
+    int block_capacity;
+
     int ast_line;
     int ast_column;
+
+    struct Sast *ret_val;
 
     struct Slexer *lexer;
 };
@@ -79,5 +110,21 @@ Sast_add_child
 int 
 Sast_print
 (struct Sast *sast);
+
+int 
+Sast_add_block
+(struct Sast *parent, struct Sast *child);
+
+int
+Sast_set_para
+(struct Sast *func, char* param_names);
+
+int
+Sast_add_args
+(struct Sast *func, struct Sast *param);
+
+struct Sast* 
+Sast_get_child
+(struct Sast *sast, int index);
 
 #endif

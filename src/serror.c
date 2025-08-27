@@ -38,7 +38,7 @@ Serror_set(char *type, char *message, struct Slexer *lexer) {
 int
 Serror_syntax_error
 (struct Serror *error) {
-    printf("SyntaxError: %s\n", error->message);
+    printf("%s: %s\n", error->type, error->message);
     printf("At line %d, column %d\n", error->line, error->column);
 
     break_loop();
@@ -103,4 +103,27 @@ Serror_unknown_error
     break_loop();
 
     return 0;
-}   
+}
+
+int
+Sast_expected_expression(struct Sast *sast) {
+    if (!sast) {
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected expression", sast->lexer);
+        Serror_syntax_error(error);
+        return 0;
+    };
+
+    if (!is_expr(sast)) {
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected expression", sast->lexer);
+        Serror_syntax_error(error);
+        return 0;
+    }
+}
+
+int 
+Serror_parser
+(char *message, struct Slexer *lexer) {
+    struct Serror *error = Serror_set("SYNTAX_ERROR", message, lexer);
+    Serror_syntax_error(error);
+    return 0;
+}

@@ -35,7 +35,7 @@
     (c) == '/'  || (c) == '<'  || (c) == '>'  || (c) == ';'  || \
     (c) == '\'' || (c) == '{'  || (c) == '}'  || (c) == '['  || \
     (c) == ']'  || (c) == '\\' || (c) == '~'  || (c) == '='  || \
-    (c) == '|'  || (c) == ':'  || (c) == '?'  || (c) == '-'     \
+    (c) == '|'  || (c) == ':'  || (c) == '?'  || (c) == '-'  || (c) == ',' || (c) == '.' \
 )
 
 #define is_lexer_key(lexer) (is_keyword(lexer->cur))
@@ -86,6 +86,10 @@ Slexer_skip_comment
 
 struct Stok *
 Slexer_get_next_token
+(struct Slexer *lexer);
+
+struct Stok *
+Slexer_look_ahead
 (struct Slexer *lexer);
 
 struct Stok *

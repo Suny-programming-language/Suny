@@ -78,8 +78,18 @@ Scode_print
             case BINARY_DIV:
                 printf("BINARY_DIV\n");
                 break;
+            case LOAD_GLOBAL: {
+                printf("LOAD_GLOBAL ");
 
-            case STORE_GLOBAL:
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+                break;
+            }
+
+            case STORE_GLOBAL: {
                 printf("STORE_GLOBAL ");
 
                 unsigned char address = code->code[i + 1];
@@ -88,6 +98,49 @@ Scode_print
 
                 i += 1;
                 break;
+            }
+
+            case BINARY_BIGGER:
+                printf("BINARY_BIGGER\n");
+                break;
+            case BINARY_SMALLER:
+                printf("BINARY_SMALLER\n");
+                break;
+            case BINARY_EQUAL:
+                printf("BINARY_EQUAL\n");
+                break;
+            case BINARY_NOT_EQUAL:
+                printf("BINARY_NOT_EQUAL\n");
+                break;
+            case PRINT:
+                printf("PRINT\n");
+                break;
+            case RETURN_TOP:
+                printf("RETURN_TOP\n");
+                break;
+            case POP_TOP:
+                printf("POP_TOP\n");
+                break;
+            case MAKE_FUNCTION: {
+                printf("MAKE_FUNCTION ");
+
+                unsigned char address = code->code[i + 1];
+                unsigned char size = code->code[i + 2];
+
+                printf("%d %d\n", address, size);
+
+                i += 2;
+                break;
+            }
+
+            case END_FUNCTION:
+                printf("END_FUNCTION\n");
+                break;
+
+            case FUNCTION_CALL:
+                printf("FUNCTION_CALL\n");
+                break;
+
             case PROGRAM_START:
                 printf("PROGRAM_START\n");
                 break;

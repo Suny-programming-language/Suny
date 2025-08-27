@@ -16,10 +16,8 @@ Sobj_new(void) {
     obj->size = 0;
     obj->address = 0;
 
-    obj->next = NULL;
-    obj->prev = NULL;
-
     obj->f_value = NULL;
+    obj->f_type = NULL;
 
     return obj;
 }
@@ -37,6 +35,5 @@ Sobj_set_int
     struct Sobj *obj = Sobj_new();
     obj->type = NUMBER_OBJ;
     obj->value->value = value;
-    obj->size = sizeof(float);
     return obj;
 }

@@ -21,9 +21,27 @@ Sast_new(void) {
 
     sast->print_value = NULL;
 
+    sast->params = calloc(MAX_STATEMENT_SIZE, sizeof(struct Sast *));
+    sast->param_count = 0;
+
+    sast->body = calloc(MAX_STATEMENT_SIZE, sizeof(struct Sast *));
+
     sast->left = NULL;
     sast->right = NULL;
     sast->op = NULL_TOK;
+
+    sast->body_size = 0;
+    sast->is_having_params = 0;
+
+    sast->block_count = 0;
+    sast->block_size = 0;
+    sast->block_capacity = 0;
+
+    sast->block = calloc(MAX_STATEMENT_SIZE, sizeof(struct Sast *));
+
+    sast->args_count = 0;
+
+    sast->param_names = calloc(MAX_STATEMENT_SIZE, sizeof(char *));
 
     sast->var_name = NULL;
     sast->var_value = NULL;
@@ -34,6 +52,8 @@ Sast_new(void) {
     sast->ast_column = 0;
 
     sast->lexer = Slexer_new();
+
+    sast->ret_val = NULL;
 
     return sast;
 }
@@ -94,6 +114,26 @@ Sast_add_child
 }
 
 int 
+Sast_add_block
+(struct Sast *parent, struct Sast *child) {
+    if (parent->block_capacity == 0) {
+    
+        parent->block_capacity = 4;
+    
+        parent->block = (struct Sast **)malloc(sizeof(struct Sast *) * parent->block_capacity);
+    } else if (parent->block_count >= parent->block_capacity) {
+    
+        parent->block_capacity *= 2;
+    
+        parent->block = (struct Sast **)realloc(parent->block, sizeof(struct Sast *) * parent->block_capacity);
+    }
+
+    parent->block[parent->block_count++] = child;
+
+    return 0;
+}
+
+int 
 Sast_print
 (struct Sast *sast) {
     switch(sast->type) {
@@ -140,6 +180,12 @@ Sast_print
         case AST_STRING_EXPRESSION:
             printf("String Expression\n");
             break;
+        case AST_FUNCTION_CALL_EXPRESSION:
+            printf("Function Call\n");
+            break;
+        case AST_FUNCTION_STATEMENT:
+            printf("Function\n");
+            break;
         case AST_NULL:
             printf("Null\n");
             break;
@@ -148,5 +194,25 @@ Sast_print
             break;
     }
 
+    return 0;
+}
+
+struct Sast* 
+Sast_get_child
+(struct Sast *sast, int index) {
+    return sast->children[index];
+}
+
+int
+Sast_set_para
+(struct Sast *func, char* param_names) {
+    func->param_names[func->param_count++] = param_names;
+    return 0;
+}
+
+int
+Sast_add_args
+(struct Sast *func, struct Sast *param) {
+    func->params[func->param_count++] = param;
     return 0;
 }

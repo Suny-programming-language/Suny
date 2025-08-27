@@ -33,6 +33,14 @@ Sparser_parse
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_logic_expression
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_parent_expression
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_primary_expression
 (struct Sparser *parser);
 
@@ -45,11 +53,35 @@ Sparser_parse_multiplicative_expression
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_comparison_expression
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_let
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_assignment
 (struct Sparser *parser);
 
 struct Sast *
 Sparser_parse_print
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_function
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_function_call
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_block
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_return
 (struct Sparser *parser);
 
 #endif // SPARSER_H

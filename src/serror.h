@@ -4,6 +4,9 @@
 #include <stdio.h>
 
 #include "slexer.h"
+#include "sast.h"
+
+struct Sast;
 
 struct Serror {
     char* type;
@@ -45,6 +48,14 @@ Serror_compile_error
 
 int
 Serror_unknown_error
+(char *message, struct Slexer *lexer);
+
+int
+Sast_expected_expression
+(struct Sast *sast);
+
+int 
+Serror_parser
 (char *message, struct Slexer *lexer);
 
 #endif

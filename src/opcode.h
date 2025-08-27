@@ -17,4 +17,18 @@
 #define PROGRAM_START '\x10'
 #define PROGRAM_END '\x11'
 
+#define BINARY_BIGGER '\x12'
+#define BINARY_SMALLER '\x13'
+#define BINARY_EQUAL '\x14'
+#define BINARY_BIGGER_EQUAL '\x15'
+#define BINARY_SMALLER_EQUAL '\x16'
+#define BINARY_NOT_EQUAL '\x17'
+
+#define MAKE_FUNCTION '\x18'
+#define END_FUNCTION '\x19'
+
+#define FUNCTION_CALL '\x20'
+
+#define RETURN_TOP '\x21'
+
 #endif 

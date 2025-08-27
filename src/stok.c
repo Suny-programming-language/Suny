@@ -19,7 +19,37 @@ Stok_t_print
         case LBRACKET:
             return "["; 
         case RBRACKET:
-            return "]"; 
+            return "]";
+        case COMMA:
+            return ",";
+        case BIGGER:
+            return ">";
+        case SMALLER:
+            return "<";
+        case BIGGER_EQUALS:
+            return ">=";
+        case SMALLER_EQUALS:
+            return "<=";
+        case NOT_EQUALS:
+            return "!=";
+        case EQUALS:
+            return "==";
+        case PRINT_T:
+            return "PRINT";
+        case FUNCTION:
+            return "FUNCTION";
+        case RETURN:
+            return "RETURN";
+        case END:
+            return "END";
+        case OR:
+            return "OR";
+        case AND:
+            return "AND";
+        case NOT:
+            return "NOT";
+        case DO:
+            return "DO";
         case NUMBER:
             return "NUMBER"; 
         case STRING:
@@ -38,8 +68,6 @@ Stok_t_print
             return "IF";
         case WHILE:
             return "WHILE";
-        case DO:
-            return "DO";
         case FOR:
             return "FOR";
         default:
@@ -79,6 +107,42 @@ Stok_free
     return 0;
 }
 
+enum Stok_t 
+Stok_get_identifier
+(char *lexeme) {
+    if (strcmp(lexeme, "let") == 0) {
+        return LET;
+    } else if (strcmp(lexeme, "print") == 0) {
+        return PRINT_T;
+    } else if (strcmp(lexeme, "if") == 0) {
+        return IF;
+    } else if (strcmp(lexeme, "while") == 0) {
+        return WHILE;
+    } else if (strcmp(lexeme, "do") == 0) {
+        return DO;
+    } else if (strcmp(lexeme, "for") == 0) {
+        return FOR;
+    } else if (strcmp(lexeme, "not") == 0) {
+        return NOT;
+    } else if (strcmp(lexeme, "is") == 0) {
+        return IS;
+    } else if (strcmp(lexeme, "and") == 0) {
+        return AND;
+    } else if (strcmp(lexeme, "or") == 0) {
+        return OR;
+    } else if (strcmp(lexeme, "function") == 0) {
+        return FUNCTION;
+    } else if (strcmp(lexeme, "return") == 0) {
+        return RETURN;
+    } else if (strcmp(lexeme, "do") == 0) {
+        return DO;
+    } else if (strcmp(lexeme, "end") == 0) {
+        return END;
+    } else {
+        return IDENTIFIER;
+    }    
+}
+
 enum Stok_t
 get_1_char
 (char c) {
@@ -101,9 +165,38 @@ get_1_char
             return RBRACKET;
         case '=':
             return ASSIGN;
+        case '>':
+            return BIGGER;
+        case '<':
+            return SMALLER;
+        case '!':
+            return NOT;
+        case ',':
+            return COMMA;
+        case '.':
+            return DOT;
+        case ':':
+            return COLON;
+        case ';':
+            return SEMICOLON;
         default:
             return NULL_TOK;
     }
 
     return NULL_TOK;
 }
+
+enum Stok_t 
+get_2_char
+(char c1, char c2) {
+    if (c1 == '=' && c2 == '=') return EQUALS;
+    if (c1 == '>' && c2 == '=') return BIGGER_EQUALS;
+    if (c1 == '<' && c2 == '=') return SMALLER_EQUALS;
+    if (c1 == '!' && c2 == '=') return NOT_EQUALS;
+
+    enum Stok_t tok = get_1_char(c1);
+
+    return tok;
+}
+
+// >= <=

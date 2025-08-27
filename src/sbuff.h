@@ -17,7 +17,8 @@ struct SZIO*
 Sbuff_new(void);
 
 int
-Sbuff_free(struct SZIO *zio);
+Sbuff_free
+(struct SZIO *zio);
 
 struct SZIO*
 Sbuff_read_file

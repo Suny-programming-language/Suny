@@ -3,10 +3,22 @@
 
 #include "suny.h"
 
-__suny_lib__ double 
+double 
 Satof(const char *str);
 
-__suny_lib__ char* 
+int 
+Stoi(const char *str);
+
+void
+Sreverse(void **array, int size);
+
+char* 
 Sto_char(char chr[], int len);
+
+char*
+Sftchr(float value);
+
+char
+Sgchrfromf(float value, int index);
 
 #endif

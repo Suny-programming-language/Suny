@@ -8,6 +8,8 @@
 
 #include "opcode.h"
 
+#define SUNY_BREAK_POINT while(1)
+
 #define SUNY_API __declspec(dllexport)
 
 #define SUNY_LOCAL __declspec(dllimport)

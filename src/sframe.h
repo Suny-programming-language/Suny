@@ -2,20 +2,32 @@
 #define SFRAME_H
 
 #include "sobj.h"
-#include "suny.h"
+#include "sbuiltin.h"
 
 #define POP_OBJ() Sframe_pop(frame)
 
 #define PUSH_OBJ(obj) Sframe_push(frame, obj)
 
+#ifndef SOBJ_T
+#define SOBJ_T
+enum Sobj_t {
+    NUMBER_OBJ,
+    GLOBAL_OBJ,
+    BUILTIN_OBJ,
+    LOCAL_OBJ,
+    FUNC_OBJ,
+    NULL_OBJ,
+};
+#endif
+
 struct Sframe {
     struct Sframe *f_back;
     struct Scode *f_code;
 
-    struct Sobj *f_locals[MAX_FRAME_SIZE];
-    struct Sobj *f_globals[MAX_FRAME_SIZE];
+    struct Sobj **f_locals;
+    struct Sobj **f_globals;
 
-    struct Sobj *f_stack[MAX_FRAME_SIZE];
+    struct Sobj **f_stack;
 
     struct Sobj *f_locals_top;
     struct Sobj *f_globals_top;
@@ -30,11 +42,25 @@ struct Sframe {
     int f_stack_size;
 
     int f_code_index;
-};  
+
+    struct Sobj *f_func;
+};
 
 struct Sframe *
-sframe_new
+Sframe_new
 (void);
+
+int
+Sframe_already_defined
+(struct Sframe *frame, int address);
+
+struct Sframe *
+Sframe_insert_global
+(struct Sframe *frame, struct Sobj **f_global, int size);
+
+struct Sframe *
+Sframe_insert_local
+(struct Sframe *frame, struct Sobj **f_local, int size);
 
 int
 Sframe_free
@@ -54,7 +80,7 @@ Sframe_pop
 
 int
 Sframe_store_global
-(struct Sframe *frame, int address, struct Sobj *obj);
+(struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type);
 
 struct Sobj *
 Sframe_load_global
@@ -62,10 +88,18 @@ Sframe_load_global
 
 int
 Sframe_store_local
-(struct Sframe *frame, int address, struct Sobj *obj);
+(struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type);
 
 struct Sobj *
 Sframe_load_local
+(struct Sframe *frame, int address);
+
+struct Sobj *
+Sframe_load_c_api_func
+(struct Sframe *frame, void* func, int address, char* name);
+
+void*
+Sframe_find_c_api_func
 (struct Sframe *frame, int address);
 
 #endif // SFRAME_H

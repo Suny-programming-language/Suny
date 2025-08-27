@@ -13,8 +13,8 @@ Slexer_new(void) {
     lexer->next = 0;
     lexer->prev = 0;
 
-    lexer->line = 0;
-    lexer->column = 0;
+    lexer->line = 1;
+    lexer->column = 1;
 
     return lexer;
 }
@@ -42,10 +42,6 @@ Slexer_get_next_c
 (struct Slexer *lexer) {
     lexer->cur = lexer->input[lexer->index++];
     lexer->column++;
-
-    if (lexer->cur == '\n') {
-        newline(lexer);
-    }
 
     return lexer->cur;
 }
@@ -77,8 +73,8 @@ struct Stok *
 Slexer_get_next_token
 (struct Slexer *lexer) {
     for (;;) {
-        Slexer_skip_whitespace(lexer);
         Slexer_skip_comment(lexer);
+        Slexer_skip_whitespace(lexer);
 
         char c = Slexer_get_next_c(lexer);
 
@@ -104,11 +100,18 @@ Slexer_get_next_token
         }
 
         if (c == '\0') {
-            break;
+            return EOF_TOKEN;
         }
     }
 
     return EOF_TOKEN;
+}
+
+struct Stok *
+Slexer_look_ahead
+(struct Slexer *lexer) {
+    struct Slexer clone = *lexer;
+    return Slexer_get_next_token(&clone);
 }
 
 struct Stok *
@@ -176,12 +179,6 @@ Slexer_tokenize_number
 
         get_next_c(lexer);
         current(lexer);
-
-        if (!isdigit(lexer) && lexer->cur != '.' && !whitespace(lexer)) {
-            struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid number", lexer);
-            Serror_syntax_error(error);
-            return NULL_TOKEN;
-        }
     }
 
     current(lexer);
@@ -199,8 +196,18 @@ struct Stok *
 Slexer_tokenize_keyword
 (struct Slexer *lexer) {
     char c1 = lexer->cur;
+
     current(lexer);
-    return TOKEN(get_1_char(c1), 0, NULL);
+
+    enum Stok_t tok = get_1_char(c1);
+
+    if (tok == NULL_TOK) {
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid keyword token", lexer);
+        Serror_syntax_error(error);
+        return NULL_TOKEN;
+    }
+
+    return TOKEN(tok, 0, NULL);
 }
 
 struct Stok *
@@ -221,17 +228,13 @@ Slexer_tokenize_identifier
         current(lexer);
     }
 
+    current(lexer);
+
     lexeme[len] = '\0';
 
     char* new_lexeme = Sto_char(lexeme, len);
 
-    if (strcmp(new_lexeme, "let") == 0) {
-        return TOKEN(LET, 0, new_lexeme);
-    } else if (strcmp(new_lexeme, "print") == 0) {
-        return TOKEN(PRINT_T, 0, new_lexeme);  
-    } else {
-        return TOKEN(IDENTIFIER, 0, new_lexeme);
-    }
+    enum Stok_t identifer = Stok_get_identifier(new_lexeme);
 
-    return NULL_TOKEN;
+    return TOKEN(identifer, 0, new_lexeme);
 }

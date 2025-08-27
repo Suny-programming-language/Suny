@@ -2,17 +2,32 @@
 #define SOBJ_H
 
 #include "suny.h"
+#include "stype.h"
 
 #define MAX_FRAME_SIZE 1024
 
 typedef unsigned char byte_t;
+typedef int address_t;
 
+#define Sobj_get_value(obj) ((obj)->value->value)
+
+#define Addressof(obj) ((obj)->address)
+
+#define Sizeof(obj) ((obj)->size)
+
+#define Typeof(obj) ((obj)->type)
+
+#ifndef SOBJ_T
+#define SOBJ_T
 enum Sobj_t {
     NUMBER_OBJ,
     GLOBAL_OBJ,
+    BUILTIN_OBJ,
     LOCAL_OBJ,
+    FUNC_OBJ,
     NULL_OBJ,
 };
+#endif
 
 struct Svalue {
     float value;
@@ -29,6 +44,10 @@ struct Sobj {
     struct Sobj *prev;
 
     struct Sobj *f_value; // variable value
+    
+    struct Stype *f_type;
+
+    struct Sc_api_func* c_api_func;
 };
 
 struct Svalue* 
