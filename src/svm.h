@@ -7,9 +7,13 @@
 #include "sobj.h"
 #include "stype.h"
 #include "sfunc.h"
+#include "sstr.h"
 #include "sinitialize.h"
+#include "seval.h"
 
 #include <math.h>
+
+char* print_op(char c);
 
 byte_t
 get_next_code
@@ -49,6 +53,10 @@ Svm_evaluate_FUNCTION_CALL
 
 struct Sframe *
 Svm_evaluate_PRINT
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_PUSH_STRING
 (struct Sframe *frame);
 
 #endif // SVM_H

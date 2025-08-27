@@ -1,0 +1,24 @@
+#ifndef SEVAL_H
+#define SEVAL_H
+
+#include "sobj.h"
+#include "sframe.h"
+#include "sstr.h"
+
+struct Sobj *
+Seval_add
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_sub
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_mul
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_div
+(struct Sobj *obj1, struct Sobj *obj2);
+
+#endif

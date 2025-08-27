@@ -3,9 +3,36 @@
 
 #include "svm.h"
 
+int prompt() {
+    printf("Suny 1.0 Copyright (C) 2025-present, by dinhsonhai132\n");
+
+    struct Sframe *frame = Sframe_new();
+    struct Scompiler *compiler = Scompiler_new();
+
+    SunyInstallLib(frame, compiler);
+
+    char buff[1024];
+    for (;;) {
+        printf(">> ");
+        if (!fgets(buff, sizeof(buff), stdin)) break;
+        
+        if (strlen(buff) == 0) continue;
+
+        struct Slexer *lexer = Slexer_init(buff);
+        struct Sparser *parser = Sparser_init(lexer);
+        struct Sast *ast = Sparser_parse_program(parser);
+        
+        struct Scode *code = Scompile_program(ast, compiler);
+
+        frame = Sframe_init(frame, code);
+        frame = Svm_run_program(frame);
+    }
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc < 2) {
-        printf("Usage: suny [file].suny\n");
+        prompt();
         return 1;
     }
 
@@ -33,11 +60,11 @@ int main(int argc, char** argv) {
     struct Sast *ast = Sparser_parse_program(parser);
 
     struct Scompiler *compiler = Scompiler_new();
-    struct Scode *code = Scompile_program(ast, compiler);
-    struct Sc_api_func *api_func = Sc_api_func_set(Sprintf, "printf", 20);
-    
-    Sinitialize_c_api_func(frame, compiler, api_func);
 
+    SunyInstallLib(frame, compiler);
+
+    struct Scode *code = Scompile_program(ast, compiler);
+    
     frame = Sframe_init(frame, code);
     frame = Svm_run_program(frame);
 

@@ -1,5 +1,31 @@
 #include "svm.h"
 
+char* print_op(char c) {
+    switch (c) {
+        case PUSH_FLOAT: return "PUSH_FLOAT";
+        case BINARY_ADD: return "BINARY_ADD";
+        case BINARY_SUB: return "BINARY_SUB";
+        case BINARY_MUL: return "BINARY_MUL";
+        case BINARY_DIV: return "BINARY_DIV";
+        case PRINT: return "PRINT";
+        case POP_TOP: return "POP_TOP";
+        case LOAD_GLOBAL: return "LOAD_GLOBAL";
+        case STORE_GLOBAL: return "STORE_GLOBAL";
+        case PROGRAM_START: return "PROGRAM_START";
+        case PROGRAM_END: return "PROGRAM_END";
+        case BINARY_BIGGER: return "BINARY_BIGGER";
+        case BINARY_SMALLER: return "BINARY_SMALLER";
+        case BINARY_EQUAL: return "BINARY_EQUAL";
+        case BINARY_BIGGER_EQUAL: return "BINARY_BIGGER_EQUAL";
+        case BINARY_SMALLER_EQUAL: return "BINARY_SMALLER_EQUAL";
+        case BINARY_NOT_EQUAL: return "BINARY_NOT_EQUAL";
+        case MAKE_FUNCTION: return "MAKE_FUNCTION";
+        case END_FUNCTION: return "END_FUNCTION";
+        case FUNCTION_CALL: return "FUNCTION_CALL";
+        case RETURN_TOP: return "RETURN_TOP";
+    }
+}
+
 byte_t
 get_next_code
 (struct Sframe *frame) {
@@ -35,6 +61,10 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evaluate_MAKE_FUNCTION(frame);
             }
 
+            if (op == PUSH_STRING) {
+                frame = Svm_evaluate_PUSH_STRING(frame);
+            }
+
             else if (op == FUNCTION_CALL) {
                 frame = Svm_evaluate_FUNCTION_CALL(frame);
             }
@@ -50,8 +80,7 @@ Svm_run_program(struct Sframe *frame) {
             op = get_next_code(frame);
         }
     } else {
-        printf("Error: invalid header, expected program start\n");
-        return NULL;
+            printf("Invalid program %s\n", print_op(op));
     }
 
     return frame;
@@ -92,6 +121,14 @@ Svm_run_call_context(struct Scall_context *context) {
 
         else if (op == LOAD_GLOBAL) {
             f_frame = Svm_evalutate_LOAD_GLOBAL(f_frame);
+        }
+
+        else if (op == FUNCTION_CALL) {
+            f_frame = Svm_evaluate_FUNCTION_CALL(f_frame);
+        }
+
+        else if (op == PUSH_STRING) {
+            f_frame = Svm_evaluate_PUSH_STRING(f_frame);
         }
 
         else if (op == STORE_GLOBAL) {
@@ -224,22 +261,25 @@ Svm_evalutate_BINARY_OPER
     struct Sobj *obj2 = POP_OBJ();
     struct Sobj *obj1 = POP_OBJ();
 
-    float value2 = obj2->value->value;
     float value1 = obj1->value->value;
+    float value2 = obj2->value->value;
 
     struct Sobj *obj = Sobj_set_int(0);
 
     switch (op) {
-        case BINARY_ADD: obj->value->value = value1 + value2; break;
-        case BINARY_SUB: obj->value->value = value1- value2; break;
-        case BINARY_MUL: obj->value->value = value1 * value2; break;
-        case BINARY_DIV: obj->value->value = value1 / value2; break;
-        case BINARY_BIGGER_EQUAL: obj->value->value = value1 >= value2; break;
-        case BINARY_BIGGER: obj->value->value = value1 > value2; break;
-        case BINARY_SMALLER_EQUAL: obj->value->value = value1 <= value2; break;
-        case BINARY_SMALLER: obj->value->value = value1 < value2; break;
-        case BINARY_EQUAL: obj->value->value = value1 == value2; break;
-        case BINARY_NOT_EQUAL: obj->value->value = value1 != value2; break;
+        case BINARY_ADD: {
+            obj = Seval_add(obj1, obj2);
+            break;
+        } case BINARY_SUB: {
+            obj = Seval_sub(obj1, obj2);
+            break;
+        } case BINARY_MUL: {
+            obj = Seval_mul(obj1, obj2);
+            break;
+        } case BINARY_DIV: {
+            obj = Seval_div(obj1, obj2);
+            break;
+        }
     }
 
     PUSH_OBJ(obj);
@@ -257,5 +297,25 @@ Svm_evaluate_PRINT
         printf("%.2e\n", val);
     else
         printf("%.5f\n", val);
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_PUSH_STRING
+(struct Sframe *frame) {
+    int size = get_next_code(frame);
+
+    char* buff = malloc(size + 1);
+
+    for (int i = 0; i < size; ++i) {
+        buff[i] = get_next_code(frame);
+    }
+
+    buff[size] = '\0';
+
+    struct Sobj *obj = Sobj_make_str(buff, size);
+
+    PUSH_OBJ(obj);
+
     return frame;
 }

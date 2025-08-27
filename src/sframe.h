@@ -1,7 +1,6 @@
 #ifndef SFRAME_H
 #define SFRAME_H
 
-#include "sobj.h"
 #include "sbuiltin.h"
 
 #define POP_OBJ() Sframe_pop(frame)
@@ -15,6 +14,7 @@ enum Sobj_t {
     GLOBAL_OBJ,
     BUILTIN_OBJ,
     LOCAL_OBJ,
+    STRING_OBJ,
     FUNC_OBJ,
     NULL_OBJ,
 };
@@ -44,6 +44,8 @@ struct Sframe {
     int f_code_index;
 
     struct Sobj *f_func;
+
+    struct Sast *f_ast; // for debugging
 };
 
 struct Sframe *
@@ -96,7 +98,7 @@ Sframe_load_local
 
 struct Sobj *
 Sframe_load_c_api_func
-(struct Sframe *frame, void* func, int address, char* name);
+(struct Sframe *frame, void* func, int address, char* name, int args_size);
 
 void*
 Sframe_find_c_api_func

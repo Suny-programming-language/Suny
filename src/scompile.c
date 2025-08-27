@@ -51,7 +51,6 @@ find_scope_obj
         }
     }
     
-    printf("Scope not found: %s\n", name);
     return new_scope();
 }
 
@@ -82,6 +81,12 @@ Scompiler_new(void) {
     return compiler;
 }
 
+struct Scompiler*
+Scompiler_reset(struct Scompiler *compiler) {
+    compiler->scope_index = 0;
+    return compiler;
+}
+
 struct Scode*
 Scompile
 (struct Sast *ast, struct Scompiler *compiler) {
@@ -106,6 +111,8 @@ Scompile
             return Scompile_function(ast, compiler);
         case AST_RETURN_STATEMENT:
             return Scompile_return(ast, compiler);
+        case AST_STRING_EXPRESSION:
+            return Scompile_string(ast, compiler);
         default:
             struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
             Serror_syntax_error(error);
@@ -212,6 +219,8 @@ Scompile_assignment
     struct Scode *value = Scompile(ast->var_value, compiler);
     int address = ++compiler->address;
 
+    int found = find_scope(compiler, ast->var_name);
+
     address = add_scope(compiler, ast->var_name, address, 0);
 
     INSERT(code, value);
@@ -304,16 +313,18 @@ Scompile_function_call
     struct Scode *code = Scode_new();
 
     struct Scope scope = find_scope_obj(compiler, ast->lexeme);
+    int found = find_scope(compiler, ast->lexeme);
+
+    if (found == NOT_FOUND) {
+        struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined function", ast->lexer);
+        Serror_syntax_error(error);
+    }
+
     int address = scope.address;
     int args_size = scope.args_size;
 
     if (args_size != ast->param_count) {
         struct Serror *error = Serror_set("COMPILER_ERROR", "Wrong number of arguments", ast->lexer);
-        Serror_syntax_error(error);
-    }
-
-    if (address == NOT_FOUND) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined function", ast->lexer);
         Serror_syntax_error(error);
     }
 
@@ -380,5 +391,34 @@ Scompile_return
     }
 
     PUSH(code, RETURN_TOP);
+    return code;
+}
+
+struct Scode*
+Scompile_string
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *code = Scode_new();
+
+    char* string = ast->lexeme;
+
+    int size = 0;
+
+    unsigned char cstring[MAX_IDENTIFIER_SIZE];
+
+    for (int i = 0; string[i] != '\0'; i++) {
+        cstring[i] = string[i];
+        ++size;
+    }
+
+    cstring[size] = '\0';
+
+    PUSH(code, PUSH_STRING);
+
+    PUSH(code, size);
+
+    for (int i = 0; i < size; i++) {
+        PUSH(code, cstring[i]);
+    }
+
     return code;
 }

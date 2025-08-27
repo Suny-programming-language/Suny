@@ -109,4 +109,8 @@ struct Scode*
 Scompile_return
 (struct Sast *ast, struct Scompiler *compiler);
 
+struct Scode*
+Scompile_string
+(struct Sast *ast, struct Scompiler *compiler);
+
 #endif // SCOMPILE_H

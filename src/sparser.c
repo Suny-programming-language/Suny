@@ -79,10 +79,6 @@ Sparser_parse(struct Sparser *parser) {
         return Sparser_parse_let(parser);
     } 
 
-    if (parser->token->type == PRINT_T) {
-        return Sparser_parse_print(parser);
-    }
-
     return Sparser_parse_logic_expression(parser);
 }
 
@@ -111,6 +107,13 @@ Sparser_parse_primary_expression
 
     if (parser->token->type == NUMBER) {
         struct Sast *node = AST(AST_LITERAL, parser->token->value, parser->token->lexeme);
+
+        Sast_set_line(parser->lexer, node);
+        return node;
+    }
+
+    if (parser->token->type == STRING) {
+        struct Sast *node = AST(AST_STRING_EXPRESSION, parser->token->value, parser->token->lexeme);
 
         Sast_set_line(parser->lexer, node);
         return node;
@@ -361,6 +364,11 @@ Sparser_parse_function
                         Serror_parser("Expected comma or closing parenthesis", parser->lexer);
                         return NULL;
                     }
+                } else if (parser->token->type == RPAREN) {
+                    break;
+                } else {
+                    Serror_parser("Expected identifier or closing parenthesis", parser->lexer);
+                    return NULL;
                 }
             }
 
@@ -371,6 +379,9 @@ Sparser_parse_function
                 node->body_size = block->block_size;
                 node->block_count = block->block_count;
                 node->block_size = block->block_size;
+            } else {
+                Serror_parser("Expected 'do'", parser->lexer);
+                return NULL;
             }
 
             Sast_set_line(parser->lexer, node);

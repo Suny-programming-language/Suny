@@ -112,8 +112,6 @@ Stok_get_identifier
 (char *lexeme) {
     if (strcmp(lexeme, "let") == 0) {
         return LET;
-    } else if (strcmp(lexeme, "print") == 0) {
-        return PRINT_T;
     } else if (strcmp(lexeme, "if") == 0) {
         return IF;
     } else if (strcmp(lexeme, "while") == 0) {

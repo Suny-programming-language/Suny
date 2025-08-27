@@ -24,6 +24,7 @@ enum Sobj_t {
     GLOBAL_OBJ,
     BUILTIN_OBJ,
     LOCAL_OBJ,
+    STRING_OBJ,
     FUNC_OBJ,
     NULL_OBJ,
 };

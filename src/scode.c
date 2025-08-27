@@ -89,6 +89,27 @@ Scode_print
                 break;
             }
 
+            case PUSH_STRING: {
+                printf("PUSH_STRING ");
+
+                i += 1;
+
+                int size = code->code[i];
+
+                printf("%d \"", size);
+
+                int pos = 0;
+                while (pos < size) {
+                    printf("%c", code->code[i + 1 + pos]);
+                    pos++;
+                }
+
+                printf("\"\n");
+
+                i += size;
+                break;
+            }
+
             case STORE_GLOBAL: {
                 printf("STORE_GLOBAL ");
 

@@ -5,6 +5,7 @@
 #include "sobj.h"
 #include "sframe.h"
 #include "scode.h"
+#include "max.h"
 
 struct Sfunc {
     struct Sfunc *inner;
@@ -41,12 +42,19 @@ struct Scall_context {
     struct Sobj *ret_obj;
 };
 
+struct Sstr {
+    unsigned char buff[MAX_IDENTIFIER_SIZE];
+    int size;
+    char* string;
+};
+
 struct Stype {
     struct Sobj *f_type;
     struct Sobj *f_value;
 
     struct Sfunc *f_func;
     struct Scall_context *f_call_context;
+    struct Sstr *f_str;
 
     int f_size;
 };

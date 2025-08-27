@@ -117,11 +117,15 @@ Slexer_look_ahead
 struct Stok *
 Slexer_tokenize_string
 (struct Slexer *lexer) {
-    get_next_c(lexer);
-    current(lexer);
-
     char lexeme[MAX_IDENTIFIER_SIZE];
     int len = 0;
+
+    current(lexer);
+
+    lexeme[len++] = lexer->cur;
+
+    get_next_c(lexer);
+    current(lexer);
 
     while (lexer->cur != '"' && lexer->cur != '\0') {
         if (lexer->cur == '\n') {
@@ -130,10 +134,31 @@ Slexer_tokenize_string
             return NULL_TOKEN;
         }
 
-        lexeme[len++] = lexer->cur;
+        if (lexer->cur == '\\') {
+            get_next_c(lexer);
+            current(lexer);
 
-        get_next_c(lexer);
-        current(lexer);
+            if (lexer->cur == 'n') {
+                lexeme[len++] = '\n';
+
+                get_next_c(lexer);
+                current(lexer);
+            } else if (lexer->cur == 't') {
+                lexeme[len++] = '\t';
+
+                get_next_c(lexer);
+                current(lexer);
+            } else {
+                struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid escape sequence", lexer);
+                Serror_syntax_error(error);
+                return NULL_TOKEN;
+            }
+        } else {
+            lexeme[len++] = lexer->cur;
+
+            get_next_c(lexer);
+            current(lexer);
+        }
     }
 
     lexeme[len] = '\0';
@@ -147,6 +172,9 @@ Slexer_tokenize_string
         char* new_lexeme = Sto_char(lexeme, len);
 
         return TOKEN(STRING, 0, new_lexeme);
+    } else {
+        struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid string", lexer);
+        Serror_syntax_error(error);
     }
 
     return NULL_TOKEN;

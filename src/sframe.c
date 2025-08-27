@@ -42,6 +42,7 @@ struct Sframe *
 Sframe_init
 (struct Sframe *frame, struct Scode *code) {
     frame->f_code = code;
+    frame->f_code_index = 0;
     return frame;
 }
 
@@ -197,8 +198,8 @@ Sframe_already_defined
 
 struct Sobj *
 Sframe_load_c_api_func
-(struct Sframe *frame, void* func, int address, char* name) {
-    struct Sc_api_func* api_func = Sc_api_func_set(func, name, address);
+(struct Sframe *frame, void* func, int address, char* name, int args_size) {
+    struct Sc_api_func* api_func = Sc_api_func_set(func, name, address, args_size);
 
     struct Sobj *load = Sobj_new();
 

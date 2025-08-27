@@ -31,4 +31,9 @@
 
 #define RETURN_TOP '\x21'
 
+#define PUSH_STRING '\x22'
+
+#define PUSH_TRUE '\x23'
+#define PUSH_FALSE '\x24'
+
 #endif 

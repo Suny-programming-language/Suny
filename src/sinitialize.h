@@ -13,4 +13,20 @@ Sinitialize_c_api_func
     struct Sc_api_func *api_func
 );
 
+int SunyInitialize
+(
+    struct Sframe *frame, 
+    struct Scompiler *compiler, 
+    int address, 
+    char* name, 
+    int args_size, 
+    void* func
+);
+
+int SunyInstallLib
+(
+    struct Sframe *frame, 
+    struct Scompiler *compiler
+);
+
 #endif
