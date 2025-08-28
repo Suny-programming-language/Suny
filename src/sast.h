@@ -59,6 +59,13 @@ struct Sast {
     struct Sast *right;
     enum Stok_t op;
 
+    struct Sast *condition;
+    struct Sast **if_body;
+    struct Sast **else_body;
+    
+    int if_body_size;
+    int else_body_size;
+
     struct Sast **params;
     struct Sast **body;
     int body_size;

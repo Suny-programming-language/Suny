@@ -21,4 +21,28 @@ struct Sobj *
 Seval_div
 (struct Sobj *obj1, struct Sobj *obj2);
 
+struct Sobj *
+Seval_bigger
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_smaller
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_equal
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_not_equal
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_bigger_and_equal
+(struct Sobj *obj1, struct Sobj *obj2);
+
+struct Sobj *
+Seval_smaller_and_equal
+(struct Sobj *obj1, struct Sobj *obj2);
+
 #endif

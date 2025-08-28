@@ -44,5 +44,6 @@ int SunyInstallLib
 {
     SunyInitialize(frame, compiler, 20, "print", 1, Sprintf);
     SunyInitialize(frame, compiler, 21, "exit", 1, Sexit);
+    SunyInitialize(frame, compiler, 22, "load", 2, Sload_dll);
     return 0;
 }

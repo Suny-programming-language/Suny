@@ -84,4 +84,8 @@ struct Sast *
 Sparser_parse_return
 (struct Sparser *parser);
 
+struct Sast *
+Sparser_parse_if
+(struct Sparser *parser);
+
 #endif // SPARSER_H

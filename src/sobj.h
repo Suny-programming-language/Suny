@@ -46,7 +46,7 @@ struct Sobj {
 
     struct Sobj *f_value; // variable value
     
-    struct Stype *f_type;
+    struct Stype *f_type; // real value
 
     struct Sc_api_func* c_api_func;
 };

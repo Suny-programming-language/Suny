@@ -4,6 +4,7 @@ struct Svalue*
 Svalue_new(void) {
     struct Svalue *value = malloc(sizeof(struct Svalue));
     value->value = 0;
+
     return value;
 }
 

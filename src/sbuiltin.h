@@ -4,8 +4,11 @@
 #include "sobj.h"
 #include "suny.h"
 #include "scompile.h"
+#include "stool.h"
 
 struct Sframe;
+
+typedef struct Sobj* (*builtin_func)(struct Sframe*);
 
 #define call_func(func, frame) ((struct Sobj* (*)(struct Sframe*)) (func))((frame));
 
@@ -30,5 +33,7 @@ Sc_api_func_set
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame);
 
 SUNY_API struct Sobj* Sexit(struct Sframe* frame);
+
+SUNY_API struct Sobj *Sload_dll(struct Sframe *frame);
 
 #endif // SBUILTIN_H

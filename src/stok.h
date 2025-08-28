@@ -103,4 +103,6 @@ enum Stok_t
 get_2_char
 (char c1, char c2);
 
+
+
 #endif // STOK_H

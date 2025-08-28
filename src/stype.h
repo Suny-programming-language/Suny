@@ -48,13 +48,30 @@ struct Sstr {
     char* string;
 };
 
+struct Slist {
+    struct Sobj *start;
+    struct Sobj *end;
+
+    struct Sobj** array;
+    int size;
+};
+
+struct Sbool {
+    int _bool;
+};
+
 struct Stype {
-    struct Sobj *f_type;
-    struct Sobj *f_value;
 
     struct Sfunc *f_func;
-    struct Scall_context *f_call_context;
     struct Sstr *f_str;
+    struct Svalue *f_value;
+    struct Sframe *f_frame;
+    struct Scode *f_code;
+    struct Sobj *f_obj;
+    struct Slist *f_list;
+    struct Sbool *f_bool;
+
+    struct Scall_context *f_call_context;
 
     int f_size;
 };

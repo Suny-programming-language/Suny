@@ -30,6 +30,12 @@ Sast_new(void) {
     sast->right = NULL;
     sast->op = NULL_TOK;
 
+    sast->condition = NULL;
+    sast->if_body = calloc(MAX_STATEMENT_SIZE, sizeof(struct Sast *));
+    sast->else_body = calloc(MAX_STATEMENT_SIZE, sizeof(struct Sast *));
+    sast->if_body_size = 0;
+    sast->else_body_size = 0;
+
     sast->body_size = 0;
     sast->is_having_params = 0;
 

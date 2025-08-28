@@ -7,6 +7,7 @@ all:
 	./src/serror.c \
 	./src/sstr.c \
 	./src/stok.c \
+	./src/slabel.c \
 	./src/sbuiltin.c \
 	./src/seval.c \
 	./src/sinitialize.c \
@@ -19,4 +20,4 @@ all:
 	./src/scode.c \
 	./src/scompile.c \
 	./src/suny.c \
-	-o ./bin/suny
+	-o ./bin/sun

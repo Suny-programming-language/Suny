@@ -77,6 +77,8 @@ Scompiler_new(void) {
     compiler->is_in_block = 0;
     compiler->is_in_class = 0;
     compiler->is_in_func = 0;
+
+    compiler->label = 0;
     
     return compiler;
 }
@@ -113,6 +115,8 @@ Scompile
             return Scompile_return(ast, compiler);
         case AST_STRING_EXPRESSION:
             return Scompile_string(ast, compiler);
+        case AST_IF:
+            return Scompile_if(ast, compiler);
         default:
             struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
             Serror_syntax_error(error);
@@ -419,6 +423,29 @@ Scompile_string
     for (int i = 0; i < size; i++) {
         PUSH(code, cstring[i]);
     }
+
+    return code;
+}
+
+struct Scode*
+Scompile_if
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *conditon = Scompile(ast->condition, compiler);
+    struct Scode *if_body = Scompile_block(ast->if_body, compiler, ast->if_body_size);
+
+    struct Scode *code = Scode_new();
+
+    int end_address = creat_label(compiler);
+
+    INSERT(code, conditon);
+
+    PUSH(code, POP_JUMP_IF_FALSE);
+    PUSH(code, end_address);
+
+    INSERT(code, if_body);
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, end_address);
 
     return code;
 }

@@ -36,4 +36,21 @@
 #define PUSH_TRUE '\x23'
 #define PUSH_FALSE '\x24'
 
+#define JUMP_TO '\x27'
+#define ADD_LABEL '\x28'
+
+#define POP_JUMP_IF_TRUE '\x25'
+#define POP_JUMP_IF_FALSE '\x26'
+
+#define JUMP_IF_TOP_IS_TRUE '\x27'
+#define JUMP_IF_TOP_IS_FALSE '\x28'
+
+#define JUMP_FORWARD '\x29'
+#define JUMP_BACKWARD '\x30'
+
+#define SKIP_TO_INDEX '\x31'
+
+#define EXIT_PROGRAM '\x32'
+#define STOP_PROGRAM '\x33'
+
 #endif 

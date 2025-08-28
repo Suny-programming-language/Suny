@@ -19,6 +19,9 @@ byte_t
 get_next_code
 (struct Sframe *frame);
 
+byte_t
+jump_to(struct Sframe *frame, int address);
+
 struct Sframe *
 Svm_run_program
 (struct Sframe *frame);
@@ -57,6 +60,10 @@ Svm_evaluate_PRINT
 
 struct Sframe *
 Svm_evaluate_PUSH_STRING
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_POP_JUMP_IF_FALSE
 (struct Sframe *frame);
 
 #endif // SVM_H

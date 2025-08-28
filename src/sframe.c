@@ -28,6 +28,8 @@ Sframe_new
 
     frame->f_code_index = 0;
 
+    frame->f_label_map = Slabel_map_new();
+
     return frame;
 }
 
@@ -43,6 +45,7 @@ Sframe_init
 (struct Sframe *frame, struct Scode *code) {
     frame->f_code = code;
     frame->f_code_index = 0;
+    frame->f_label_map = Slabel_map_set_program(code);
     return frame;
 }
 
@@ -50,7 +53,8 @@ struct Sobj *
 Sframe_push
 (struct Sframe *frame, struct Sobj *obj) {
     if (frame->f_stack_index >= MAX_FRAME_SIZE) {
-        printf("Error: stack overflow\n");
+        printf("Error frame.c: stack overflow\n");
+        SUNY_BREAK_POINT;
         return NULL;
     };
 
@@ -64,8 +68,9 @@ struct Sobj *
 Sframe_pop
 (struct Sframe *frame) {
     if (frame->f_stack_index <= 0) {
-        printf("Error: stack underflow stack index: %d\n", frame->f_stack_index);
-        return Sobj_new();
+        printf("Error frame.c: stack underflow stack index: %d\n", frame->f_stack_index);
+        SUNY_BREAK_POINT;
+        return NULL;
     };
 
     struct Sobj *obj = frame->f_stack[--frame->f_stack_index];
@@ -113,7 +118,8 @@ Sframe_load_global
     }
 
     if (!found) {
-        printf("Error: global not found\n");
+        printf("Error frame.c: global not found\n");
+        SUNY_BREAK_POINT;
         return NULL;
     }
 
@@ -155,7 +161,7 @@ Sframe_insert_global
 (struct Sframe *frame, struct Sobj **f_global, int size) {
     for (int i = 0; i < size; i++) {
         if (Sframe_already_defined(frame, f_global[i]->address)) {
-            printf("Error: global already defined\n");
+            printf("Error frame.c: global already defined\n");
             SUNY_BREAK_POINT;
         }
         
@@ -172,7 +178,7 @@ Sframe_insert_local
 (struct Sframe *frame, struct Sobj **f_local, int size) {
     for (int i = 0; i < size; i++) {
         if (Sframe_already_defined(frame, f_local[i]->address)) {
-            printf("Error: local already defined\n");
+            printf("Error frame.c: local already defined\n");
             SUNY_BREAK_POINT;
         }
 
@@ -222,5 +228,6 @@ Sframe_find_c_api_func
     }
 
     printf("Error: function not found\n");
+    SUNY_BREAK_POINT;
     return NULL;
 } 

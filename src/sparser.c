@@ -77,7 +77,11 @@ Sparser_parse(struct Sparser *parser) {
 
     if (parser->token->type == LET) {
         return Sparser_parse_let(parser);
-    } 
+    }
+
+    if (parser->token->type == IF) {
+        return Sparser_parse_if(parser);
+    }
 
     return Sparser_parse_logic_expression(parser);
 }
@@ -448,6 +452,11 @@ Sparser_parse_block
 (struct Sparser *parser) {
     struct Sast *node = AST(AST_BLOCK, 0, NULL);
 
+    if (parser->token->type != DO) {
+        Serror_parser("Expected 'do'", parser->lexer);
+        return NULL;
+    }
+
     parser->token = Slexer_get_next_token(parser->lexer);
 
     while (parser->token->type != END) {
@@ -481,6 +490,28 @@ Sparser_parse_return
     Sast_expected_expression(expr);
 
     node->ret_val = expr;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_if
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_IF, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *expr = Sparser_parse(parser);
+
+    Sast_set_line(parser->lexer, expr);
+    Sast_expected_expression(expr);
+
+    node->condition = expr;
+
+    struct Sast *block = Sparser_parse_block(parser);
+
+    node->if_body = block->block;
+    node->if_body_size = block->block_size;
 
     return node;
 }

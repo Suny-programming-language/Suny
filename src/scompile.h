@@ -13,6 +13,8 @@
 
 #define ADDRESS_START 127
 
+#define creat_label(compiler) (++compiler->label)
+
 struct Scope {
     char *name;
     int address;
@@ -29,6 +31,8 @@ struct Scompiler {
     int is_in_func;
     int is_in_block;
     int is_in_class;
+
+    int label;
 };
 
 struct Scope
@@ -111,6 +115,10 @@ Scompile_return
 
 struct Scode*
 Scompile_string
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_if
 (struct Sast *ast, struct Scompiler *compiler);
 
 #endif // SCOMPILE_H

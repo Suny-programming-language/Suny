@@ -38,19 +38,6 @@ int main(int argc, char** argv) {
 
     char* file_name = argv[1];
 
-    char* dot = strrchr(file_name, '.');
-    if (!dot) {
-        printf("No file extension found\n");
-        return 1;
-    }
-
-    char* ext = dot + 1;
-
-    if (strcmp(ext, "suny") != 0) {
-        printf("Invalid file extension\n");
-        return 1;
-    }
-
     char* buff = Sbuff_read_file(file_name)->buffer;
 
     struct Sframe *frame = Sframe_new();
@@ -66,6 +53,16 @@ int main(int argc, char** argv) {
     struct Scode *code = Scompile_program(ast, compiler);
     
     frame = Sframe_init(frame, code);
+
+    // struct Slabel_map* label_map = frame->f_label_map;
+
+    // for (int i = 0; i < label_map->label_count; i++) {
+    //     struct Spos pos = label_map->label[i];
+    //     printf("label: %d %d\n", pos.address, pos.indexof);
+    // }
+
+    // Scode_print(code);
+
     frame = Svm_run_program(frame);
 
     return 0;

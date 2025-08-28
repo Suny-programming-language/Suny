@@ -32,6 +32,15 @@ get_next_code
     return frame->f_code->code[frame->f_code_index++];
 }
 
+byte_t
+jump_to(struct Sframe *frame, int address) {
+    struct Spos pos = Slabel_map_get(frame->f_label_map, address);
+    int index = pos.indexof;
+    frame->f_code_index = index;
+
+    return frame->f_code->code[frame->f_code_index];
+}
+
 struct Sframe *
 Svm_run_program(struct Sframe *frame) {
     struct Scode *code = frame->f_code;
@@ -44,6 +53,10 @@ Svm_run_program(struct Sframe *frame) {
             if (op == PROGRAM_END) {
                 done = 1;
             } 
+
+            else if (op == ADD_LABEL) {
+                op = get_next_code(frame);
+            }
 
             else if (op == PUSH_FLOAT) {
                 frame = Svm_evalutate_PUSH_FLOAT(frame);
@@ -61,8 +74,12 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evaluate_MAKE_FUNCTION(frame);
             }
 
-            if (op == PUSH_STRING) {
+            else if (op == PUSH_STRING) {
                 frame = Svm_evaluate_PUSH_STRING(frame);
+            }
+
+            else if (op == POP_JUMP_IF_FALSE) {
+                frame = Svm_evaluate_POP_JUMP_IF_FALSE(frame);
             }
 
             else if (op == FUNCTION_CALL) {
@@ -80,7 +97,7 @@ Svm_run_program(struct Sframe *frame) {
             op = get_next_code(frame);
         }
     } else {
-            printf("Invalid program %s\n", print_op(op));
+        printf("Invalid program %s\n", print_op(op));
     }
 
     return frame;
@@ -279,10 +296,30 @@ Svm_evalutate_BINARY_OPER
         } case BINARY_DIV: {
             obj = Seval_div(obj1, obj2);
             break;
+        } case BINARY_BIGGER : {
+            obj = Seval_bigger(obj1, obj2);
+            break;
+        } case BINARY_SMALLER : {
+            obj = Seval_smaller(obj1, obj2);
+            break;
+        } case BINARY_EQUAL : {
+            obj = Seval_equal(obj1, obj2);
+            break;
+        } case BINARY_NOT_EQUAL : {
+            obj = Seval_not_equal(obj1, obj2);
+            break;
+        } case BINARY_BIGGER_EQUAL : {
+            obj = Seval_bigger_and_equal(obj1, obj2);
+            break;
+        } case BINARY_SMALLER_EQUAL : {
+            obj = Seval_smaller_and_equal(obj1, obj2);
+            break;
+        } default: {
+            break;
         }
     }
 
-    PUSH_OBJ(obj);
+    Sframe_push(frame, obj);
 
     return frame;
 }
@@ -316,6 +353,21 @@ Svm_evaluate_PUSH_STRING
     struct Sobj *obj = Sobj_make_str(buff, size);
 
     PUSH_OBJ(obj);
+
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_POP_JUMP_IF_FALSE
+(struct Sframe *frame) {
+    int address = get_next_code(frame);
+
+    struct Sobj *obj = Sframe_pop(frame);
+
+    if (!obj->value->value) {
+        jump_to(frame, address);
+        return frame;
+    }
 
     return frame;
 }

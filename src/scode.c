@@ -72,6 +72,36 @@ Scode_print
             case BINARY_SUB:
                 printf("BINARY_SUB\n");
                 break;
+            case POP_JUMP_IF_TRUE: {
+                printf("POP_JUMP_IF_TRUE ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+                break;
+            }
+            case POP_JUMP_IF_FALSE: {
+                printf("POP_JUMP_IF_FALSE ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+                break;
+            }
+            case ADD_LABEL: {
+                printf("ADD_LABEL ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+                break;
+            }
             case BINARY_MUL:
                 printf("BINARY_MUL\n");
                 break;

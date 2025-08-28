@@ -2,6 +2,7 @@
 #define SFRAME_H
 
 #include "sbuiltin.h"
+#include "slabel.h"
 
 #define POP_OBJ() Sframe_pop(frame)
 
@@ -44,6 +45,8 @@ struct Sframe {
     int f_code_index;
 
     struct Sobj *f_func;
+
+    struct Slabel_map *f_label_map;
 
     struct Sast *f_ast; // for debugging
 };
