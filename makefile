@@ -20,4 +20,5 @@ all:
 	./src/scode.c \
 	./src/scompile.c \
 	./src/suny.c \
-	-o ./bin/sun
+	-o ./bin/suny
+
