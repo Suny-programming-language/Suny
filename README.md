@@ -19,7 +19,7 @@
 
 - 🔹 Download the repository
 - 🔹 Navigate to the `Suny-main` folder
-- 🔹 run `make` to build `./bin/suny`
+- 🔹 run `make` to build `suny`
 
 ---
 
@@ -64,3 +64,4 @@ end
 **My Github: https://github.com/dinhsonhai132**
 
 **My gmail: dinhsonhai440@gmail.com**
+
