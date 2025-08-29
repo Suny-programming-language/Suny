@@ -19,7 +19,7 @@
 
 - 🔹 Download the repository
 - 🔹 Navigate to the `Suny-main` folder
-- 🔹 run `make` to build `suny`
+- 🔹 run `make` to build `./bin/suny`
 
 ---
 
@@ -57,6 +57,30 @@ function add(a, b) do
 end
 ```
 
+**while loop**
+```
+a = 0
+while a < 100 do
+    a = a + 1
+    print(a)
+end
+```
+
+**if statement**
+```
+a = 0
+if a == 0 then
+    print(a)
+end
+```
+
+**list**
+```
+a = [1, 2, ["hello", "hi"]]
+a[2][0] = "hi"
+print(a)
+```
+
 ## Credit 👨
 
 **My youtube: https://www.youtube.com/@haidinhson** 
@@ -64,4 +88,3 @@ end
 **My Github: https://github.com/dinhsonhai132**
 
 **My gmail: dinhsonhai440@gmail.com**
-
