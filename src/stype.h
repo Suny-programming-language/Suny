@@ -53,7 +53,9 @@ struct Slist {
     struct Sobj *end;
 
     struct Sobj** array;
-    int size;
+    
+    int count;
+    int capacity;
 };
 
 struct Sbool {

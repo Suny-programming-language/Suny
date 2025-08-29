@@ -71,8 +71,28 @@ Sparser_parse(struct Sparser *parser) {
         return Sparser_parse_return(parser);
     }
 
+    if (parser->token->type == BREAK) {
+        struct Sast *node = AST(AST_BREAK, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+        Sast_set_line(parser->lexer, node);
+        return node;
+    } 
+
+    if (parser->token->type == CONTINUE) {
+        struct Sast *node = AST(AST_CONTINUE, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+        Sast_set_line(parser->lexer, node);
+        return node;
+    }
+
     if (parser->token->type == FUNCTION) {
         return Sparser_parse_function(parser);
+    }
+
+    if (parser->token->type == WHILE) {
+        return Sparser_parse_while(parser);
     }
 
     if (parser->token->type == LET) {
@@ -92,6 +112,11 @@ Sparser_parse_primary_expression
     if (parser->token->type == LPAREN) {
         struct Sast *node = Sparser_parse_parent_expression(parser);
 
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LBRACKET) {
+            return Sparser_parse_extract(parser, node);
+        }
+
         Sast_set_line(parser->lexer, node);
         return node;
     }
@@ -100,12 +125,39 @@ Sparser_parse_primary_expression
         parser->next_token = Slexer_look_ahead(parser->lexer);
 
         if (parser->next_token->type == LPAREN) {
-            return Sparser_parse_function_call(parser);
+            struct Sast *node = Sparser_parse_function_call(parser);
+
+            parser->next_token = Slexer_look_ahead(parser->lexer);
+            if (parser->next_token->type == LBRACKET) {
+                return Sparser_parse_extract(parser, node);
+            }
+
+            return node;
         }
 
         struct Sast *node = AST(AST_IDENTIFIER, parser->token->value, parser->token->lexeme);
 
         Sast_set_line(parser->lexer, node);
+
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LBRACKET) {
+            return Sparser_parse_extract(parser, node);
+        }
+
+        return node;
+    }
+
+    if (parser->token->type == LBRACKET) {
+        struct Sast *node = Sparser_parse_list(parser);
+
+        Sast_set_line(parser->lexer, node);
+
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        
+        if (parser->next_token->type == LBRACKET) {
+            return Sparser_parse_extract(parser, node);
+        }
+
         return node;
     }
 
@@ -113,6 +165,12 @@ Sparser_parse_primary_expression
         struct Sast *node = AST(AST_LITERAL, parser->token->value, parser->token->lexeme);
 
         Sast_set_line(parser->lexer, node);
+
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LBRACKET) {
+            Serror_parser("Numeric expression cannot be extracted", parser->lexer);
+        }
+
         return node;
     }
 
@@ -120,9 +178,16 @@ Sparser_parse_primary_expression
         struct Sast *node = AST(AST_STRING_EXPRESSION, parser->token->value, parser->token->lexeme);
 
         Sast_set_line(parser->lexer, node);
+
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LBRACKET) {
+            Serror_parser("String expression cannot be extracted", parser->lexer);
+        }
+
         return node;
     }
 
+    printf("%s\n", Stok_t_print(parser->token->type));
     Serror_parser("Expected primary expression", parser->lexer);
     return NULL;
 }
@@ -247,6 +312,12 @@ Sparser_parse_logic_expression
     if (!left) {
         Serror_parser("Expected comparison expression", parser->lexer);
         return NULL;
+    }
+
+    if (parser->token->type == ASSIGN) {
+        if (left->type == AST_EXTRACT) {
+            return Sparser_parse_store_index(parser, left);
+        }
     }
 
     return left;
@@ -508,10 +579,172 @@ Sparser_parse_if
 
     node->condition = expr;
 
-    struct Sast *block = Sparser_parse_block(parser);
+    struct Sast *block = Sparser_parse_if_block(parser);
 
     node->if_body = block->block;
     node->if_body_size = block->block_size;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_while
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_WHILE, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *expr = Sparser_parse(parser);
+
+    Sast_set_line(parser->lexer, expr);
+    Sast_expected_expression(expr);
+
+    node->condition = expr;
+
+    struct Sast *block = Sparser_parse_block(parser);
+
+    node->body = block->block;
+    node->body_size = block->block_size;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_if_block
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_BLOCK, 0, NULL);
+
+    if (parser->token->type != THEN) {
+        Serror_parser("Expected 'then'", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    while (parser->token->type != END) {
+        struct Sast *stmt = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, node);
+        Sast_add_block(node, stmt);
+
+        node->block_size++;
+
+        if (!stmt) {
+            Serror_parser("Expected statement", parser->lexer);
+            return NULL;
+        }
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_else_block
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_BLOCK, 0, NULL);
+
+    if (parser->token->type != ELSE) {
+        Serror_parser("Expected 'else'", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    while (parser->token->type != END) {
+        struct Sast *stmt = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, node);
+        Sast_add_block(node, stmt);
+
+        node->block_size++;
+
+        if (!stmt) {
+            Serror_parser("Expected statement", parser->lexer);
+            return NULL;
+        }
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_list
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_LIST, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    while (parser->token->type != RBRACKET) {
+        struct Sast *stmt = Sparser_parse(parser);
+
+        Sast_set_line(parser->lexer, node);
+        Sast_expected_expression(stmt);
+        Sast_add_element(node, stmt);
+
+        if (parser->token->type == COMMA) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+        } else if (parser->token->type == RBRACKET) {
+            break;
+        } else {
+            Serror_parser("Expected comma or closing parenthesis", parser->lexer);
+            return NULL;
+        }
+    }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_extract(struct Sparser *parser, struct Sast *extract_obj) {
+    struct Sast *node = AST(AST_EXTRACT, 0, NULL);
+
+    node->extract_obj = extract_obj;
+
+    parser->token = Slexer_get_next_token(parser->lexer); // eat the opening bracket
+
+    if (parser->token->type != LBRACKET) {
+        Serror_parser("Expected opening bracket '['", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+    
+    struct Sast *expr = Sparser_parse(parser);
+    Sast_set_line(parser->lexer, expr);
+    Sast_expected_expression(expr);
+
+    node->extract_value = expr;
+
+    if (parser->token->type != RBRACKET) {
+        Serror_parser("Expected closing bracket ']'", parser->lexer);
+        return NULL;
+    }
+
+    parser->next_token = Slexer_look_ahead(parser->lexer);
+
+    if (parser->next_token->type == LBRACKET) {
+        return Sparser_parse_extract(parser, node);
+    }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_store_index
+(struct Sparser *parser, struct Sast* extract_obj) {
+    struct Sast *node = AST(AST_STORE_INDEX, 0, NULL);
+
+    node->extract_obj = extract_obj;
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *expr = Sparser_parse(parser);
+    Sast_set_line(parser->lexer, expr);
+    Sast_expected_expression(expr);
+
+    node->extract_value = expr;
 
     return node;
 }

@@ -25,6 +25,9 @@ enum Sobj_t {
     BUILTIN_OBJ,
     LOCAL_OBJ,
     STRING_OBJ,
+    LIST_OBJ,
+    TRUE_OBJ,
+    FALSE_OBJ,
     FUNC_OBJ,
     NULL_OBJ,
 };

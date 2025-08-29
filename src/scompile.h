@@ -6,56 +6,7 @@
 #include "sparser.h"
 #include "sobj.h"
 #include "sbuiltin.h"
-
-#define ALREADY_DEFINED 999
-
-#define NOT_FOUND 998
-
-#define ADDRESS_START 127
-
-#define creat_label(compiler) (++compiler->label)
-
-struct Scope {
-    char *name;
-    int address;
-    int args_size;
-};
-
-struct Scompiler {
-    struct Scope scope[1024];
-    
-    int scope_index;
-    int scope_size;
-    int address;
-
-    int is_in_func;
-    int is_in_block;
-    int is_in_class;
-
-    int label;
-};
-
-struct Scope
-new_scope(void);
-
-int
-add_scope
-(struct Scompiler *compiler, char *name, int address, int args_size);
-
-int
-find_scope
-(struct Scompiler *compiler, char *name);
-
-struct Scope
-find_scope_obj
-(struct Scompiler *compiler, char *name);
-
-int
-remove_scope
-(struct Scompiler *compiler, char *name);
-
-struct Scompiler*
-Scompiler_new(void);
+#include "sscope.h"
 
 struct Scode*
 Scompile
@@ -98,18 +49,6 @@ Scompile_function_call
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
-Scompile_block
-(struct Sast **block, struct Scompiler *compiler, 
-    int block_size);
-
-struct Scode*
-Scompile_body_func
-(struct Sast **block, struct Scompiler *compiler, 
-    int block_size, 
-    char **args, 
-    int args_size);
-
-struct Scode*
 Scompile_return
 (struct Sast *ast, struct Scompiler *compiler);
 
@@ -120,5 +59,41 @@ Scompile_string
 struct Scode*
 Scompile_if
 (struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_while
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_break
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_continue
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_list
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_extract
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_store_index
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_block
+(struct Sast **block, struct Scompiler *compiler, 
+    int block_size);
+
+struct Scode*
+Scompile_body_func
+(struct Sast **block, struct Scompiler *compiler, 
+    int block_size, 
+    char **args, 
+    int args_size);
 
 #endif // SCOMPILE_H

@@ -28,44 +28,43 @@
     (t)->type == LBRACKET   || \
     (t)->type == RBRACKET   )
 
+
 enum Stok_t {
-    DIV,
-    MUL,
-    ADD,
-    SUB,
-    NUMBER,
-    STRING,
-    IDENTIFIER,
-    LPAREN,
-    RPAREN,
-    LBRACKET,
-    RBRACKET,
-    PRINT_T,
+    DIV, MUL, ADD, SUB,
+
+    NUMBER, STRING, IDENTIFIER,
+
+    LPAREN, RPAREN,
+    LBRACKET, RBRACKET,
+
     ASSIGN,
     EQUALS,
-    FUNCTION,
-    RETURN,
-    NULL_TOK,
-    BIGGER,
-    BIGGER_EQUALS,
-    SMALLER,
-    SMALLER_EQUALS,
     NOT_EQUALS,
-    AND,
     IS,
+    BIGGER, BIGGER_EQUALS,
+    SMALLER, SMALLER_EQUALS,
+
+    AND,
     OR,
     NOT,
+
+    TRUE_T,
+    FALSE_T,
+
     LET,
-    IF,
-    ELSE,
+    IF, ELSE, THEN,
+    WHILE, DO, END, BREAK, CONTINUE,
+    FOR,
+    FUNCTION, RETURN,
+
+    NULL_TOK,
+    PRINT_T,
+
     COMMA,
     DOT,
-    WHILE,
-    DO,
-    END,
-    FOR,
     COLON,
     SEMICOLON,
+
     EOF_TOK,
     UNKNOWN_T,
 };
@@ -102,7 +101,5 @@ get_1_char
 enum Stok_t 
 get_2_char
 (char c1, char c2);
-
-
 
 #endif // STOK_H

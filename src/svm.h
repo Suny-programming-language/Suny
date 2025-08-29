@@ -5,7 +5,6 @@
 #include "sframe.h"
 #include "suny.h"
 #include "sobj.h"
-#include "stype.h"
 #include "sfunc.h"
 #include "sstr.h"
 #include "sinitialize.h"
@@ -64,6 +63,22 @@ Svm_evaluate_PUSH_STRING
 
 struct Sframe *
 Svm_evaluate_POP_JUMP_IF_FALSE
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_JUMP_TO
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_BUILD_LIST
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_LOAD_ITEM
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_STORE_ITEM
 (struct Sframe *frame);
 
 #endif // SVM_H

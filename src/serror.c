@@ -39,7 +39,7 @@ int
 Serror_syntax_error
 (struct Serror *error) {
     printf("%s: %s\n", error->type, error->message);
-    printf("At line %d, column %d\n", error->line, error->column);
+    printf("At file '%s', line %d\n", error->lexer->file->file, error->lexer->line);
 
     break_loop();
 
@@ -87,7 +87,7 @@ int
 Serror_compile_error
 (char *message, struct Slexer *lexer) {
     printf("CompileError: %s\n", message);
-    printf("At line %d, column %d\n", lexer->line, lexer->column);
+    printf("At file '%s', line %d\n", lexer->file->file, lexer->line);
 
     break_loop();
 
@@ -98,7 +98,7 @@ int
 Serror_unknown_error
 (char *message, struct Slexer *lexer) {
     printf("UnknownError: %s\n", message);
-    printf("At line %d, column %d\n", lexer->line, lexer->column);
+    printf("At file '%s', line %d\n", lexer->file->file, lexer->line);
 
     break_loop();
 

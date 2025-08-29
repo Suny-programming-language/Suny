@@ -81,11 +81,35 @@ Sparser_parse_block
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_if_block
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_else_block
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_return
 (struct Sparser *parser);
 
 struct Sast *
 Sparser_parse_if
 (struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_while
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_list
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_extract
+(struct Sparser *parser, struct Sast* extract_obj);
+
+struct Sast *
+Sparser_parse_store_index
+(struct Sparser *parser, struct Sast* extract_obj);
 
 #endif // SPARSER_H

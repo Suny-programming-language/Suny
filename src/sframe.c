@@ -12,11 +12,6 @@ Sframe_new
     frame->f_globals_top = NULL;
     frame->f_locals_top = NULL;
 
-    frame->f_stack = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
-
-    frame->f_locals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
-    frame->f_globals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
-
     frame->f_globals_size = 0;
     frame->f_locals_size = 0;
 
@@ -24,7 +19,12 @@ Sframe_new
     frame->f_locals_index = 0;
 
     frame->f_stack_index = 0;
-    frame->f_stack_size = 0;
+    frame->f_stack_size = MAX_FRAME_SIZE;
+
+    frame->f_stack = calloc(frame->f_stack_size, sizeof(struct Sobj *));
+
+    frame->f_locals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
+    frame->f_globals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
 
     frame->f_code_index = 0;
 
@@ -50,23 +50,39 @@ Sframe_init
 }
 
 struct Sobj *
-Sframe_push
-(struct Sframe *frame, struct Sobj *obj) {
-    if (frame->f_stack_index >= MAX_FRAME_SIZE) {
-        printf("Error frame.c: stack overflow\n");
-        SUNY_BREAK_POINT;
-        return NULL;
-    };
+Sframe_push(struct Sframe *frame, struct Sobj *obj) {
+#ifdef DEBUG
+    printf("[frame.c] Sframe_push (building...)\n");
+#endif
+
+    if (frame->f_stack_index >= frame->f_stack_size) {
+        int new_size = frame->f_stack_size * 2;
+        struct Sobj **new_stack = realloc(frame->f_stack, new_size * sizeof(struct Sobj *));
+        if (!new_stack) {
+            printf("Error: realloc failed in Sframe_push\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+        frame->f_stack = new_stack;
+        frame->f_stack_size = new_size;
+    }
 
     frame->f_stack[frame->f_stack_index++] = obj;
-    frame->f_stack_size++;
 
+#ifdef DEBUG
+    printf("[frame.c] Sframe_push (done) stack_index=%d stack_size=%d\n",
+           frame->f_stack_index, frame->f_stack_size);
+#endif
     return obj;
 }
+
 
 struct Sobj *
 Sframe_pop
 (struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[frame.c] struct Sobj *Sframe_pop(struct Sframe *frame) (building...)\n");
+#endif
     if (frame->f_stack_index <= 0) {
         printf("Error frame.c: stack underflow stack index: %d\n", frame->f_stack_index);
         SUNY_BREAK_POINT;
@@ -75,9 +91,24 @@ Sframe_pop
 
     struct Sobj *obj = frame->f_stack[--frame->f_stack_index];
 
-    frame->f_stack_size--;
-
+#ifdef DEBUG
+    printf("[frame.c] struct Sobj *Sframe_pop(struct Sframe *frame) (done)\n");
+#endif
     return obj;
+}
+
+struct Sobj *
+Sframe_back
+(struct Sframe *frame) {
+#ifdef DEBUG
+printf("[frame.c] struct Sobj *Sframe_back(struct Sframe *frame) (building...)\n");
+#endif
+
+#ifdef DEBUG
+printf("[frame.c] struct Sobj *Sframe_back(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame->f_stack[frame->f_stack_index - 1];
 }
 
 int
@@ -118,7 +149,7 @@ Sframe_load_global
     }
 
     if (!found) {
-        printf("Error frame.c: global not found\n");
+        printf("Error frame.c: global not found address: %d\n", address);
         SUNY_BREAK_POINT;
         return NULL;
     }
@@ -151,6 +182,12 @@ Sframe_load_local
             load = frame->f_locals[i];
             break;
         }
+    }
+
+    if (!load) {
+        printf("Error frame.c: local not found address: %d\n", address);
+        SUNY_BREAK_POINT;
+        return NULL;
     }
 
     return load;

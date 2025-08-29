@@ -1,5 +1,69 @@
 #include "sast.h"
 
+int 
+Sast_print
+(struct Sast *sast) {
+    switch(sast->type) {
+        case AST_PROGRAM:
+            printf("Program\n");
+            break;
+        case AST_BLOCK:
+            printf("Block\n");
+            break;
+        case AST_STATEMENT:
+            printf("Statement\n");
+            break;
+        case AST_EXPRESSION:
+            printf("Expression\n");
+            break;
+        case AST_ASSIGNMENT:
+            printf("Assignment\n");
+            break;
+        case AST_IF:
+            printf("If\n");
+            break;
+        case AST_WHILE:
+            printf("While\n");
+            break;
+        case AST_DO_LOOP:
+            printf("Do Loop\n");
+            break;
+        case AST_FOR:
+            printf("For\n");
+            break;
+        case AST_BINARY_EXPRESSION:
+            printf("Binary Expression\n");
+            printf("Operator: %s\n", Stok_t_print(sast->op));
+            Sast_print(sast->left);
+            Sast_print(sast->right);
+            break;
+        case AST_IDENTIFIER:
+            printf("Identifier ");
+            printf("Lexeme: %s\n", Stok_t_print(sast->type));
+            break;
+        case AST_LITERAL:
+            printf("Literal\n");
+            break;
+        case AST_STRING_EXPRESSION:
+            printf("String Expression\n");
+            break;
+        case AST_FUNCTION_CALL_EXPRESSION:
+            printf("Function Call\n");
+            break;
+        case AST_FUNCTION_STATEMENT:
+            printf("Function\n");
+            break;
+        case AST_NULL:
+            printf("Null\n");
+            break;
+        default:
+            printf("Unknown\n");
+            break;
+    }
+
+    return 0;
+}
+
 int Sast_set_line(struct Slexer *lexer, struct Sast *sast) {
     sast->ast_line = lexer->line;
     sast->ast_column = lexer->column;
@@ -60,6 +124,14 @@ Sast_new(void) {
     sast->lexer = Slexer_new();
 
     sast->ret_val = NULL;
+
+    sast->list_count = 0;
+    sast->list_capacity = 1024;
+
+    sast->list = calloc(sast->list_capacity, sizeof(struct Sast *));
+
+    sast->extract_obj = NULL;
+    sast->extract_value = NULL;
 
     return sast;
 }
@@ -139,70 +211,6 @@ Sast_add_block
     return 0;
 }
 
-int 
-Sast_print
-(struct Sast *sast) {
-    switch(sast->type) {
-        case AST_PROGRAM:
-            printf("Program\n");
-            break;
-        case AST_BLOCK:
-            printf("Block\n");
-            break;
-        case AST_STATEMENT:
-            printf("Statement\n");
-            break;
-        case AST_EXPRESSION:
-            printf("Expression\n");
-            break;
-        case AST_ASSIGNMENT:
-            printf("Assignment\n");
-            break;
-        case AST_IF:
-            printf("If\n");
-            break;
-        case AST_WHILE:
-            printf("While\n");
-            break;
-        case AST_DO_LOOP:
-            printf("Do Loop\n");
-            break;
-        case AST_FOR:
-            printf("For\n");
-            break;
-        case AST_BINARY_EXPRESSION:
-            printf("Binary Expression\n");
-            printf("Operator: %s\n", Stok_t_print(sast->op));
-            Sast_print(sast->left);
-            Sast_print(sast->right);
-            break;
-        case AST_IDENTIFIER:
-            printf("Identifier ");
-            printf("Lexeme: %s\n", Stok_t_print(sast->type));
-            break;
-        case AST_LITERAL:
-            printf("Literal\n");
-            break;
-        case AST_STRING_EXPRESSION:
-            printf("String Expression\n");
-            break;
-        case AST_FUNCTION_CALL_EXPRESSION:
-            printf("Function Call\n");
-            break;
-        case AST_FUNCTION_STATEMENT:
-            printf("Function\n");
-            break;
-        case AST_NULL:
-            printf("Null\n");
-            break;
-        default:
-            printf("Unknown\n");
-            break;
-    }
-
-    return 0;
-}
-
 struct Sast* 
 Sast_get_child
 (struct Sast *sast, int index) {
@@ -221,4 +229,18 @@ Sast_add_args
 (struct Sast *func, struct Sast *param) {
     func->params[func->param_count++] = param;
     return 0;
+}
+
+struct Sast*
+Sast_add_element(struct Sast *list, struct Sast *element) {
+    if (list->list_capacity == 0) {
+        list->list_capacity = 4;
+        list->list = (struct Sast **)malloc(sizeof(struct Sast *) * list->list_capacity);
+    } else if (list->list_count >= list->list_capacity) {
+        list->list_capacity *= 2;
+        list->list = (struct Sast **)realloc(list->list, sizeof(struct Sast *) * list->list_capacity);
+    }
+
+    list->list[list->list_count++] = element;
+    return list;
 }

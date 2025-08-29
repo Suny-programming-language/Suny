@@ -116,6 +116,8 @@ Stok_get_identifier
         return IF;
     } else if (strcmp(lexeme, "while") == 0) {
         return WHILE;
+    } else if (strcmp(lexeme, "then") == 0) {
+        return THEN;
     } else if (strcmp(lexeme, "do") == 0) {
         return DO;
     } else if (strcmp(lexeme, "for") == 0) {
@@ -132,10 +134,18 @@ Stok_get_identifier
         return FUNCTION;
     } else if (strcmp(lexeme, "return") == 0) {
         return RETURN;
+    } else if (strcmp(lexeme, "true") == 0) {
+        return TRUE_T;
+    } else if (strcmp(lexeme, "false") == 0) {
+        return FALSE_T;
     } else if (strcmp(lexeme, "do") == 0) {
         return DO;
     } else if (strcmp(lexeme, "end") == 0) {
         return END;
+    } else if (strcmp(lexeme, "break") == 0) {
+        return BREAK;
+    } else if (strcmp(lexeme, "continue") == 0) {
+        return CONTINUE;
     } else {
         return IDENTIFIER;
     }    

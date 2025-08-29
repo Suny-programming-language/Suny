@@ -19,6 +19,8 @@
                         || (ast)->type == AST_OR_EXPRESSION                 \
                         || (ast)->type == AST_NOT_EXPRESSION                \
                         || (ast)->type == AST_COMPARE_EXPRESSION            \
+                        || (ast)->type == AST_LIST                          \
+                        || (ast)->type == AST_EXTRACT                       \
                         || (ast)->type == AST_LITERAL                       \
                         || (ast)->type == AST_STRING_EXPRESSION)
 
@@ -28,6 +30,8 @@ enum Sast_t {
     AST_STATEMENT,
     AST_EXPRESSION,
     AST_PRINT,
+    AST_BREAK,
+    AST_CONTINUE,
     AST_ASSIGNMENT,
     AST_IF,
     AST_WHILE,
@@ -36,6 +40,7 @@ enum Sast_t {
     AST_AND_EXPRESSION,
     AST_RETURN_STATEMENT,
     AST_OR_EXPRESSION,
+    AST_STORE_INDEX,
     AST_NOT_EXPRESSION,
     AST_FUNCTION_CALL_EXPRESSION,
     AST_FUNCTION_STATEMENT,
@@ -44,6 +49,8 @@ enum Sast_t {
     AST_IDENTIFIER,
     AST_LITERAL,
     AST_STRING_EXPRESSION,    
+    AST_LIST,
+    AST_EXTRACT,
     AST_NULL,
 };
 
@@ -94,6 +101,14 @@ struct Sast {
 
     struct Sast *ret_val;
 
+    struct Sast** list;
+
+    int list_count;
+    int list_capacity;
+
+    struct Sast *extract_obj;
+    struct Sast *extract_value;
+
     struct Slexer *lexer;
 };
 
@@ -133,5 +148,8 @@ Sast_add_args
 struct Sast* 
 Sast_get_child
 (struct Sast *sast, int index);
+
+struct Sast*
+Sast_add_element(struct Sast *list, struct Sast *element);
 
 #endif

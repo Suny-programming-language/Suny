@@ -16,23 +16,15 @@ enum Sobj_t {
     BUILTIN_OBJ,
     LOCAL_OBJ,
     STRING_OBJ,
+    LIST_OBJ,
+    TRUE_OBJ,
+    FALSE_OBJ,
     FUNC_OBJ,
     NULL_OBJ,
 };
 #endif
 
 struct Sframe {
-    struct Sframe *f_back;
-    struct Scode *f_code;
-
-    struct Sobj **f_locals;
-    struct Sobj **f_globals;
-
-    struct Sobj **f_stack;
-
-    struct Sobj *f_locals_top;
-    struct Sobj *f_globals_top;
-
     int f_locals_size;
     int f_globals_size;
 
@@ -49,6 +41,17 @@ struct Sframe {
     struct Slabel_map *f_label_map;
 
     struct Sast *f_ast; // for debugging
+
+    struct Sframe *f_back;
+    struct Scode *f_code;
+
+    struct Sobj **f_locals;
+    struct Sobj **f_globals;
+
+    struct Sobj **f_stack;
+
+    struct Sobj *f_locals_top;
+    struct Sobj *f_globals_top;
 };
 
 struct Sframe *
@@ -81,6 +84,10 @@ Sframe_push
 
 struct Sobj *
 Sframe_pop
+(struct Sframe *frame);
+
+struct Sobj *
+Sframe_back
 (struct Sframe *frame);
 
 int

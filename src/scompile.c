@@ -1,94 +1,5 @@
 #include "scompile.h"
 
-struct Scope
-new_scope(void) {
-    struct Scope scope;
-    scope.name = NULL;
-    scope.address = 0;
-    scope.args_size = 0;
-
-    return scope;
-}
-
-int
-add_scope
-(struct Scompiler *compiler, char *name, int address, int args_size) {
-    struct Scope scope = new_scope();
-
-    for (int i = 0; i < compiler->scope_index; i++) {
-        if (strcmp(compiler->scope[i].name, name) == 0) {
-            return compiler->scope[i].address;
-        }
-    }
-
-    scope.name = name;
-    scope.address = address;
-    scope.args_size = args_size;
-    
-    compiler->scope[compiler->scope_index++] = scope;
-    return address;
-}
-
-int
-find_scope
-(struct Scompiler *compiler, char *name) {
-    for (int i = 0; i < compiler->scope_index; i++) {
-        struct Scope scope = compiler->scope[i];
-        if (strcmp(scope.name, name) == 0) {
-            return scope.address;
-        }
-    }
-    return NOT_FOUND;
-}
-
-struct Scope
-find_scope_obj
-(struct Scompiler *compiler, char *name) {
-    for (int i = 0; i < compiler->scope_index; i++) {
-        struct Scope scope = compiler->scope[i];
-        if (strcmp(scope.name, name) == 0) {
-            return scope;
-        }
-    }
-    
-    return new_scope();
-}
-
-int
-remove_scope(struct Scompiler *compiler, char *name) {
-    for (int i = 0; i < compiler->scope_index; i++) {
-        struct Scope scope = compiler->scope[i];
-        if (strcmp(scope.name, name) == 0) {
-            scope.name = NULL;
-            scope.address = 0;
-            return 0;
-        }
-    }
-    return NOT_FOUND;
-}
-
-struct Scompiler*
-Scompiler_new(void) {
-    struct Scompiler *compiler = malloc(sizeof(struct Scompiler));
-    compiler->scope_index = 0;
-    compiler->scope_size = 1024;
-    compiler->address = ADDRESS_START;
-
-    compiler->is_in_block = 0;
-    compiler->is_in_class = 0;
-    compiler->is_in_func = 0;
-
-    compiler->label = 0;
-    
-    return compiler;
-}
-
-struct Scompiler*
-Scompiler_reset(struct Scompiler *compiler) {
-    compiler->scope_index = 0;
-    return compiler;
-}
-
 struct Scode*
 Scompile
 (struct Sast *ast, struct Scompiler *compiler) {
@@ -117,6 +28,18 @@ Scompile
             return Scompile_string(ast, compiler);
         case AST_IF:
             return Scompile_if(ast, compiler);
+        case AST_WHILE:
+            return Scompile_while(ast, compiler);
+        case AST_BREAK:
+            return Scompile_break(ast, compiler);
+        case AST_CONTINUE:
+            return Scompile_continue(ast, compiler);
+        case AST_LIST:
+            return Scompile_list(ast, compiler);
+        case AST_EXTRACT:
+            return Scompile_extract(ast, compiler);
+        case AST_STORE_INDEX:
+            return Scompile_store_index(ast, compiler);
         default:
             struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
             Serror_syntax_error(error);
@@ -183,9 +106,23 @@ Scompile_identifier
 
     int address = find_scope(compiler, ast->lexeme);
 
+    if (compiler->is_in_func) {
+        address = find_scope_local(compiler, ast->lexeme);
+        if (address == NOT_FOUND) {
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+            Serror_syntax_error(error);
+        }
+
+        PUSH(code, LOAD_GLOBAL);
+        PUSH(code, address);
+        return code;
+    }
+
     if (address == NOT_FOUND) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
-        Serror_syntax_error(error);
+        if (address == NOT_FOUND) {
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+            Serror_syntax_error(error);
+        }
     } else {
         PUSH(code, LOAD_GLOBAL);
         PUSH(code, address);
@@ -366,7 +303,7 @@ Scompile_body_func
 
     int args_address = 0;
     for (int i = 0; i < args_size; i++) {
-        add_scope(compiler, args[i], args_address++, 0);
+        add_scope_local(compiler, args[i], args_address++, 0);
     }
 
     for (int i = 0; i < block_size; i++) {
@@ -376,7 +313,7 @@ Scompile_body_func
 
     int address = 0;
     for (int i = 0; i < args_size; i++) {
-        remove_scope(compiler, args[i]);
+        remove_scope_local(compiler, args[i]);
     }
 
     compiler->is_in_func = 0;
@@ -446,6 +383,124 @@ Scompile_if
 
     PUSH(code, ADD_LABEL);
     PUSH(code, end_address);
+
+    return code;
+}
+
+struct Scode*
+Scompile_while
+(struct Sast *ast, struct Scompiler *compiler) {
+    compiler->is_in_loop = 1;
+
+    int while_start = creat_label(compiler);
+    int while_end = creat_label(compiler);
+
+    Scompile_add_loop(compiler, while_start, while_end);
+
+    struct Scode *conditon = Scompile(ast->condition, compiler);
+    struct Scode *while_body = Scompile_block(ast->body, compiler, ast->body_size);
+
+    Scompile_pop_loop(compiler);
+
+    compiler->is_in_loop = 0;
+
+    struct Scode *code = Scode_new();
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, while_start);
+
+    INSERT(code, conditon);
+
+    PUSH(code, POP_JUMP_IF_FALSE);
+    PUSH(code, while_end);
+
+    INSERT(code, while_body);
+
+    PUSH(code, JUMP_TO);
+    PUSH(code, while_start);
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, while_end);
+
+    return code;
+}
+
+
+struct Scode*
+Scompile_break
+(struct Sast *ast, struct Scompiler *compiler) {
+    if (!compiler->is_in_loop) {
+        struct Serror *error = Serror_set("COMPILER_ERROR", "Break outside of loop", ast->lexer);
+        Serror_syntax_error(error);
+    }
+
+    struct Scode *code = Scode_new();
+    struct loop_stack loop = Scompile_get_loop(compiler);
+    int address = loop.break_label;
+    PUSH(code, JUMP_TO);
+    PUSH(code, address);
+    return code;
+}
+
+struct Scode*
+Scompile_continue
+(struct Sast *ast, struct Scompiler *compiler) {
+    if (!compiler->is_in_loop) {
+        struct Serror *error = Serror_set("COMPILER_ERROR", "Continue outside of loop", ast->lexer);
+        Serror_syntax_error(error);
+    }
+
+    struct Scode *code = Scode_new();
+    struct loop_stack loop = Scompile_get_loop(compiler);
+    int address = loop.continue_label;
+    PUSH(code, JUMP_TO);
+    PUSH(code, address);
+    return code;
+}
+
+struct Scode*
+Scompile_list
+(struct Sast *ast, struct Scompiler *compiler) {
+    Sreverse((void **) ast->list, ast->list_count);
+    struct Scode *code = Scompile_block(ast->list, compiler, ast->list_count);
+
+    PUSH(code, BUILD_LIST);
+    PUSH(code, ast->list_count);
+
+    return code;
+}
+
+
+struct Scode*
+Scompile_extract
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *extract = Scompile(ast->extract_obj, compiler);
+    struct Scode *value = Scompile(ast->extract_value, compiler);
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, extract);
+    INSERT(code, value);
+
+    PUSH(code, LOAD_ITEM);
+
+    return code;
+}
+
+struct Scode*
+Scompile_store_index
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *value = Scompile(ast->extract_value, compiler);
+    struct Scode *obj = Scompile(ast->extract_obj->extract_obj, compiler);
+    struct Scode *index = Scompile(ast->extract_obj->extract_value, compiler);
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, obj);
+    INSERT(code, index);
+    INSERT(code, value);
+
+    PUSH(code, STORE_ITEM);
 
     return code;
 }

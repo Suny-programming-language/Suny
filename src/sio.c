@@ -1,0 +1,21 @@
+#include "sio.h"
+
+int Sio_write(struct Sobj *obj) {
+    if (obj->type == STRING_OBJ) {
+        printf("%s", obj->f_type->f_str->string);
+    } else if (obj->type == NUMBER_OBJ) {
+        printf("%g", obj->value->value);
+    } else if (obj->type == LIST_OBJ) {
+        printf("[");
+        for (int i = 0; i < obj->f_type->f_list->count; i++) {
+            struct Sobj *item = obj->f_type->f_list->array[i];
+            Sio_write(item);
+            if (i < obj->f_type->f_list->count - 1) {
+                printf(", ");
+            }
+        }
+        printf("]");
+    }
+
+    return 0;
+}

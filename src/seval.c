@@ -3,6 +3,9 @@
 struct Sobj *
 Seval_add
 (struct Sobj *obj1, struct Sobj *obj2) {
+#ifdef DEBUG
+    printf("[seval.c] struct Sobj *Seval_add(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
+#endif
     if (obj1->type == STRING_OBJ && obj2->type == STRING_OBJ) {
         struct Sstr *str1 = obj1->f_type->f_str;
         struct Sstr *str2 = obj2->f_type->f_str;
@@ -23,6 +26,9 @@ Seval_sub
 struct Sobj *
 Seval_mul
 (struct Sobj *obj1, struct Sobj *obj2) {
+#ifdef DEBUG
+    printf("[seval.c] struct Sobj *Seval_mul(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
+#endif
     if (obj1->type == STRING_OBJ) {
         struct Sstr *str = obj1->f_type->f_str;
         struct Sstr *sstr = Sstr_mul(str, obj2->value->value);
@@ -37,6 +43,9 @@ Seval_mul
 struct Sobj *
 Seval_div
 (struct Sobj *obj1, struct Sobj *obj2) {
+#ifdef DEBUG
+    printf("[seval.c] struct Sobj *Seval_div(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
+#endif
     return Sobj_set_int(obj1->value->value / obj2->value->value);
 }
 

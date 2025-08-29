@@ -4,7 +4,7 @@ struct SZIO*
 Sbuff_new(void) {
     struct SZIO *zio = malloc(sizeof(struct SZIO));
 
-    zio->file = NULL;
+    zio->file = "stdin";
     zio->buffer = NULL;
     zio->size = 0;
 
@@ -36,7 +36,7 @@ Sbuff_read_file
     long fsize = ftell(fp);
     rewind(fp);
 
-    struct SZIO *zio = (struct SZIO*)malloc(sizeof(struct SZIO));
+    struct SZIO *zio = Sbuff_new();
     if (!zio) {
         fclose(fp);
         return NULL;

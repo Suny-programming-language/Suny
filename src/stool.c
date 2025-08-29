@@ -154,7 +154,6 @@ Sadd_2_char(char c1, char c2) {
     return buffer;
 }
 
-
 char*
 Sadd_3_char(char c1, char c2, char c3) {
     char* buffer = (char*) malloc(sizeof(char) * 3);

@@ -66,8 +66,14 @@ Scode_print
                 i += 4;
 
                 break;
+            case LOAD_ITEM:
+                printf("LOAD_ITEM\n");
+                break;
             case BINARY_ADD:
                 printf("BINARY_ADD\n");
+                break;
+            case STORE_ITEM:
+                printf("STORE_ITEM\n");
                 break;
             case BINARY_SUB:
                 printf("BINARY_SUB\n");
@@ -114,6 +120,17 @@ Scode_print
                 unsigned char address = code->code[i + 1];
 
                 printf("%d\n", address);
+
+                i += 1;
+                break;
+            }
+
+            case BUILD_LIST: {
+                printf("BUILD_LIST ");
+
+                unsigned char count = code->code[i + 1];
+
+                printf("%d\n", count);
 
                 i += 1;
                 break;

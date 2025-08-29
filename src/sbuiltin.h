@@ -1,10 +1,10 @@
 #ifndef SBUILTIN_H
 #define SBUILTIN_H
 
-#include "sobj.h"
-#include "suny.h"
 #include "scompile.h"
 #include "stool.h"
+#include "slist.h"
+#include "sio.h"
 
 struct Sframe;
 
@@ -33,6 +33,12 @@ Sc_api_func_set
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame);
 
 SUNY_API struct Sobj* Sexit(struct Sframe* frame);
+
+SUNY_API struct Sobj* Ssize(struct Sframe* frame);
+
+SUNY_API struct Sobj* Spush(struct Sframe* frame);
+
+SUNY_API struct Sobj* Spop(struct Sframe* frame);
 
 SUNY_API struct Sobj *Sload_dll(struct Sframe *frame);
 

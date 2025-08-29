@@ -38,11 +38,14 @@ int main(int argc, char** argv) {
 
     char* file_name = argv[1];
 
-    char* buff = Sbuff_read_file(file_name)->buffer;
+    struct SZIO* zio = Sbuff_read_file(file_name);
 
     struct Sframe *frame = Sframe_new();
-    
-    struct Slexer *lexer = Slexer_init(buff);
+
+    struct Slexer *lexer = Slexer_init(zio->buffer);
+
+    lexer->file = zio;
+
     struct Sparser *parser = Sparser_init(lexer);
     struct Sast *ast = Sparser_parse_program(parser);
 
@@ -61,7 +64,9 @@ int main(int argc, char** argv) {
     //     printf("label: %d %d\n", pos.address, pos.indexof);
     // }
 
-    // Scode_print(code);
+#ifdef DEBUG
+    Scode_print(code);
+#endif
 
     frame = Svm_run_program(frame);
 

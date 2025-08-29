@@ -53,4 +53,9 @@
 #define EXIT_PROGRAM '\x32'
 #define STOP_PROGRAM '\x33'
 
+#define LOAD_ITEM '\x34'
+#define STORE_ITEM '\x35'
+
+#define BUILD_LIST '\x36'
+
 #endif 

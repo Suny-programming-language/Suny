@@ -16,6 +16,8 @@ Slexer_new(void) {
     lexer->line = 1;
     lexer->column = 1;
 
+    lexer->file = Sbuff_new();
+
     return lexer;
 }
 
