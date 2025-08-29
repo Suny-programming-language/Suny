@@ -1,90 +1,108 @@
-# ☀️ Suny programming language ☀️
+# ☀️ Suny Programming Language
 
-**Suny** is a lightweight, free, and open-source programming language written in C, inspired by the simplicity of Lua and Python. It provides clean syntax, dynamic typing, powerful standard libraries, and a fast interpreter — ideal for beginners and language creators alike.
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/platform-cross--platform-lightgrey)
 
----
-
-## 🚀 Features
-
-- 🔹 Python-like clean syntax
-- 🔹 First-class functions
-- 🔹 Built-in math & list support
-- 🔹 Dynamic variables and control flow
-- 🔹 Interactive REPL + `.suny` file runner
-- 🔹 C++ API to embed or customize **Suny**
+**Suny** is a lightweight, free, and open-source programming language written in **C**, inspired by the simplicity of **Lua** and **Python**.  
+It provides clean syntax, dynamic typing, powerful standard libraries, and a fast interpreter — ideal for **beginners**, **scripting**, and **language creators**.
 
 ---
 
-## 🔨 Build from source
+## ✨ Features
 
-- 🔹 Download the repository
-- 🔹 Navigate to the `Suny-main` folder
-- 🔹 run `make` to build `./bin/suny`
+- 🔹 Python-like clean syntax  
+- 🔹 Dynamic variables & control flow  
+- 🔹 First-class functions  
+- 🔹 Built-in math & list support  
+- 🔹 Interactive REPL + `.suny` file runner  
+- 🔹 C API to embed or extend Suny  
 
 ---
 
-## ⚙️ Getting Started
+## 🔨 Build from Source
 
-**Prerequisites**
+### Prerequisites
+- C Compiler (**GCC / Clang / MSVC**)  
+- **CMake 3.12+** or GNU Make  
 
-* C Compiler (MSVC / GCC / Clang)
-* CMake 3.12+
-
-**Running Suny**
-
-```
-suny main.suny          # run .suny file
-```
-
-## 🧠 Syntax Guide
-
-**Output**
-```
-print("hello " + "world")
+### Build & Run
+```bash
+git clone https://github.com/dinhsonhai132/Suny.git
+cd Suny
+make                    # build Suny
+./suny                  # run repl
+./suny main.suny        # run file
 ```
 
+---
 
-**Variable**
+## 🚀 Getting Started
+
+### Hello World
+```suny
+print("Hello, Suny!")
 ```
+
+### Variables
+```suny
 let a = "hello"
 print(a)
 ```
 
-**Function**
-```
+### Functions
+```suny
 function add(a, b) do
     return a + b
 end
+
+print(add(3, 5))
 ```
 
-**while loop**
-```
+### While Loop
+```suny
 a = 0
-while a < 100 do
+while a < 5 do
     a = a + 1
     print(a)
 end
 ```
 
-**if statement**
-```
-a = 0
-if a == 0 then
-    print(a)
+### If Statement
+```suny
+x = 10
+if x > 5 then
+    print("bigger than 5")
 end
 ```
 
-**list**
-```
+### Lists
+```suny
 a = [1, 2, ["hello", "hi"]]
 a[2][0] = "hi"
 print(a)
 ```
 
-## Credit 👨
+## 🤝 Contributing
 
-**My youtube: https://www.youtube.com/@haidinhson** 
+Contributions are welcome! 🎉  
+- Fork the project  
+- Create your feature branch (`git checkout -b feature/awesome`)  
+- Commit changes (`git commit -m 'Add awesome feature'`)  
+- Push to branch (`git push origin feature/awesome`)  
+- Open a Pull Request  
 
-**My Github: https://github.com/dinhsonhai132**
+---
 
-**My gmail: dinhsonhai440@gmail.com**
+## 📜 License
+
+**Suny** is licensed under the [MIT License](LICENSE).  
+Free to use, modify, and distribute.
+
+---
+
+## 👨 Author
+
+- **YouTube**: [@haidinhson](https://www.youtube.com/@haidinhson)  
+- **GitHub**: [dinhsonhai132](https://github.com/dinhsonhai132)  
+- **Email**: dinhsonhai440@gmail.com  
