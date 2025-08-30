@@ -52,3 +52,18 @@ int SunyInstallLib
     
     return 0;
 }
+
+int Sunyloadlib_to_frame
+(
+    struct Sframe *frame,
+    int address,
+    int args_size,
+    char* name,
+    void* func
+)
+
+{
+    struct Sc_api_func* api_func = Sc_api_func_set(func, name, address, args_size);
+    Sframe_load_c_api_func(frame, api_func->func, api_func->address, api_func->name, api_func->args_size);
+    return 0;
+}

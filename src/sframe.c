@@ -21,7 +21,12 @@ Sframe_new
     frame->f_stack_index = 0;
     frame->f_stack_size = MAX_FRAME_SIZE;
 
+    frame->f_const_index = 0;
+    frame->f_const_size = MAX_FRAME_SIZE;
+
     frame->f_stack = calloc(frame->f_stack_size, sizeof(struct Sobj *));
+
+    frame->f_const = calloc(frame->f_const_size, sizeof(struct Sobj *));
 
     frame->f_locals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
     frame->f_globals = calloc(MAX_FRAME_SIZE, sizeof(struct Sobj *));
@@ -160,14 +165,28 @@ Sframe_load_global
 int
 Sframe_store_local
 (struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) {
+#ifdef DEBUG
+    printf("[frame.c] int Sframe_store_local(struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) (building...)\n");
+#endif
     struct Sobj *local = Sobj_new();
 
     local->type = LOCAL_OBJ;
     local->f_value = obj;
     local->address = address;
 
+    for (int i = 0; i < frame->f_locals_size; i++) {
+        if (frame->f_locals[i]->address == address) {
+            frame->f_locals[i] = local;
+            return 0;
+        }
+    }
+
     frame->f_locals[frame->f_locals_index++] = local;
     frame->f_locals_size++;
+
+#ifdef DEBUG
+    printf("[frame.c] int Sframe_store_local(struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) (done)\n");
+#endif
 
     return 0;
 }
@@ -175,6 +194,10 @@ Sframe_store_local
 struct Sobj *
 Sframe_load_local
 (struct Sframe *frame, int address) {
+#ifdef DEBUG
+    printf("[frame.c] struct Sobj *Sframe_load_local(struct Sframe *frame, int address) (building...)\n");
+#endif
+
     struct Sobj *load = NULL;
     
     for (int i = 0; i < frame->f_locals_size; i++) {
@@ -185,10 +208,23 @@ Sframe_load_local
     }
 
     if (!load) {
-        printf("Error frame.c: local not found address: %d\n", address);
-        SUNY_BREAK_POINT;
-        return NULL;
+        for (int i = 0; i < frame->f_globals_size; i++) {
+            if (frame->f_globals[i]->address == address) {
+                load = frame->f_globals[i];
+                break;
+            }
+        }
+
+        if (!load) {
+            printf("Error frame.c: local not found address: %d\n", address);
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
     }
+
+#ifdef DEBUG
+    printf("[frame.c] struct Sobj *Sframe_load_local(struct Sframe *frame, int address) (done)\n");
+#endif
 
     return load;
 }
@@ -267,4 +303,29 @@ Sframe_find_c_api_func
     printf("Error: function not found\n");
     SUNY_BREAK_POINT;
     return NULL;
-} 
+}
+
+int
+Sframe_store_const
+(struct Sframe *frame, struct Sobj *obj) {
+    if (frame->f_const_index >= frame->f_const_size) {
+        frame->f_const_size *= 2;
+        frame->f_const = realloc(frame->f_const, frame->f_const_size * sizeof(struct Sobj *));
+    }
+
+    frame->f_const[frame->f_const_index++] = obj;
+}
+
+struct Sobj *
+Sframe_load_const
+(struct Sframe *frame, int address) {
+    for (int i = 0; i < frame->f_const_size; i++) {
+        if (frame->f_const[i]->address == address) {
+            return frame->f_const[i];
+        }
+    }
+
+    printf("Error frame.c: const not found address: %d\n", address);
+    SUNY_BREAK_POINT;
+    return NULL;
+}

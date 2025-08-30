@@ -129,6 +129,18 @@ Sparser_parse_primary_expression
         return node;
     }
 
+    if (parser->token->type == TRUE_T) {
+        struct Sast *node = AST(AST_TRUE, 1, NULL);
+        Sast_set_line(parser->lexer, node);
+        return node;
+    }
+
+    if (parser->token->type == FALSE_T) {
+        struct Sast *node = AST(AST_FALSE, 0, NULL);
+        Sast_set_line(parser->lexer, node);
+        return node;
+    }
+
     if (parser->token->type == IDENTIFIER) {
         parser->next_token = Slexer_look_ahead(parser->lexer);
 

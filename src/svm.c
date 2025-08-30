@@ -122,6 +122,14 @@ Svm_run_program(struct Sframe *frame) {
 
             else if (op == PRINT) {
                 frame = Svm_evaluate_PRINT(frame);
+            } 
+
+            else if (op == LOAD_TRUE) {
+                frame = Svm_evaluate_LOAD_TRUE(frame);
+            }
+
+            else if (op == LOAD_FALSE) {
+                frame = Svm_evaluate_LOAD_FALSE(frame);
             }
 
             op = get_next_code(frame);
@@ -154,6 +162,10 @@ Svm_run_call_context(struct Scall_context *context) {
         if (op == END_FUNCTION) {
             done = 1;
         }
+        
+        else if (op == ADD_LABEL) {
+            op = get_next_code(f_frame);
+        }
 
         else if (IS_BINARY_OPER(op)) {
             f_frame = Svm_evalutate_BINARY_OPER(f_frame, op);
@@ -174,7 +186,7 @@ Svm_run_call_context(struct Scall_context *context) {
         }
 
         else if (op == LOAD_GLOBAL) {
-            f_frame = Svm_evalutate_LOAD_GLOBAL(f_frame);
+            f_frame = Svm_evaluate_LOAD_LOCAL(f_frame);
         }
 
         else if (op == FUNCTION_CALL) {
@@ -186,7 +198,39 @@ Svm_run_call_context(struct Scall_context *context) {
         }
 
         else if (op == STORE_GLOBAL) {
-            f_frame = Svm_evalutate_STORE_GLOBAL(f_frame);
+            f_frame = Svm_evaluate_STORE_LOCAL(f_frame);
+        }
+
+        else if (op == JUMP_TO) {
+            f_frame = Svm_evaluate_JUMP_TO(f_frame);
+        }
+
+        else if (op == POP_JUMP_IF_FALSE) {
+            f_frame = Svm_evaluate_POP_JUMP_IF_FALSE(f_frame);
+        }
+
+        else if (op == BUILD_LIST) {
+            f_frame = Svm_evaluate_BUILD_LIST(f_frame);
+        }
+
+        else if (op == LEN_OF) {
+            f_frame = Svm_evaluate_LEN_OF(f_frame);
+        }
+
+        else if (op == LOAD_ITEM) {
+            f_frame = Svm_evaluate_LOAD_ITEM(f_frame);
+        }
+
+        else if (op == STORE_ITEM) {
+            f_frame = Svm_evaluate_STORE_ITEM(f_frame);
+        }
+
+        else if (op == LOAD_TRUE) {
+            f_frame = Svm_evaluate_LOAD_TRUE(f_frame);
+        }
+
+        else if (op == LOAD_FALSE) {
+            f_frame = Svm_evaluate_LOAD_FALSE(f_frame);
         }
 
         op = get_next_code(f_frame);
@@ -261,6 +305,10 @@ Svm_evaluate_FUNCTION_CALL
 
     struct Scall_context *context = Scall_context_new();
     struct Sframe *f_frame = context->frame;
+    f_frame->f_label_map = Slabel_map_set_program(f_obj->f_type->f_func->code);
+
+    f_frame->f_globals = frame->f_globals;
+    f_frame->f_globals_size = frame->f_globals_size;
 
     context->main_frame = frame;
     context->ret_obj = Sobj_set_int(0);
@@ -271,9 +319,9 @@ Svm_evaluate_FUNCTION_CALL
     for (int i = 0; i < f_obj->f_type->f_func->args_size; ++i) {
         struct Sobj* value = Sframe_pop(frame);
 
-        Sframe_store_global(f_frame, address++, value, LOCAL_OBJ);
+        Sframe_store_local(f_frame, address++, value, LOCAL_OBJ);
     }
-
+    
     Svm_run_call_context(context);
 
 #ifdef DEBUG
@@ -566,6 +614,62 @@ Svm_evaluate_LEN_OF
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_LOAD_TRUE
+(struct Sframe *frame) {
+    struct Sobj *obj = Sobj_set_int(1);
+    obj->type = TRUE_OBJ;
+    PUSH_OBJ(obj);
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_LOAD_FALSE
+(struct Sframe *frame) {
+    struct Sobj *obj = Sobj_set_int(0);
+    obj->type = FALSE_OBJ;
+    PUSH_OBJ(obj);
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_LOAD_LOCAL
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_LOCAL(struct Sframe *frame) (building...)\n");
+#endif
+
+    int address = get_next_code(frame);
+    struct Sobj *obj = Sframe_load_local(frame, address);
+
+    PUSH_OBJ(obj->f_value);
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_LOCAL(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_STORE_LOCAL
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_LOCAL(struct Sframe *frame) (building...)\n");
+#endif
+    
+    struct Sobj *obj = Sframe_pop(frame);
+    int address = get_next_code(frame);
+
+    Sframe_store_local(frame, address, obj, LOCAL_OBJ);
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_LOCAL(struct Sframe *frame) (done)\n");
 #endif
 
     return frame;

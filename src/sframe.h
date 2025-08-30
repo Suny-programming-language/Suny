@@ -35,6 +35,9 @@ struct Sframe {
     int f_stack_index;
     int f_stack_size;
 
+    int f_const_size;
+    int f_const_index;
+
     int f_code_index;
 
     struct Sobj *f_func;
@@ -48,6 +51,8 @@ struct Sframe {
 
     struct Sobj **f_locals;
     struct Sobj **f_globals;
+    
+    struct Sobj **f_const;
 
     struct Sobj **f_stack;
 
@@ -97,6 +102,14 @@ Sframe_store_global
 
 struct Sobj *
 Sframe_load_global
+(struct Sframe *frame, int address);
+
+int
+Sframe_store_const
+(struct Sframe *frame, struct Sobj *obj);
+
+struct Sobj *
+Sframe_load_const
 (struct Sframe *frame, int address);
 
 int

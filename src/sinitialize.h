@@ -29,4 +29,13 @@ int SunyInstallLib
     struct Scompiler *compiler
 );
 
+int Sunyloadlib_to_frame
+(
+    struct Sframe *frame,
+    int address,
+    int args_size,
+    char* name,
+    void* func
+);
+
 #endif

@@ -60,4 +60,7 @@
 
 #define LEN_OF '\x37'
 
+#define LOAD_TRUE '\x38'
+#define LOAD_FALSE '\x39'
+
 #endif 

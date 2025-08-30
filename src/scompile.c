@@ -42,6 +42,16 @@ Scompile
             return Scompile_store_index(ast, compiler);
         case AST_FOR:
             return Scompile_for(ast, compiler);
+        case AST_TRUE: {
+            struct Scode *code = Scode_new();
+            PUSH(code, LOAD_TRUE);
+            return code;
+        }    
+        case AST_FALSE: {
+            struct Scode *code = Scode_new();
+            PUSH(code, LOAD_FALSE);
+            return code;
+        }
         default:
             struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
             Serror_syntax_error(error);
@@ -111,8 +121,15 @@ Scompile_identifier
     if (compiler->is_in_func) {
         address = find_scope_local(compiler, ast->lexeme);
         if (address == NOT_FOUND) {
-            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
-            Serror_syntax_error(error);
+            address = find_scope(compiler, ast->lexeme);
+            if (address == NOT_FOUND) {
+                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+                Serror_syntax_error(error);
+            }
+
+            PUSH(code, LOAD_GLOBAL);
+            PUSH(code, address);
+            return code;
         }
 
         PUSH(code, LOAD_GLOBAL);
@@ -156,15 +173,41 @@ Scompile_literal
 struct Scode*
 Scompile_assignment
 (struct Sast *ast, struct Scompiler *compiler) {
-    struct Scope scope = new_scope();
 
     struct Scode *code = Scode_new();
     struct Scode *value = Scompile(ast->var_value, compiler);
+
+    if (compiler->is_in_func) {
+        int found = find_scope_local(compiler, ast->var_name);
+        int address = found;
+
+        if (found == NOT_FOUND) {
+            address = ++compiler->address;
+            add_scope_local(compiler, ast->var_name, address, 0);
+
+            INSERT(code, value);
+
+            PUSH(code, STORE_GLOBAL);
+            PUSH(code, address);
+        } else {
+            INSERT(code, value);
+
+            PUSH(code, STORE_GLOBAL);
+            PUSH(code, address);
+        }
+
+        return code;
+    }
+
     int address = ++compiler->address;
 
     int found = find_scope(compiler, ast->var_name);
 
-    address = add_scope(compiler, ast->var_name, address, 0);
+    if (found != NOT_FOUND) {
+        address = found;
+    } else {
+        address = add_scope(compiler, ast->var_name, address, 0);
+    }
 
     INSERT(code, value);
 
@@ -511,13 +554,22 @@ struct Scode*
 Scompile_for
 (struct Sast *ast, struct Scompiler *compiler) {
     int iden = ++compiler->address;
+
     int loop_start = creat_label(compiler);
     int loop_end = creat_label(compiler);
+
+    compiler->is_in_loop = 1;
+
+    Scompile_add_loop(compiler, loop_start, loop_end);
 
     add_scope(compiler, ast->lexeme, iden, 0);
 
     struct Scode *for_body = Scompile_block(ast->block, compiler, ast->block_size);
     struct Scode *iter = Scompile(ast->expr, compiler);
+
+    compiler->is_in_loop = 0;
+
+    Scompile_pop_loop(compiler);
 
     struct Scode *code = Scode_new();
 

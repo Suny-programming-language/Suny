@@ -231,6 +231,23 @@ Slexer_tokenize_keyword
 
     enum Stok_t tok = get_1_char(c1);
 
+    char c2 = lexer->cur;
+    if (is_2_char(c1, c2)) {
+        current(lexer);
+        tok = get_2_char(c1, c2);
+
+        up(lexer);
+        current(lexer);
+
+        if (tok == NULL_TOK) {
+            struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid keyword token", lexer);
+            Serror_syntax_error(error);
+            return NULL_TOKEN;
+        }
+
+        return TOKEN(tok, 0, NULL);
+    }
+
     if (tok == NULL_TOK) {
         struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid keyword token", lexer);
         Serror_syntax_error(error);

@@ -13,6 +13,10 @@ int Sio_write(struct Sobj *obj) {
             }
         }
         printf("]");
+    } else if (obj->type == TRUE_OBJ) {
+        printf("true");
+    } else if (obj->type == FALSE_OBJ) {
+        printf("false");
     } else {
         printf("%g", obj->value->value);
     }

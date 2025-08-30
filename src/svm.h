@@ -85,4 +85,20 @@ struct Sframe *
 Svm_evaluate_LEN_OF
 (struct Sframe *frame);
 
+struct Sframe *
+Svm_evaluate_LOAD_TRUE
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_LOAD_FALSE
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_LOAD_LOCAL
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_STORE_LOCAL
+(struct Sframe *frame);
+
 #endif // SVM_H
