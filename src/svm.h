@@ -81,4 +81,8 @@ struct Sframe *
 Svm_evaluate_STORE_ITEM
 (struct Sframe *frame);
 
+struct Sframe *
+Svm_evaluate_LEN_OF
+(struct Sframe *frame);
+
 #endif // SVM_H

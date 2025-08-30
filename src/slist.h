@@ -19,4 +19,10 @@ struct Slist* Slist_change_item(struct Slist* list, int index, struct Sobj* obj)
 
 struct Slist* Slist_pop(struct Slist* list);
 
+struct Slist* Slist_append(struct Slist* list1, struct Slist* list2);
+
+struct Slist* Slist_mul(struct Slist* list1, int num);
+
+struct Slist* Slist_range(int start, int end);
+
 #endif

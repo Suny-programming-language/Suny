@@ -16,7 +16,10 @@ SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
 
     Sio_write(obj);
 
+    printf("\n");
+
     Sframe_push(frame, Sobj_set_int(0));
+
 
     return NULL;
 }
@@ -76,4 +79,19 @@ SUNY_API struct Sobj* Spop(struct Sframe* frame) {
     Slist_pop(obj->f_type->f_list);
 
     return obj;
+}
+
+SUNY_API struct Sobj *Srange(struct Sframe *frame) {
+    struct Sobj *end = Sframe_pop(frame);
+    struct Sobj *start = Sframe_pop(frame);
+
+    int start_value = start->value->value;
+    int end_value = end->value->value;
+
+    struct Slist *list = Slist_range(start_value, end_value);
+    struct Sobj *obj = Sobj_make_list(list);
+
+    Sframe_push(frame, obj);
+
+    return NULL;
 }

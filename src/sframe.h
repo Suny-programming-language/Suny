@@ -3,6 +3,7 @@
 
 #include "sbuiltin.h"
 #include "slabel.h"
+#include "sgc.h"
 
 #define POP_OBJ() Sframe_pop(frame)
 

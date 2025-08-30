@@ -40,6 +40,8 @@ Scompile
             return Scompile_extract(ast, compiler);
         case AST_STORE_INDEX:
             return Scompile_store_index(ast, compiler);
+        case AST_FOR:
+            return Scompile_for(ast, compiler);
         default:
             struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown AST type", ast->lexer);
             Serror_syntax_error(error);
@@ -501,6 +503,86 @@ Scompile_store_index
     INSERT(code, value);
 
     PUSH(code, STORE_ITEM);
+
+    return code;
+}
+
+struct Scode*
+Scompile_for
+(struct Sast *ast, struct Scompiler *compiler) {
+    int iden = ++compiler->address;
+    int loop_start = creat_label(compiler);
+    int loop_end = creat_label(compiler);
+
+    add_scope(compiler, ast->lexeme, iden, 0);
+
+    struct Scode *for_body = Scompile_block(ast->block, compiler, ast->block_size);
+    struct Scode *iter = Scompile(ast->expr, compiler);
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, iter);
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, __iter__a);
+
+    PUSH(code, PUSH_FLOAT);
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, __i__a);
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, loop_start);
+
+    PUSH(code, LOAD_GLOBAL);
+    PUSH(code, __i__a);
+
+    PUSH(code, LOAD_GLOBAL);
+    PUSH(code, __iter__a);
+
+    PUSH(code, LEN_OF);
+
+    PUSH(code, BINARY_SMALLER);
+
+    PUSH(code, POP_JUMP_IF_FALSE);
+    PUSH(code, loop_end);
+
+    PUSH(code, LOAD_GLOBAL);
+    PUSH(code, __iter__a);
+
+    PUSH(code, LOAD_GLOBAL);
+    PUSH(code, __i__a);
+
+    PUSH(code, LOAD_ITEM);
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, iden);
+
+    INSERT(code, for_body);
+
+    PUSH(code, LOAD_GLOBAL);
+    PUSH(code, __i__a);
+
+    PUSH(code, PUSH_FLOAT);
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+    PUSH(code, '\x80');
+    PUSH(code, '\x3F');
+
+    PUSH(code, BINARY_ADD);
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, __i__a);
+
+    PUSH(code, JUMP_TO);
+    PUSH(code, loop_start);
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, loop_end);
 
     return code;
 }

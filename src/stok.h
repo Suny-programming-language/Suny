@@ -54,7 +54,7 @@ enum Stok_t {
     LET,
     IF, ELSE, THEN,
     WHILE, DO, END, BREAK, CONTINUE,
-    FOR,
+    FOR, IN_T,
     FUNCTION, RETURN,
 
     NULL_TOK,

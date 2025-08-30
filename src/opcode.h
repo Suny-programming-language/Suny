@@ -58,4 +58,6 @@
 
 #define BUILD_LIST '\x36'
 
+#define LEN_OF '\x37'
+
 #endif 

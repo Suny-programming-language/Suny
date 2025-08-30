@@ -87,6 +87,14 @@ Sparser_parse(struct Sparser *parser) {
         return node;
     }
 
+    if (parser->token->type == DO) {
+        return Sparser_parse_block(parser);
+    }
+
+    if (parser->token->type == FOR) {
+        return Sparser_parse_for(parser);
+    }
+
     if (parser->token->type == FUNCTION) {
         return Sparser_parse_function(parser);
     }
@@ -745,6 +753,43 @@ Sparser_parse_store_index
     Sast_expected_expression(expr);
 
     node->extract_value = expr;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_for
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_FOR, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type != IDENTIFIER) {
+        Serror_parser("Expected identifier", parser->lexer);
+        return NULL;
+    }
+
+    node->lexeme = parser->token->lexeme;
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type != IN_T) {
+        Serror_parser("Expected 'in'", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *expr = Sparser_parse(parser);
+    Sast_set_line(parser->lexer, expr);
+    Sast_expected_expression(expr);
+
+    node->expr = expr;
+
+    struct  Sast *block = Sparser_parse_block(parser);
+
+    node->block = block->block;
+    node->block_size = block->block_size;
 
     return node;
 }

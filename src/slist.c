@@ -47,3 +47,45 @@ struct Slist* Slist_pop(struct Slist* list) {
     
     return list;
 }
+
+struct Slist* Slist_append(struct Slist* list1, struct Slist* list2) {
+    struct Slist* list = Slist_new();
+
+    for (int i = 0; i < list1->count; i++) {
+        Slist_add(list, list1->array[i]);
+    }
+
+    for (int i = 0; i < list2->count; i++) {
+        Slist_add(list, list2->array[i]);
+    }
+
+    return list;
+}
+
+struct Slist* Slist_mul(struct Slist* list1, int num) {
+    struct Slist* list = Slist_new();
+
+    for (int i = 0; i < num; i++) {
+        for (int j = 0; j < list1->count; j++) {
+            Slist_add(list, list1->array[j]);
+        }
+    }
+
+    return list;
+}
+
+struct Slist* Slist_range(int start, int end) {
+    struct Slist* list = Slist_new();
+
+    if (start > end) {
+        for (int i = end; i < start; i++) {
+            Slist_add(list, Sobj_set_int(i));
+        }
+    } else {
+        for (int i = start; i < end; i++) {
+            Slist_add(list, Sobj_set_int(i));
+        }
+    }
+
+    return list;
+}

@@ -75,6 +75,9 @@ Scode_print
             case STORE_ITEM:
                 printf("STORE_ITEM\n");
                 break;
+            case LEN_OF:
+                printf("LEN_OF\n");
+                break;
             case BINARY_SUB:
                 printf("BINARY_SUB\n");
                 break;
@@ -88,6 +91,15 @@ Scode_print
                 i += 1;
                 break;
             }
+
+            case JUMP_TO: {
+                printf("JUMP_TO ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+            }
+
             case POP_JUMP_IF_FALSE: {
                 printf("POP_JUMP_IF_FALSE ");
 

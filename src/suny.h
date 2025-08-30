@@ -9,6 +9,12 @@
 
 #include "opcode.h"
 
+#define __iter__ "__iter__"
+#define __iter__a 32
+
+#define __i__ "__i__"
+#define __i__a 33
+
 #define SUNY_BREAK_POINT while(1)
 
 #define SUNY_API __declspec(dllexport)

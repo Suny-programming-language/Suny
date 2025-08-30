@@ -85,6 +85,10 @@ Scompile_store_index
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_for
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);

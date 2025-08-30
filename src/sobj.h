@@ -3,6 +3,9 @@
 
 #include "suny.h"
 #include "stype.h"
+#include "sgc.h"
+
+#define GC_HEAD struct Sgarbarge_obj* gc
 
 #define MAX_FRAME_SIZE 1024
 
@@ -38,6 +41,8 @@ struct Svalue {
 };
 
 struct Sobj {
+    GC_HEAD;
+
     enum Sobj_t type;
     struct Svalue* value;
     

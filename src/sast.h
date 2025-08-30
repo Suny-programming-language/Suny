@@ -61,6 +61,7 @@ struct Sast {
     char *lexeme;
 
     struct Sast *print_value;
+    struct Sast *expr;
 
     struct Sast *left;
     struct Sast *right;

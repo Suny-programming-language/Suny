@@ -92,6 +92,10 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evaluate_BUILD_LIST(frame);
             }
 
+            else if (op == LEN_OF) {
+                frame = Svm_evaluate_LEN_OF(frame);
+            }
+
             else if (op == POP_JUMP_IF_FALSE) {
                 frame = Svm_evaluate_POP_JUMP_IF_FALSE(frame);
             }
@@ -546,6 +550,23 @@ Svm_evaluate_STORE_ITEM
     int index_value = index->value->value;
 
     list->f_type->f_list->array[index_value] = value;
+
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_LEN_OF
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (building...)\n");
+#endif
+    struct Sobj *list = Sframe_pop(frame);
+
+    Sframe_push(frame, Sobj_set_int(list->f_type->f_list->count));
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (done)\n");
+#endif
 
     return frame;
 }

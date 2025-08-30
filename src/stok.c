@@ -122,6 +122,8 @@ Stok_get_identifier
         return DO;
     } else if (strcmp(lexeme, "for") == 0) {
         return FOR;
+    } else if (strcmp(lexeme, "in") == 0) {
+        return IN_T;
     } else if (strcmp(lexeme, "not") == 0) {
         return NOT;
     } else if (strcmp(lexeme, "is") == 0) {

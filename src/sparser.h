@@ -105,6 +105,10 @@ Sparser_parse_list
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_for
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_extract
 (struct Sparser *parser, struct Sast* extract_obj);
 

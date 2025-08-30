@@ -48,6 +48,7 @@ int SunyInstallLib
     SunyInitialize(frame, compiler, 23, "push", 2, Spush);
     SunyInitialize(frame, compiler, 24, "pop", 1, Spop);
     SunyInitialize(frame, compiler, 25, "size", 1, Ssize);
+    SunyInitialize(frame, compiler, 27, "range", 2, Srange);
     
     return 0;
 }

@@ -26,8 +26,24 @@ Sobj_new(void) {
 int 
 Sobj_free
 (struct Sobj* obj) {
+    if (obj->type == STRING_OBJ) {
+        free(obj->f_type->f_str);
+        free(obj->f_type);
+    }
+
+    else if (obj->type == LIST_OBJ) {
+        free(obj->f_type->f_list);
+        free(obj->f_type);
+    }
+
+    else if (obj->type == FUNC_OBJ) {
+        free(obj->f_type->f_func);
+        free(obj->f_type);
+    }
+
+    free(obj->value);
     free(obj);
-    obj = NULL;
+    return 0;
 }
 
 struct Sobj*

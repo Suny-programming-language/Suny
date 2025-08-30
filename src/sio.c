@@ -3,8 +3,6 @@
 int Sio_write(struct Sobj *obj) {
     if (obj->type == STRING_OBJ) {
         printf("%s", obj->f_type->f_str->string);
-    } else if (obj->type == NUMBER_OBJ) {
-        printf("%g", obj->value->value);
     } else if (obj->type == LIST_OBJ) {
         printf("[");
         for (int i = 0; i < obj->f_type->f_list->count; i++) {
@@ -15,6 +13,8 @@ int Sio_write(struct Sobj *obj) {
             }
         }
         printf("]");
+    } else {
+        printf("%g", obj->value->value);
     }
 
     return 0;
