@@ -94,6 +94,11 @@ Scompile_block
     int block_size);
 
 struct Scode*
+Scompile_body
+(struct Sast **block, struct Scompiler *compiler, 
+    int block_size);
+
+struct Scode*
 Scompile_body_func
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size, 

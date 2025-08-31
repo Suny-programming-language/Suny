@@ -207,7 +207,6 @@ Sparser_parse_primary_expression
         return node;
     }
 
-    printf("%s\n", Stok_t_print(parser->token->type));
     Serror_parser("Expected primary expression", parser->lexer);
     return NULL;
 }
@@ -599,10 +598,22 @@ Sparser_parse_if
 
     node->condition = expr;
 
+    if (parser->token->type != THEN) {
+        Serror_parser("Expected 'then'", parser->lexer);
+        return NULL;
+    }
+
     struct Sast *block = Sparser_parse_if_block(parser);
+    struct Sast *else_block = Sparser_parse_else_block(parser);
 
     node->if_body = block->block;
     node->if_body_size = block->block_size;
+    node->else_body = else_block->block;
+    node->else_body_size = else_block->block_size;
+
+    Sast_set_line(parser->lexer, node);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
 
     return node;
 }
@@ -634,11 +645,6 @@ Sparser_parse_if_block
 (struct Sparser *parser) {
     struct Sast *node = AST(AST_BLOCK, 0, NULL);
 
-    if (parser->token->type != THEN) {
-        Serror_parser("Expected 'then'", parser->lexer);
-        return NULL;
-    }
-
     parser->token = Slexer_get_next_token(parser->lexer);
 
     while (parser->token->type != END) {
@@ -652,9 +658,15 @@ Sparser_parse_if_block
             Serror_parser("Expected statement", parser->lexer);
             return NULL;
         }
-    }
 
-    parser->token = Slexer_get_next_token(parser->lexer);
+        if (parser->token->type == ELSE) {
+            break;
+        }
+
+        if (parser->token->type == ELIF) {
+            break;
+        }
+    }
 
     return node;
 }
@@ -665,8 +677,7 @@ Sparser_parse_else_block
     struct Sast *node = AST(AST_BLOCK, 0, NULL);
 
     if (parser->token->type != ELSE) {
-        Serror_parser("Expected 'else'", parser->lexer);
-        return NULL;
+        return node;
     }
 
     parser->token = Slexer_get_next_token(parser->lexer);
@@ -683,8 +694,6 @@ Sparser_parse_else_block
             return NULL;
         }
     }
-
-    parser->token = Slexer_get_next_token(parser->lexer);
 
     return node;
 }

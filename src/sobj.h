@@ -3,7 +3,9 @@
 
 #include "suny.h"
 #include "stype.h"
-#include "sgc.h"
+
+struct Sgarbarge_obj;
+struct Garbage_pool;
 
 #define GC_HEAD struct Sgarbarge_obj* gc
 

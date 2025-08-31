@@ -1,8 +1,7 @@
 #include "sframe.h"
 
 struct Sframe *
-Sframe_new
-(void) {
+Sframe_new(void) {
     struct Sframe *frame = calloc(1, sizeof(struct Sframe));
 
     frame->f_back = NULL;
@@ -34,6 +33,8 @@ Sframe_new
     frame->f_code_index = 0;
 
     frame->f_label_map = Slabel_map_new();
+
+    frame->gc_pool = Sgc_new_pool();
 
     return frame;
 }
@@ -72,6 +73,8 @@ Sframe_push(struct Sframe *frame, struct Sobj *obj) {
         frame->f_stack_size = new_size;
     }
 
+    Sgc_inc_ref(obj);
+
     frame->f_stack[frame->f_stack_index++] = obj;
 
 #ifdef DEBUG
@@ -80,7 +83,6 @@ Sframe_push(struct Sframe *frame, struct Sobj *obj) {
 #endif
     return obj;
 }
-
 
 struct Sobj *
 Sframe_pop
@@ -95,6 +97,8 @@ Sframe_pop
     };
 
     struct Sobj *obj = frame->f_stack[--frame->f_stack_index];
+
+    dec_ref(obj);
 
 #ifdef DEBUG
     printf("[frame.c] struct Sobj *Sframe_pop(struct Sframe *frame) (done)\n");
@@ -121,12 +125,19 @@ Sframe_store_global
 (struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) {
     struct Sobj *global = Sobj_new();
     
+    inc_ref(obj);
+
     global->type = type;
     global->f_value = obj;
     global->address = address;
 
     for (int i = 0; i < frame->f_globals_size; i++) {
         if (frame->f_globals[i]->address == address) {
+            struct Sobj *old = frame->f_globals[i]->f_value;
+
+            dec_ref(old);
+            Sgc_dec_ref(old, frame->gc_pool);
+
             frame->f_globals[i] = global;
             return 0;
         }

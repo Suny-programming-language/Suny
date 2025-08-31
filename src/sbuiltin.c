@@ -20,7 +20,6 @@ SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
 
     Sframe_push(frame, Sobj_set_int(0));
 
-
     return NULL;
 }
 
@@ -70,6 +69,10 @@ SUNY_API struct Sobj* Spush(struct Sframe* frame) {
 
     Slist_add(list->f_type->f_list, value);
 
+    struct Sobj *obj = Sobj_set_int(0);
+
+    Sframe_push(frame, obj);
+
     return list;
 }
 
@@ -77,6 +80,10 @@ SUNY_API struct Sobj* Spop(struct Sframe* frame) {
     struct Sobj *obj = Sframe_pop(frame);
 
     Slist_pop(obj->f_type->f_list);
+
+    struct Sobj *result = Sobj_set_int(0);
+
+    Sframe_push(frame, result);
 
     return obj;
 }

@@ -52,7 +52,7 @@ enum Stok_t {
     FALSE_T,
 
     LET,
-    IF, ELSE, THEN,
+    IF, ELSE, THEN, ELIF,
     WHILE, DO, END, BREAK, CONTINUE,
     FOR, IN_T,
     FUNCTION, RETURN,

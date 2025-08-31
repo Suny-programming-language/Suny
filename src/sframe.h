@@ -58,6 +58,8 @@ struct Sframe {
 
     struct Sobj *f_locals_top;
     struct Sobj *f_globals_top;
+
+    struct Garbage_pool *gc_pool;
 };
 
 struct Sframe *

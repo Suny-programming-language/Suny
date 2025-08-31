@@ -4,8 +4,6 @@ struct Scode*
 Scompile
 (struct Sast *ast, struct Scompiler *compiler) {
     switch(ast->type) {
-        case AST_PROGRAM:
-            return Scompile_program(ast, compiler);
         case AST_BINARY_EXPRESSION:
             return Scompile_binary_expression(ast, compiler);
         case AST_IDENTIFIER:
@@ -46,7 +44,7 @@ Scompile
             struct Scode *code = Scode_new();
             PUSH(code, LOAD_TRUE);
             return code;
-        }    
+        }
         case AST_FALSE: {
             struct Scode *code = Scode_new();
             PUSH(code, LOAD_FALSE);
@@ -71,6 +69,10 @@ Scompile_program
     for (int i = 0; i < ast->child_count; i++) {
         struct Scode *child = Scompile(ast->children[i], compiler);
         INSERT(code, child);
+
+        if (is_expr(ast->children[i])) {
+            PUSH(code, POP_TOP);
+        }
     }
 
     PUSH(code, PROGRAM_END);
@@ -333,7 +335,25 @@ Scompile_block
 
     for (int i = 0; i < block_size; i++) {
         struct Scode *child = Scompile(block[i], compiler);
+
         INSERT(code, child);
+    }
+
+    return code;
+}
+struct Scode*
+Scompile_body
+(struct Sast **block, struct Scompiler *compiler, int block_size) {
+    struct Scode *code = Scode_new();
+
+    for (int i = 0; i < block_size; i++) {
+        struct Scode *child = Scompile(block[i], compiler);
+
+        INSERT(code, child);
+
+        if (is_expr(block[i])) {
+            PUSH(code, POP_TOP);
+        }
     }
 
     return code;
@@ -354,6 +374,10 @@ Scompile_body_func
     for (int i = 0; i < block_size; i++) {
         struct Scode *child = Scompile(block[i], compiler);
         INSERT(code, child);
+
+        if (is_expr(block[i])) {
+            PUSH(code, POP_TOP);
+        }
     }
 
     int address = 0;
@@ -413,11 +437,13 @@ struct Scode*
 Scompile_if
 (struct Sast *ast, struct Scompiler *compiler) {
     struct Scode *conditon = Scompile(ast->condition, compiler);
-    struct Scode *if_body = Scompile_block(ast->if_body, compiler, ast->if_body_size);
+    struct Scode *if_body = Scompile_body(ast->if_body, compiler, ast->if_body_size);
+    struct Scode *else_body = Scompile_body(ast->else_body, compiler, ast->else_body_size);
 
     struct Scode *code = Scode_new();
 
     int end_address = creat_label(compiler);
+    int else_address = creat_label(compiler);
 
     INSERT(code, conditon);
 
@@ -426,8 +452,16 @@ Scompile_if
 
     INSERT(code, if_body);
 
+    PUSH(code, JUMP_TO);
+    PUSH(code, else_address);
+
     PUSH(code, ADD_LABEL);
     PUSH(code, end_address);
+
+    INSERT(code, else_body);
+
+    PUSH(code, ADD_LABEL);
+    PUSH(code, else_address);
 
     return code;
 }
@@ -443,7 +477,7 @@ Scompile_while
     Scompile_add_loop(compiler, while_start, while_end);
 
     struct Scode *conditon = Scompile(ast->condition, compiler);
-    struct Scode *while_body = Scompile_block(ast->body, compiler, ast->body_size);
+    struct Scode *while_body = Scompile_body(ast->body, compiler, ast->body_size);
 
     Scompile_pop_loop(compiler);
 
@@ -564,7 +598,7 @@ Scompile_for
 
     add_scope(compiler, ast->lexeme, iden, 0);
 
-    struct Scode *for_body = Scompile_block(ast->block, compiler, ast->block_size);
+    struct Scode *for_body = Scompile_body(ast->block, compiler, ast->block_size);
     struct Scode *iter = Scompile(ast->expr, compiler);
 
     compiler->is_in_loop = 0;

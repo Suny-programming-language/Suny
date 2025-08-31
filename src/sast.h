@@ -14,7 +14,9 @@
 #define is_expr(ast) ((ast)->type == AST_EXPRESSION                         \
                         || (ast)->type == AST_BINARY_EXPRESSION             \
                         || (ast)->type == AST_IDENTIFIER                    \
-                        || (ast)->type == AST_FUNCTION_CALL_EXPRESSION       \
+                        || (ast)->type == AST_FUNCTION_CALL_EXPRESSION      \
+                        || (ast)->type == AST_TRUE                          \
+                        || (ast)->type == AST_FALSE                         \
                         || (ast)->type == AST_AND_EXPRESSION                \
                         || (ast)->type == AST_OR_EXPRESSION                 \
                         || (ast)->type == AST_NOT_EXPRESSION                \

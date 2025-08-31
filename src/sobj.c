@@ -12,6 +12,8 @@ struct Sobj*
 Sobj_new(void) {
     struct Sobj *obj = malloc(sizeof(struct Sobj));
 
+    obj->gc = Sgc_new();
+
     obj->type = NULL_OBJ;
     obj->value = Svalue_new();
     obj->size = 0;
@@ -26,6 +28,9 @@ Sobj_new(void) {
 int 
 Sobj_free
 (struct Sobj* obj) {
+#ifdef DEBUG
+    printf("[sobj.c] int Sobj_free(struct Sobj* obj) (building...)\n");
+#endif
     if (obj->type == STRING_OBJ) {
         free(obj->f_type->f_str);
         free(obj->f_type);
@@ -42,7 +47,13 @@ Sobj_free
     }
 
     free(obj->value);
+    free(obj->gc);
     free(obj);
+
+#ifdef DEBUG
+    printf("[sobj.c] int Sobj_free(struct Sobj* obj) (done)\n");
+#endif
+
     return 0;
 }
 

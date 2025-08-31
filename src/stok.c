@@ -116,6 +116,10 @@ Stok_get_identifier
         return IF;
     } else if (strcmp(lexeme, "while") == 0) {
         return WHILE;
+    } else if (strcmp(lexeme, "else") == 0) {
+        return ELSE;
+    } else if (strcmp(lexeme, "elif") == 0) {
+        return ELIF;
     } else if (strcmp(lexeme, "then") == 0) {
         return THEN;
     } else if (strcmp(lexeme, "do") == 0) {

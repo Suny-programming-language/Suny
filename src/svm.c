@@ -54,7 +54,7 @@ Svm_run_program(struct Sframe *frame) {
     printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (building...)\n");
 #endif
     struct Scode *code = frame->f_code;
-
+    
     byte_t op = get_next_code(frame);
     int done = 0;
     
@@ -112,6 +112,11 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evalutate_BINARY_OPER(frame, op);
             }
 
+            else if (op == POP_TOP) {
+                struct Sobj *obj = Sframe_pop(frame);
+                Sgc_dec_ref(obj, frame->gc_pool);
+            }
+
             else if (op == LOAD_ITEM) {
                 frame = Svm_evaluate_LOAD_ITEM(frame);
             }
@@ -133,6 +138,12 @@ Svm_run_program(struct Sframe *frame) {
             }
 
             op = get_next_code(frame);
+
+            if (frame->gc_pool->pool_index > POOL_SIZE_LIMIT) {
+                Sgc_activate(frame);
+                Sgc_collect(frame->gc_pool);
+                Sgc_deactivate(frame);
+            }
         }
     } else {
         printf("Invalid program %s\n", print_op(op));
@@ -385,7 +396,7 @@ Svm_evalutate_STORE_GLOBAL
     printf("[svm.c] struct Sframe *Svm_evalutate_STORE_GLOBAL(struct Sframe *frame) (building...)\n");
 #endif
 
-struct Sobj *obj = POP_OBJ();
+    struct Sobj *obj = Sframe_pop(frame);
     
     int address = get_next_code(frame);
     Sframe_store_global(frame, address, obj, GLOBAL_OBJ);
@@ -402,8 +413,11 @@ Svm_evalutate_BINARY_OPER
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evalutate_BINARY_OPER(struct Sframe *frame, byte_t op) (building...)\n");
 #endif
-    struct Sobj *obj2 = POP_OBJ();
-    struct Sobj *obj1 = POP_OBJ();
+    struct Sobj *obj2 = Sframe_pop(frame);
+    struct Sobj *obj1 = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj1, frame->gc_pool);
+    Sgc_dec_ref(obj2, frame->gc_pool);
 
     float value1 = obj1->value->value;
     float value2 = obj2->value->value;
@@ -503,6 +517,8 @@ Svm_evaluate_POP_JUMP_IF_FALSE
     int address = get_next_code(frame);
 
     struct Sobj *obj = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj, frame->gc_pool);
 
     if (!obj->value->value) {
         jump_to(frame, address);

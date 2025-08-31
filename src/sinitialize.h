@@ -13,7 +13,7 @@ Sinitialize_c_api_func
     struct Sc_api_func *api_func
 );
 
-int SunyInitialize
+int SunyInitialize_c_api_func
 (
     struct Sframe *frame, 
     struct Scompiler *compiler, 

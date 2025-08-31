@@ -20,7 +20,7 @@ Sinitialize_c_api_func
     return 0;
 }
 
-int SunyInitialize
+int SunyInitialize_c_api_func
 (
     struct Sframe *frame, 
     struct Scompiler *compiler, 
@@ -42,13 +42,13 @@ int SunyInstallLib
 )
 
 {
-    SunyInitialize(frame, compiler, 20, "print", 1, Sprintf);
-    SunyInitialize(frame, compiler, 21, "exit", 1, Sexit);
-    SunyInitialize(frame, compiler, 22, "load", 2, Sload_dll);
-    SunyInitialize(frame, compiler, 23, "push", 2, Spush);
-    SunyInitialize(frame, compiler, 24, "pop", 1, Spop);
-    SunyInitialize(frame, compiler, 25, "size", 1, Ssize);
-    SunyInitialize(frame, compiler, 27, "range", 2, Srange);
+    SunyInitialize_c_api_func(frame, compiler, 20, "print", 1, Sprintf);
+    SunyInitialize_c_api_func(frame, compiler, 21, "exit", 1, Sexit);
+    SunyInitialize_c_api_func(frame, compiler, 22, "load", 2, Sload_dll);
+    SunyInitialize_c_api_func(frame, compiler, 23, "push", 2, Spush);
+    SunyInitialize_c_api_func(frame, compiler, 24, "pop", 1, Spop);
+    SunyInitialize_c_api_func(frame, compiler, 25, "size", 1, Ssize);
+    SunyInitialize_c_api_func(frame, compiler, 27, "range", 2, Srange);
     
     return 0;
 }
