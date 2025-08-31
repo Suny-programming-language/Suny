@@ -9,9 +9,12 @@ Seval_add
     if (obj1->type == STRING_OBJ && obj2->type == STRING_OBJ) {
         struct Sstr *str1 = obj1->f_type->f_str;
         struct Sstr *str2 = obj2->f_type->f_str;
+
         struct Sstr *str = Sstr_add(str1, str2);
 
-        return Sobj_make_str(str->string, str->size);
+        struct Sobj *sobj = Sobj_make_str_obj(str);
+        
+        return sobj;
     } else {
         return Sobj_set_int(obj1->value->value + obj2->value->value);
     }
@@ -32,9 +35,17 @@ Seval_mul
     if (obj1->type == STRING_OBJ) {
         struct Sstr *str = obj1->f_type->f_str;
         struct Sstr *sstr = Sstr_mul(str, obj2->value->value);
+
+        struct Sobj *sobj = Sobj_make_str_obj(sstr);
+        
+        return sobj;
     } else if (obj2->type == STRING_OBJ) {
         struct Sstr *str = obj2->f_type->f_str;
         struct Sstr *sstr = Sstr_mul(str, obj1->value->value);
+
+        struct Sobj *sobj = Sobj_make_str_obj(sstr);
+        
+        return sobj;
     } else {
         return Sobj_set_int(obj1->value->value * obj2->value->value);
     }

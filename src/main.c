@@ -57,13 +57,6 @@ int main(int argc, char** argv) {
     
     frame = Sframe_init(frame, code);
 
-    // struct Slabel_map* label_map = frame->f_label_map;
-
-    // for (int i = 0; i < label_map->label_count; i++) {
-    //     struct Spos pos = label_map->label[i];
-    //     printf("label: %d %d\n", pos.address, pos.indexof);
-    // }
-
 #ifdef DEBUG
     Scode_print(code);
 #endif

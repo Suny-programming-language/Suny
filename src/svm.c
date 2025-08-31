@@ -80,10 +80,6 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evalutate_STORE_GLOBAL(frame);
             }
 
-            else if (op == MAKE_FUNCTION) {
-                frame = Svm_evaluate_MAKE_FUNCTION(frame);
-            }
-
             else if (op == PUSH_STRING) {
                 frame = Svm_evaluate_PUSH_STRING(frame);
             }
@@ -100,6 +96,10 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evaluate_POP_JUMP_IF_FALSE(frame);
             }
 
+            else if (op == MAKE_FUNCTION) {
+                frame = Svm_evaluate_MAKE_FUNCTION(frame);
+            }
+            
             else if (op == FUNCTION_CALL) {
                 frame = Svm_evaluate_FUNCTION_CALL(frame);
             }
@@ -264,6 +264,7 @@ Svm_evaluate_MAKE_FUNCTION
 #endif
     address_t address = get_next_code(frame);
     byte_t args_count = get_next_code(frame);
+
     int code_size = 0;
 
     struct Scode *code = Scode_new();
@@ -300,19 +301,17 @@ Svm_evaluate_FUNCTION_CALL
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (building...)\n");
 #endif
-
-    struct Sobj **f_local = malloc(sizeof(struct Sobj*) * MAX_ARGS_SIZE);
-
-    struct Sobj *f_obj = POP_OBJ();
+    struct Sobj *f_obj = Sframe_pop(frame);
 
     if (f_obj->type == BUILTIN_OBJ) {
-        struct Sobj* (*func)(struct Sframe*) =
-            (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
+        struct Sobj* (*func)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
 
         func(frame);
 
         return frame;
     }
+
+    struct Sobj **f_local = malloc(sizeof(struct Sobj*) * MAX_ARGS_SIZE);
 
     struct Scall_context *context = Scall_context_new();
     struct Sframe *f_frame = context->frame;
@@ -323,6 +322,7 @@ Svm_evaluate_FUNCTION_CALL
 
     context->main_frame = frame;
     context->ret_obj = Sobj_set_int(0);
+
     Scall_context_set_func(context, f_obj->f_type->f_func);
 
     int address = 0;
@@ -416,13 +416,10 @@ Svm_evalutate_BINARY_OPER
     struct Sobj *obj2 = Sframe_pop(frame);
     struct Sobj *obj1 = Sframe_pop(frame);
 
-    Sgc_dec_ref(obj1, frame->gc_pool);
-    Sgc_dec_ref(obj2, frame->gc_pool);
-
     float value1 = obj1->value->value;
     float value2 = obj2->value->value;
 
-    struct Sobj *obj = Sobj_set_int(0);
+    struct Sobj *obj = NULL;
 
     switch (op) {
         case BINARY_ADD: {
@@ -459,6 +456,9 @@ Svm_evalutate_BINARY_OPER
             break;
         }
     }
+
+    Sgc_dec_ref(obj1, frame->gc_pool);
+    Sgc_dec_ref(obj2, frame->gc_pool);
 
     Sframe_push(frame, obj);
 #ifdef DEBUG
@@ -562,6 +562,7 @@ Svm_evaluate_BUILD_LIST
 
     for (int i = 0; i < size; ++i) {
         struct Sobj *item = Sframe_pop(frame);
+        inc_ref(item);
         Slist_add(list, item);
     };
 
@@ -601,6 +602,9 @@ Svm_evaluate_LOAD_ITEM
     printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ITEM(struct Sframe *frame) (done)\n");
 #endif
 
+    Sgc_dec_ref(index, frame->gc_pool);
+    Sgc_dec_ref(list, frame->gc_pool);
+
     return frame;
 }
 
@@ -613,7 +617,17 @@ Svm_evaluate_STORE_ITEM
 
     int index_value = index->value->value;
 
+    struct Sobj *pre_item = list->f_type->f_list->array[index_value];
+
     list->f_type->f_list->array[index_value] = value;
+
+    dec_ref(pre_item);
+    dec_ref(index);
+
+    Sgc_dec_ref(pre_item, frame->gc_pool);
+    Sgc_dec_ref(index, frame->gc_pool);
+
+    inc_ref(value);
 
     return frame;
 }
@@ -626,7 +640,11 @@ Svm_evaluate_LEN_OF
 #endif
     struct Sobj *list = Sframe_pop(frame);
 
-    Sframe_push(frame, Sobj_set_int(list->f_type->f_list->count));
+    Sgc_dec_ref(list, frame->gc_pool);
+
+    struct Sobj *obj = Sobj_set_int(list->f_type->f_list->count);
+
+    Sframe_push(frame, obj);
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (done)\n");

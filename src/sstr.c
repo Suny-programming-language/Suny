@@ -17,6 +17,7 @@ struct Sstr *Sstr_new_from_char(char *chr, int size) {
 }
 
 void Sstr_free(struct Sstr *str) {
+    free(str->string);
     free(str);
     str = NULL;
 }
@@ -53,6 +54,14 @@ struct Sstr *Sstr_mul(struct Sstr *str, int n) {
     result->size = str->size * n;
 
     return result;
+}
+
+struct Sobj* Sobj_make_str_obj(struct Sstr *str) {
+    struct Sobj *sobj = Sobj_new();
+    sobj->type = STRING_OBJ;
+    sobj->f_type = Stype_new();
+    sobj->f_type->f_str = str;
+    return sobj;
 }
 
 struct Sobj *Sobj_make_str(char* str, int size) {

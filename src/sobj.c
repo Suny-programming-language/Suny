@@ -32,12 +32,12 @@ Sobj_free
     printf("[sobj.c] int Sobj_free(struct Sobj* obj) (building...)\n");
 #endif
     if (obj->type == STRING_OBJ) {
-        free(obj->f_type->f_str);
+        Sstr_free(obj->f_type->f_str);
         free(obj->f_type);
     }
 
     else if (obj->type == LIST_OBJ) {
-        free(obj->f_type->f_list);
+        Slist_free(obj->f_type->f_list);
         free(obj->f_type);
     }
 

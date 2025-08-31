@@ -3,6 +3,7 @@
 
 #include "suny.h"
 #include "stype.h"
+#include "sstr.h"
 
 struct Sgarbarge_obj;
 struct Garbage_pool;

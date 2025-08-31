@@ -123,13 +123,8 @@ printf("[frame.c] struct Sobj *Sframe_back(struct Sframe *frame) (done)\n");
 int
 Sframe_store_global
 (struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) {
-    struct Sobj *global = Sobj_new();
     
     inc_ref(obj);
-
-    global->type = type;
-    global->f_value = obj;
-    global->address = address;
 
     for (int i = 0; i < frame->f_globals_size; i++) {
         if (frame->f_globals[i]->address == address) {
@@ -138,10 +133,19 @@ Sframe_store_global
             dec_ref(old);
             Sgc_dec_ref(old, frame->gc_pool);
 
-            frame->f_globals[i] = global;
+            frame->f_globals[i]->f_value = obj;
+            frame->f_globals[i]->type = type;
+            frame->f_globals[i]->address = address;
+
             return 0;
         }
     }
+
+    struct Sobj *global = Sobj_new();
+
+    global->type = type;
+    global->f_value = obj;
+    global->address = address;
 
     frame->f_globals[frame->f_globals_index++] = global;
     frame->f_globals_size++;
@@ -179,18 +183,26 @@ Sframe_store_local
 #ifdef DEBUG
     printf("[frame.c] int Sframe_store_local(struct Sframe *frame, int address, struct Sobj *obj, enum Sobj_t type) (building...)\n");
 #endif
+    for (int i = 0; i < frame->f_locals_size; i++) {
+        if (frame->f_locals[i]->address == address) {
+            struct Sobj *old = frame->f_locals[i]->f_value;
+
+            dec_ref(old);
+            Sgc_dec_ref(old, frame->gc_pool);
+
+            frame->f_locals[i]->f_value = obj;
+            frame->f_locals[i]->type = type;
+            frame->f_locals[i]->address = address;
+            return 0;
+        }
+    }
+
     struct Sobj *local = Sobj_new();
 
     local->type = LOCAL_OBJ;
     local->f_value = obj;
     local->address = address;
 
-    for (int i = 0; i < frame->f_locals_size; i++) {
-        if (frame->f_locals[i]->address == address) {
-            frame->f_locals[i] = local;
-            return 0;
-        }
-    }
 
     frame->f_locals[frame->f_locals_index++] = local;
     frame->f_locals_size++;

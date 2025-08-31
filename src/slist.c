@@ -1,5 +1,18 @@
 #include "slist.h"
 
+int Slist_free(struct Slist* list) {
+    for (int i = 0; i < list->count; i++) {
+        struct Sobj* obj = list->array[i];
+        dec_ref(obj);
+
+        if (obj->gc->ref_count < 1) {
+            Sobj_free(obj);
+        }
+    }
+    free(list->array);
+    free(list);
+}
+
 struct Slist* Slist_new(void) {
     struct Slist* list = malloc(sizeof(struct Slist));
     list->capacity = 1024;

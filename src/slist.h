@@ -4,8 +4,12 @@
 #include "suny.h"
 #include "sobj.h"
 #include "stype.h"
+#include "sgc.h"
 
 struct Sobj;
+struct Slist;
+
+int Slist_free(struct Slist* list);
 
 struct Slist* Slist_new(void);
 
