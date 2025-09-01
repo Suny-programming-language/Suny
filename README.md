@@ -38,9 +38,11 @@ suny main.suny          # run .suny file
 
 ## 🧠 Syntax Guide
 
-**Output**
+**Output\Input**
 ```
 print("hello " + "world")
+a = read("name: ")
+print("hello " + a)
 ```
 
 
@@ -93,5 +95,6 @@ end
 **My youtube: https://www.youtube.com/@haidinhson** 
 
 **My Github: https://github.com/dinhsonhai132**
+
 
 **My gmail: dinhsonhai440@gmail.com**
