@@ -9,6 +9,7 @@ int Slist_free(struct Slist* list) {
             Sobj_free(obj);
         }
     }
+    
     free(list->array);
     free(list);
 }
@@ -34,11 +35,7 @@ struct Slist* Slist_add(struct Slist* list, struct Sobj* obj) {
 }
 
 struct Sobj* Slist_get(struct Slist* list, int index) {
-    for (int i = 0; i < list->count; i++) {
-        if (i == index) {
-            return list->array[i];
-        }
-    }
+    return list->array[index];
 }
 
 struct Sobj* Sobj_make_list(struct Slist* list) {

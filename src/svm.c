@@ -595,6 +595,16 @@ Svm_evaluate_LOAD_ITEM
 
         struct Sobj *item = Slist_get(list->f_type->f_list, index->value->value);
         Sframe_push(frame, item);
+    } else if (list->type == STRING_OBJ) {
+        if (index->value->value >= list->f_type->f_str->size) {
+            Sframe_push(frame, Sobj_set_int(0));
+            return frame;
+        };
+        int index_value = index->value->value;
+        char c = list->f_type->f_str->string[index_value];
+        struct Sobj *obj = Sobj_make_char(c);
+      
+        Sframe_push(frame, obj);
     } else {
         Sframe_push(frame, Sobj_set_int(0));
     }
@@ -642,9 +652,13 @@ Svm_evaluate_LEN_OF
 
     Sgc_dec_ref(list, frame->gc_pool);
 
-    struct Sobj *obj = Sobj_set_int(list->f_type->f_list->count);
-
-    Sframe_push(frame, obj);
+    if (list->type == LIST_OBJ) {
+        struct Sobj *obj = Sobj_set_int(list->f_type->f_list->count);
+        Sframe_push(frame, obj);
+    } else if (list->type == STRING_OBJ) {
+        struct Sobj *obj = Sobj_set_int(list->f_type->f_str->size);
+        Sframe_push(frame, obj);
+    }
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (done)\n");

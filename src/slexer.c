@@ -150,10 +150,16 @@ Slexer_tokenize_string
 
                 get_next_c(lexer);
                 current(lexer);
+            } else if (lexer->cur == 'r') {
+                lexeme[len++] = '\r';
+
+                get_next_c(lexer);
+                current(lexer);
             } else {
-                struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid escape sequence", lexer);
-                Serror_syntax_error(error);
-                return NULL_TOKEN;
+                lexeme[len++] = lexer->cur;
+
+                get_next_c(lexer);
+                current(lexer);
             }
         } else {
             lexeme[len++] = lexer->cur;

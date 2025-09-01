@@ -31,6 +31,9 @@ int
 Scharcmp_equal(char *a, char *b, int size_a, int size_b);
 
 char*
+Sadd_1_char(char c1);
+
+char*
 Sadd_2_char(char c1, char c2);
 
 char*

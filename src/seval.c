@@ -1,5 +1,24 @@
 #include "seval.h"
 
+int Slist_cmp(struct Slist *list1, struct Slist *list2) {
+    int min = list1->count < list2->count ? list1->count : list2->count;
+
+    for (int i = 0; i < min; i++) {
+        struct Sobj *item1 = list1->array[i];
+        struct Sobj *item2 = list2->array[i];
+
+        struct Sobj *eq = Seval_equal(item1, item2);
+        if (!eq->value->value) {
+            struct Sobj *gt = Seval_bigger(item1, item2);
+            if (gt->value->value) return 1;   
+            else return -1;                 
+        }
+    }
+
+    if (list1->count == list2->count) return 0;
+    return (list1->count > list2->count) ? 1 : -1;
+}
+
 struct Sobj *
 Seval_add
 (struct Sobj *obj1, struct Sobj *obj2) {
@@ -15,7 +34,17 @@ Seval_add
         struct Sobj *sobj = Sobj_make_str_obj(str);
         
         return sobj;
-    } else {
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        struct Slist *list1 = obj1->f_type->f_list;
+        struct Slist *list2 = obj2->f_type->f_list;
+
+        struct Slist *list = Slist_append(list1, list2);
+
+        struct Sobj *sobj = Sobj_make_list(list);
+        
+        return sobj;
+    } 
+    else {
         return Sobj_set_int(obj1->value->value + obj2->value->value);
     }
 }
@@ -44,6 +73,20 @@ Seval_mul
         struct Sstr *sstr = Sstr_mul(str, obj1->value->value);
 
         struct Sobj *sobj = Sobj_make_str_obj(sstr);
+        
+        return sobj;
+    } else if (obj1->type == LIST_OBJ) {
+        struct Slist *list = obj1->f_type->f_list;
+        struct Slist *slist = Slist_mul(list, obj2->value->value);
+
+        struct Sobj *sobj = Sobj_make_list(slist);
+        
+        return sobj;
+    } else if (obj2->type == LIST_OBJ) {
+        struct Slist *list = obj2->f_type->f_list;
+        struct Slist *slist = Slist_mul(list, obj1->value->value);
+
+        struct Sobj *sobj = Sobj_make_list(slist);
         
         return sobj;
     } else {
@@ -76,6 +119,9 @@ Seval_bigger
         int result = Scharcmp_bigger(a, b, size_a, size_b);
 
         return Sobj_set_int(result);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp > 0);
     } else {
         return Sobj_set_int(obj1->value->value > obj2->value->value);
     }
@@ -97,6 +143,9 @@ Seval_smaller
         int result = Scharcmp_smaller(a, b, size_a, size_b);
 
         return Sobj_set_int(result);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp < 0);
     } else {
         return Sobj_set_int(obj1->value->value < obj2->value->value);
     }
@@ -118,6 +167,9 @@ Seval_equal
         int result = Scharcmp_equal(a, b, size_a, size_b);
 
         return Sobj_set_int(result);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp == 0);
     } else {
         return Sobj_set_int(obj1->value->value == obj2->value->value);
     }
@@ -139,6 +191,9 @@ Seval_not_equal
         int result = Scharcmp_equal(a, b, size_a, size_b);
 
         return Sobj_set_int(!result);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp != 0);
     } else {
         return Sobj_set_int(obj1->value->value != obj2->value->value);
     }
@@ -161,6 +216,9 @@ Seval_bigger_and_equal
         int result2 = Scharcmp_equal(a, b, size_a, size_b);
 
         return Sobj_set_int(result || result2);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp >= 0);
     } else {
         return Sobj_set_int(obj1->value->value >= obj2->value->value);
     }
@@ -183,6 +241,9 @@ Seval_smaller_and_equal
         int result2 = Scharcmp_equal(a, b, size_a, size_b);
 
         return Sobj_set_int(result || result2);
+    } else if (obj1->type == LIST_OBJ && obj2->type == LIST_OBJ) {
+        int cmp = Slist_cmp(obj1->f_type->f_list, obj2->f_type->f_list);
+        return Sobj_set_int(cmp <= 0);
     } else {
         return Sobj_set_int(obj1->value->value <= obj2->value->value);
     }

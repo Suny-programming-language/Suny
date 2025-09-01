@@ -42,6 +42,10 @@ struct Sframe {
 
     struct Sobj *f_func;
 
+    struct Sobj **dll_args;
+    int dll_args_size;
+    int dll_args_index;
+
     struct Slabel_map *f_label_map;
 
     struct Sast *f_ast; // for debugging

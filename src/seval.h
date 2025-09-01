@@ -4,6 +4,9 @@
 #include "sobj.h"
 #include "sframe.h"
 #include "sstr.h"
+#include "slist.h"
+
+int Slist_cmp(struct Slist *list1, struct Slist *list2);
 
 struct Sobj *
 Seval_add

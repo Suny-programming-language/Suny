@@ -32,6 +32,12 @@ Sc_api_func_set
 
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame);
 
+SUNY_API struct Sobj* Sputs(struct Sframe* frame);
+
+SUNY_API struct Sobj* Sread(struct Sframe* frame);
+
+SUNY_API struct Sobj* Snumber(struct Sframe* frame);
+
 SUNY_API struct Sobj* Sexit(struct Sframe* frame);
 
 SUNY_API struct Sobj* Ssize(struct Sframe* frame);

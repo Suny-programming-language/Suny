@@ -11,7 +11,10 @@ struct Sstr *Sstr_new_from_char(char *chr, int size) {
     struct Sstr *str = malloc(sizeof(struct Sstr));
 
     str->size = size;
-    str->string = chr;
+
+    str->string = malloc(size + 1);
+    memcpy(str->string, chr, size);
+    str->string[size] = '\0';
 
     return str;
 }
@@ -71,6 +74,17 @@ struct Sobj *Sobj_make_str(char* str, int size) {
     sobj->type = STRING_OBJ;
     sobj->f_type = Stype_new();
     sobj->f_type->f_str = sstr;
+
+    return sobj;
+}
+
+struct Sobj *Sobj_make_char(char chr) {
+    char* str = Sadd_1_char(chr);
+    struct Sobj *sobj = Sobj_new();
+
+    sobj->type = STRING_OBJ;
+    sobj->f_type = Stype_new();
+    sobj->f_type->f_str = Sstr_new_from_char(str, 1);
 
     return sobj;
 }

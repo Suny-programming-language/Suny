@@ -1,6 +1,31 @@
 #include "sscope.h"
 
 struct Scompiler*
+Scompiler_new(void) {
+    struct Scompiler *compiler = malloc(sizeof(struct Scompiler));
+    
+    compiler->scope_index = 0;
+    compiler->scope_size = 1024;
+    
+    compiler->local_index = 0;
+    compiler->local_size = 1024;
+
+    compiler->loop_index = 0;
+
+    compiler->address = ADDRESS_START;
+
+    compiler->is_in_block = 0;
+    compiler->is_in_class = 0;
+    compiler->is_in_func = 0;
+    compiler->is_in_loop = 0;
+
+
+    compiler->label = 0;
+    
+    return compiler;
+}
+
+struct Scompiler*
 Scompile_add_loop(struct Scompiler *compiler, int continue_label, int break_label) {
     struct loop_stack loop = {continue_label, break_label};
 
@@ -86,31 +111,6 @@ remove_scope(struct Scompiler *compiler, char *name) {
         }
     }
     return NOT_FOUND;
-}
-
-struct Scompiler*
-Scompiler_new(void) {
-    struct Scompiler *compiler = malloc(sizeof(struct Scompiler));
-    
-    compiler->scope_index = 0;
-    compiler->scope_size = 1024;
-    
-    compiler->local_index = 0;
-    compiler->local_size = 1024;
-
-    compiler->loop_index = 0;
-
-    compiler->address = ADDRESS_START;
-
-    compiler->is_in_block = 0;
-    compiler->is_in_class = 0;
-    compiler->is_in_func = 0;
-    compiler->is_in_loop = 0;
-
-
-    compiler->label = 0;
-    
-    return compiler;
 }
 
 struct Scompiler*

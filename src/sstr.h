@@ -17,4 +17,6 @@ struct Sobj* Sobj_make_str_obj(struct Sstr *str);
 
 struct Sobj *Sobj_make_str(char* str, int size);
 
+struct Sobj *Sobj_make_char(char chr);
+
 #endif

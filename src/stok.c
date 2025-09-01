@@ -94,8 +94,6 @@ Stok_init
     token->value = value;
     token->lexeme = lexeme;
 
-    // printf("Token: %s, value: %f, lexeme: %s\n", Stok_t_print(token->type), token->value, token->lexeme);
-
     return token;
 }
 

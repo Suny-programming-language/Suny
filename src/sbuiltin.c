@@ -11,6 +11,28 @@ Sc_api_func_set
     return api_func;
 }
 
+SUNY_API struct Sobj* Snumber(struct Sframe* frame) {
+    struct Sobj *string = Sframe_pop(frame);
+
+    float value = Satof(string->f_type->f_str->string);
+
+    struct Sobj *obj = Sobj_set_int(value);
+
+    Sframe_push(frame, obj);
+
+    return NULL;
+}
+
+SUNY_API struct Sobj* Sputs(struct Sframe* frame) {
+    struct Sobj *obj = Sframe_pop(frame);
+
+    Sio_write(obj);
+
+    Sframe_push(frame, Sobj_set_int(0));
+
+    return NULL;
+}
+
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
     struct Sobj *obj = Sframe_pop(frame);
 
@@ -22,6 +44,34 @@ SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
 
     return NULL;
 }
+
+SUNY_API struct Sobj* Sread(struct Sframe* frame) {
+    struct Sobj *obj = Sframe_pop(frame);
+    char buffer[1024];
+
+    if (obj) {
+        Sio_write(obj);
+    }
+
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+        struct Sobj *empty = Sobj_make_str("", 0);
+        Sframe_push(frame, empty);
+        return empty;
+    }
+
+    size_t len = strlen(buffer);
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+        len--;
+    }
+
+    struct Sobj *result = Sobj_make_str(buffer, len);
+
+    Sframe_push(frame, result);
+
+    return result;
+}
+
 
 SUNY_API struct Sobj* Sexit(struct Sframe* frame) {
     struct Sobj *obj = Sframe_pop(frame);
@@ -36,6 +86,7 @@ SUNY_API struct Sobj* Sexit(struct Sframe* frame) {
 SUNY_API struct Sobj *Sload_dll(struct Sframe *frame) {
     struct Sobj *func = Sframe_pop(frame);
     struct Sobj *dll = Sframe_pop(frame);
+    struct Sobj *args = Sframe_pop(frame);
 
     char* dll_name = dll->f_type->f_str->string;
     char* func_name = func->f_type->f_str->string;
@@ -43,6 +94,11 @@ SUNY_API struct Sobj *Sload_dll(struct Sframe *frame) {
     Sdll_func dll_func = dll_get_func(func_name, dll_name);
 
     builtin_func f = (builtin_func) dll_func;
+
+    for (int i = 0; i < args->f_type->f_list->count; i++) {
+        struct Sobj *arg = Slist_get(args->f_type->f_list, i);
+        Sframe_push(frame, arg);
+    }
 
     struct Sobj *result = f(frame);
 

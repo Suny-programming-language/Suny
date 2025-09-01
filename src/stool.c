@@ -147,29 +147,40 @@ Scharcmp_equal(char *a, char *b, int size_a, int size_b) {
 }
 
 char*
+Sadd_1_char(char c1) {
+    char* buffer = (char*) malloc(sizeof(char) * 1);
+    buffer[0] = c1;
+    buffer[1] = '\0';
+    return buffer;
+}
+
+char*
 Sadd_2_char(char c1, char c2) {
-    char* buffer = (char*) malloc(sizeof(char) * 2);
+    char* buffer = (char*) malloc(sizeof(char) * 3);
     buffer[0] = c1;
     buffer[1] = c2;
+    buffer[2] = '\0';
     return buffer;
 }
 
 char*
 Sadd_3_char(char c1, char c2, char c3) {
-    char* buffer = (char*) malloc(sizeof(char) * 3);
+    char* buffer = (char*) malloc(sizeof(char) * 4);
     buffer[0] = c1;
     buffer[1] = c2;
     buffer[2] = c3;
+    buffer[3] = '\0';
     return buffer;
 }
 
 char*
 Sadd_4_char(char c1, char c2, char c3, char c4) {
-    char* buffer = (char*) malloc(sizeof(char) * 4);
+    char* buffer = (char*) malloc(sizeof(char) * 5);
     buffer[0] = c1;
     buffer[1] = c2;
     buffer[2] = c3;
     buffer[3] = c4;
+    buffer[4] = '\0';
     return buffer;
 }
 
