@@ -1,7 +1,7 @@
 #ifndef SCODE_H
 #define SCODE_H
 
-#include "suny.h"
+#include "score.h"
 
 #define MAX_CODE_SIZE 1024
 

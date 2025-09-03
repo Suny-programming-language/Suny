@@ -2,7 +2,7 @@
 #define SCOMPILE_H
 
 #include "scode.h"
-#include "suny.h"
+#include "score.h"
 #include "sparser.h"
 #include "sobj.h"
 #include "sbuiltin.h"

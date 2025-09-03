@@ -138,9 +138,9 @@ Stok_get_identifier
         return FUNCTION;
     } else if (strcmp(lexeme, "return") == 0) {
         return RETURN;
-    } else if (strcmp(lexeme, "true") == 0) {
+    } else if (strcmp(lexeme, "true") == 0 || strcmp(lexeme, "True") == 0) {
         return TRUE_T;
-    } else if (strcmp(lexeme, "false") == 0) {
+    } else if (strcmp(lexeme, "false") == 0 || strcmp(lexeme, "False") == 0) {
         return FALSE_T;
     } else if (strcmp(lexeme, "do") == 0) {
         return DO;

@@ -1,34 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "svm.h"
-
-int prompt() {
-    printf("Suny 1.0 Copyright (C) 2025-present, by dinhsonhai132\n");
-
-    struct Sframe *frame = Sframe_new();
-    struct Scompiler *compiler = Scompiler_new();
-
-    SunyInstallLib(frame, compiler);
-
-    char buff[1024];
-    for (;;) {
-        printf(">> ");
-        if (!fgets(buff, sizeof(buff), stdin)) break;
-        
-        if (strlen(buff) == 0) continue;
-
-        struct Slexer *lexer = Slexer_init(buff);
-        struct Sparser *parser = Sparser_init(lexer);
-        struct Sast *ast = Sparser_parse_program(parser);
-        
-        struct Scode *code = Scompile_program(ast, compiler);
-
-        frame = Sframe_init(frame, code);
-        frame = Svm_run_program(frame);
-    }
-    return 0;
-}
+#include "Suny.h"
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -38,30 +11,7 @@ int main(int argc, char** argv) {
 
     char* file_name = argv[1];
 
-    struct SZIO* zio = Sbuff_read_file(file_name);
-
-    struct Sframe *frame = Sframe_new();
-
-    struct Slexer *lexer = Slexer_init(zio->buffer);
-
-    lexer->file = zio;
-
-    struct Sparser *parser = Sparser_init(lexer);
-    struct Sast *ast = Sparser_parse_program(parser);
-
-    struct Scompiler *compiler = Scompiler_new();
-
-    SunyInstallLib(frame, compiler);
-
-    struct Scode *code = Scompile_program(ast, compiler);
+    SunyRunFile(file_name);
     
-    frame = Sframe_init(frame, code);
-
-#ifdef DEBUG
-    Scode_print(code);
-#endif
-
-    frame = Svm_run_program(frame);
-
     return 0;
 }

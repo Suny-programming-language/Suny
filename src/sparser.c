@@ -303,6 +303,48 @@ Sparser_parse_let
         Sast_expected_expression(node->var_value);
 
         return node;
+    } else if (parser->token->type == LPAREN) {
+        struct Sast *node = AST(AST_FUNCTION_STATEMENT, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        while (parser->token->type != RPAREN) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+            if (parser->token->type == IDENTIFIER) {
+                Sast_set_para(node, parser->token->lexeme);
+                node->args_count++;
+                node->is_having_params = 1;
+                parser->token = Slexer_get_next_token(parser->lexer);
+                if (parser->token->type == COMMA) {
+                    continue;
+                } else if (parser->token->type == RPAREN) {
+                    break;
+                } else {
+                    Serror_parser("Expected comma or closing parenthesis", parser->lexer);
+                    return NULL;
+                }
+            } else {
+                Serror_parser("Expected identifier", parser->lexer);
+                return NULL;
+            }
+        }
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+        if (parser->token->type == ASSIGN) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+            struct Sast *body = Sparser_parse(parser);
+
+            struct Sast *ret = AST(AST_RETURN_STATEMENT, 0, NULL);
+            ret->ret_val = body;
+
+            node->body[0] = ret;
+            node->body_size = 1;
+
+            return node;
+        } else {
+            Serror_parser("Expected assignment", parser->lexer);
+            return NULL;
+        }
     } else {
         Serror_parser("Expected assignment", parser->lexer);
         return NULL;

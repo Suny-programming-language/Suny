@@ -1,7 +1,7 @@
 #ifndef STYPE_H
 #define STYPE_H
 
-#include "suny.h"
+#include "score.h"
 #include "sobj.h"
 #include "sframe.h"
 #include "scode.h"

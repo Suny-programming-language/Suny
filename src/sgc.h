@@ -1,7 +1,7 @@
 #ifndef SGC_H
 #define SGC_H
 
-#include "suny.h"
+#include "score.h"
 #include "sobj.h"
 
 struct Sframe;

@@ -1,7 +1,7 @@
 #ifndef SOBJ_H
 #define SOBJ_H
 
-#include "suny.h"
+#include "score.h"
 #include "stype.h"
 #include "sstr.h"
 

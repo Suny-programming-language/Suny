@@ -1,7 +1,7 @@
 #ifndef SINITIALIZE_H
 #define SINITIALIZE_H
 
-#include "suny.h"
+#include "score.h"
 #include "scompile.h"
 #include "sobj.h"
 

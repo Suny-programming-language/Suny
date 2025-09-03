@@ -2,7 +2,7 @@
 #define SCLASS_H
 
 #include "stype.h"
-#include "suny.h"
+#include "score.h"
 
 struct Sclass*
 Sclass_new

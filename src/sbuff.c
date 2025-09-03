@@ -58,3 +58,33 @@ Sbuff_read_file
 
     return zio;
 }
+
+
+struct SZIO* 
+Sbuff_write_bytecode_file(unsigned char* content, size_t size, const char* filename) {
+    FILE *fp = fopen(filename, "wb");
+    if (!fp) return NULL;
+
+    size_t written = fwrite(content, 1, size, fp);
+    fclose(fp);
+
+    if (written != size) {
+        return NULL; 
+    }
+
+    struct SZIO *zio = malloc(sizeof(struct SZIO));
+    if (!zio) return NULL;
+
+    zio->file = strdup(filename); 
+    zio->buffer = malloc(size);
+    if (!zio->buffer) {
+        free(zio->file);
+        free(zio);
+        return NULL;
+    }
+
+    memcpy(zio->buffer, content, size);
+    zio->size = size;
+
+    return zio;
+}

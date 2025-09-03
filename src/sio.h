@@ -1,7 +1,7 @@
 #ifndef SIO_H
 #define SIO_H
 
-#include "suny.h"
+#include "score.h"
 #include "sobj.h"
 
 struct Sobj;

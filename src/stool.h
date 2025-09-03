@@ -1,7 +1,7 @@
 #ifndef STOOL_H
 #define STOOL_H
 
-#include "suny.h"
+#include "score.h"
 
 double 
 Satof(const char *str);

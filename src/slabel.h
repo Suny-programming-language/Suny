@@ -2,7 +2,7 @@
 #define SLABEL_H
 
 #include "scode.h"
-#include "suny.h"
+#include "score.h"
 #include "max.h"
 #include "sobj.h"
 

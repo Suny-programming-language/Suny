@@ -3,7 +3,7 @@
 
 #include "scompile.h"
 #include "sframe.h"
-#include "suny.h"
+#include "score.h"
 #include "sobj.h"
 #include "sfunc.h"
 #include "sstr.h"

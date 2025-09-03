@@ -1,7 +1,7 @@
 #ifndef SLIST_H
 #define SLIST_H
 
-#include "suny.h"
+#include "score.h"
 #include "sobj.h"
 #include "stype.h"
 #include "sgc.h"

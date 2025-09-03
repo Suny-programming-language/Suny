@@ -129,11 +129,6 @@ Slexer_tokenize_string
         return TOKEN(STRING, 0, "");
     }
 
-    lexeme[len++] = lexer->cur;
-
-    get_next_c(lexer);
-    current(lexer);
-
     while (lexer->cur != '"' && lexer->cur != '\0') {
         if (lexer->cur == '\n') {
             struct Serror *error = Serror_set("SYNTAX_ERROR", "Invalid string", lexer);

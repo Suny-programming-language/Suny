@@ -319,10 +319,10 @@ Scompile_function_call
     int address = scope.address;
     int args_size = scope.args_size;
 
-    if (args_size != ast->param_count) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Wrong number of arguments", ast->lexer);
-        Serror_syntax_error(error);
-    }
+    // if (args_size != ast->param_count) {
+    //     struct Serror *error = Serror_set("COMPILER_ERROR", "Wrong number of arguments", ast->lexer);
+    //     Serror_syntax_error(error);
+    // }
 
     Sreverse((void **) ast->params, ast->param_count);
     struct Scode *param = Scompile_block(ast->params, compiler, ast->param_count);
@@ -376,7 +376,7 @@ Scompile_body_func
 
     int args_address = 0;
     for (int i = 0; i < args_size; i++) {
-        add_scope_local(compiler, args[i], args_address++, 0);
+        add_scope(compiler, args[i], args_address++, 0);
     }
 
     for (int i = 0; i < block_size; i++) {
@@ -390,7 +390,7 @@ Scompile_body_func
 
     int address = 0;
     for (int i = 0; i < args_size; i++) {
-        remove_scope_local(compiler, args[i]);
+        remove_scope(compiler, args[i]);
     }
 
     compiler->is_in_func = 0;

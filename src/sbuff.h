@@ -1,7 +1,7 @@
 #ifndef SBUFF_H
 #define SBUFF_H
 
-#include "suny.h"
+#include "score.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,5 +23,9 @@ Sbuff_free
 struct SZIO*
 Sbuff_read_file
 (char* file);
+
+struct SZIO* 
+Sbuff_write_bytecode_file
+(unsigned char* content, size_t size, const char* filename);
 
 #endif // SBUFF_H
