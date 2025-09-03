@@ -40,6 +40,14 @@ Scompile
             return Scompile_store_index(ast, compiler);
         case AST_FOR:
             return Scompile_for(ast, compiler);
+        case AST_CLASS:
+            return Scompile_class(ast, compiler);
+        case AST_OR_EXPRESSION:
+            return Scompile_or(ast, compiler);
+        case AST_AND_EXPRESSION:
+            return Scompile_and(ast, compiler);
+        case AST_NOT_EXPRESSION:
+            return Scompile_not(ast, compiler);
         case AST_TRUE: {
             struct Scode *code = Scode_new();
             PUSH(code, LOAD_TRUE);
@@ -669,6 +677,76 @@ Scompile_for
 
     PUSH(code, ADD_LABEL);
     PUSH(code, loop_end);
+
+    return code;
+}
+
+
+struct Scode*
+Scompile_class
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *class_body = Scompile_block(ast->block, compiler, ast->block_size);
+
+    int address = ++compiler->address;
+    add_scope(compiler, ast->lexeme, address, 0);
+
+    struct Scode *code = Scode_new();
+
+    PUSH(code, CLASS_BEGIN);
+
+    INSERT(code, class_body);
+
+    PUSH(code, CLASS_END);
+
+    PUSH(code, STORE_GLOBAL);
+
+    PUSH(code, address);
+    
+    return code;
+}
+
+struct Scode*
+Scompile_or
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *left = Scompile(ast->left, compiler);
+    struct Scode *right = Scompile(ast->right, compiler);   
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, left);
+    INSERT(code, right);
+
+    PUSH(code, OR_LOG);
+
+    return code;
+}
+
+struct Scode*
+Scompile_and
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *left = Scompile(ast->left, compiler);
+    struct Scode *right = Scompile(ast->right, compiler);   
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, left);
+    INSERT(code, right);
+
+    PUSH(code, AND_LOG);
+
+    return code;
+}
+
+struct Scode*
+Scompile_not
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *expr = Scompile(ast->expr, compiler);
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, expr);
+
+    PUSH(code, NOT_LOG);
 
     return code;
 }

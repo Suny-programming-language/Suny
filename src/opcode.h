@@ -63,4 +63,11 @@
 #define LOAD_TRUE '\x38'
 #define LOAD_FALSE '\x39'
 
-#endif 
+#define CLASS_BEGIN '\x40'
+#define CLASS_END '\x41'
+
+#define AND_LOG '\x42'
+#define OR_LOG '\x43'
+#define NOT_LOG '\x44'
+
+#endif // OPCODE_H

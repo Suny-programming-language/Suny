@@ -48,6 +48,8 @@ SUNY_API struct Sobj* Spop(struct Sframe* frame);
 
 SUNY_API struct Sobj *Sload_dll(struct Sframe *frame);
 
+SUNY_API struct Sobj *Sisdigit_builtin(struct Sframe *frame);
+
 SUNY_API struct Sobj *Srange(struct Sframe *frame);
 
 #endif // SBUILTIN_H

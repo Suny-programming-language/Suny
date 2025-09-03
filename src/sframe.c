@@ -324,7 +324,7 @@ Sframe_find_c_api_func
     }
 
     printf("Error: function not found\n");
-    SUNY_BREAK_POINT;
+    SUNY_BREAK_POINT;   
     return NULL;
 }
 

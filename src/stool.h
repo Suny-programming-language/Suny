@@ -45,6 +45,12 @@ Sadd_4_char(char c1, char c2, char c3, char c4);
 int
 Slen(char *str);
 
+int
+Sisdigit(char chr);
+
+int
+Sisstrdigit(char *str);
+
 Sdll_func dll_get_func(char* func_name, char* dll_name);
 
 #endif

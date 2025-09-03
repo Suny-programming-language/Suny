@@ -51,6 +51,9 @@ enum Stok_t {
     TRUE_T,
     FALSE_T,
 
+    CLASS,
+    EXTENDS,
+
     LET,
     IF, ELSE, THEN, ELIF,
     WHILE, DO, END, BREAK, CONTINUE,

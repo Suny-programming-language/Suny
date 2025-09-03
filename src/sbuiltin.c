@@ -1,5 +1,21 @@
 #include "sbuiltin.h"
 
+SUNY_API struct Sobj *Sisdigit_builtin(struct Sframe *frame) {
+    struct Sobj *obj = Sframe_pop(frame);
+
+    char* str = obj->f_type->f_str->string;
+
+    if (Sisstrdigit(str)) {
+        struct Sobj *result = Sobj_set_int(1);
+        return result;
+    } else {
+        struct Sobj *result = Sobj_set_int(0);
+        return result;
+    }
+
+    return NULL;
+}
+
 struct Sc_api_func* 
 Sc_api_func_set
 (void* func, char* name, int address, int args_size) {
@@ -18,9 +34,7 @@ SUNY_API struct Sobj* Snumber(struct Sframe* frame) {
 
     struct Sobj *obj = Sobj_set_int(value);
 
-    Sframe_push(frame, obj);
-
-    return NULL;
+    return obj;
 }
 
 SUNY_API struct Sobj* Sputs(struct Sframe* frame) {
@@ -28,9 +42,7 @@ SUNY_API struct Sobj* Sputs(struct Sframe* frame) {
 
     Sio_write(obj);
 
-    Sframe_push(frame, Sobj_set_int(0));
-
-    return NULL;
+    return Sobj_set_int(0);
 }
 
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
@@ -40,9 +52,7 @@ SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
 
     printf("\n");
 
-    Sframe_push(frame, Sobj_set_int(0));
-
-    return NULL;
+    return Sobj_set_int(0);
 }
 
 SUNY_API struct Sobj* Sread(struct Sframe* frame) {
@@ -55,7 +65,6 @@ SUNY_API struct Sobj* Sread(struct Sframe* frame) {
 
     if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
         struct Sobj *empty = Sobj_make_str("", 0);
-        Sframe_push(frame, empty);
         return empty;
     }
 
@@ -67,8 +76,6 @@ SUNY_API struct Sobj* Sread(struct Sframe* frame) {
 
     struct Sobj *result = Sobj_make_str(buffer, len);
 
-    Sframe_push(frame, result);
-
     return result;
 }
 
@@ -78,9 +85,7 @@ SUNY_API struct Sobj* Sexit(struct Sframe* frame) {
 
     exit(obj->value->value);
 
-    Sframe_push(frame, Sobj_set_int(0));
-
-    return NULL;
+    return Sobj_set_int(0);
 }
 
 SUNY_API struct Sobj *Sload_dll(struct Sframe *frame) {
@@ -102,21 +107,21 @@ SUNY_API struct Sobj *Sload_dll(struct Sframe *frame) {
 
     struct Sobj *result = f(frame);
 
-    Sframe_push(frame, result);
-
-    return NULL;
+    return result;
 }
 
 SUNY_API struct Sobj* Ssize(struct Sframe* frame) {
     struct Sobj *obj = Sframe_pop(frame);
 
     if (obj->type == LIST_OBJ) {
-        Sframe_push(frame, Sobj_set_int(obj->f_type->f_list->count));
+        return Sobj_set_int(obj->f_type->f_list->count);
     } else if (obj->type == STRING_OBJ) {
-        Sframe_push(frame, Sobj_set_int(obj->f_type->f_str->size));
+        return Sobj_set_int(obj->f_type->f_str->size);
     } else {
-        Sframe_push(frame, Sobj_set_int(0));
+        return Sobj_set_int(0);
     }
+
+    return NULL;
 }
 
 SUNY_API struct Sobj* Spush(struct Sframe* frame) {
@@ -127,8 +132,6 @@ SUNY_API struct Sobj* Spush(struct Sframe* frame) {
 
     struct Sobj *obj = Sobj_set_int(0);
 
-    Sframe_push(frame, obj);
-
     return list;
 }
 
@@ -138,8 +141,6 @@ SUNY_API struct Sobj* Spop(struct Sframe* frame) {
     Slist_pop(obj->f_type->f_list);
 
     struct Sobj *result = Sobj_set_int(0);
-
-    Sframe_push(frame, result);
 
     return obj;
 }
@@ -154,7 +155,5 @@ SUNY_API struct Sobj *Srange(struct Sframe *frame) {
     struct Slist *list = Slist_range(start_value, end_value);
     struct Sobj *obj = Sobj_make_list(list);
 
-    Sframe_push(frame, obj);
-
-    return NULL;
+    return obj;
 }

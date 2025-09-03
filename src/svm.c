@@ -59,10 +59,24 @@ Svm_run_program(struct Sframe *frame) {
     int done = 0;
     
     if (op == PROGRAM_START) {
+        op = get_next_code(frame);
+        
         while (!done) {
             if (op == PROGRAM_END) {
                 done = 1;
-            } 
+            }
+
+            else if (op == AND_LOG) {
+                frame = Svm_evaluate_AND_LOG(frame);
+            }
+
+            else if (op == OR_LOG) {
+                frame = Svm_evaluate_OR_LOG(frame);
+            }
+
+            else if (op == NOT_LOG) {
+                frame = Svm_evaluate_NOT_LOG(frame);
+            }
 
             else if (op == ADD_LABEL) {
                 op = get_next_code(frame);
@@ -112,9 +126,19 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evalutate_BINARY_OPER(frame, op);
             }
 
+            else if (op == CLASS_BEGIN) {
+                frame = Svm_evaluate_CLASS_BEGIN(frame);
+            }
+
             else if (op == POP_TOP) {
+                #ifdef DEBUG
+                    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (POP_TOP)\n");
+                #endif
                 struct Sobj *obj = Sframe_pop(frame);
                 Sgc_dec_ref(obj, frame->gc_pool);
+                #ifdef DEBUG
+                    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (done)\n");
+                #endif
             }
 
             else if (op == LOAD_ITEM) {
@@ -135,6 +159,9 @@ Svm_run_program(struct Sframe *frame) {
 
             else if (op == LOAD_FALSE) {
                 frame = Svm_evaluate_LOAD_FALSE(frame);
+            } else {
+                printf("Invalid program %s\n", print_op(op));
+                done = 1;
             }
 
             op = get_next_code(frame);
@@ -176,6 +203,18 @@ Svm_run_call_context(struct Scall_context *context) {
         
         else if (op == ADD_LABEL) {
             op = get_next_code(f_frame);
+        }
+
+        else if (op == AND_LOG) {
+            f_frame = Svm_evaluate_AND_LOG(f_frame);
+        }
+
+        else if (op == OR_LOG) {
+            f_frame = Svm_evaluate_OR_LOG(f_frame);
+        }
+
+        else if (op == NOT_LOG) {
+            f_frame = Svm_evaluate_NOT_LOG(f_frame);
         }
 
         else if (IS_BINARY_OPER(op)) {
@@ -306,7 +345,9 @@ Svm_evaluate_FUNCTION_CALL
     if (f_obj->type == BUILTIN_OBJ) {
         struct Sobj* (*func)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
 
-        func(frame);
+        struct Sobj* result = func(frame);
+
+        Sframe_push(frame, result);
 
         return frame;
     }
@@ -334,6 +375,10 @@ Svm_evaluate_FUNCTION_CALL
     }
     
     Svm_run_call_context(context);
+
+    free(f_local);
+    free(context);
+    free(f_frame);
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
@@ -588,22 +633,36 @@ Svm_evaluate_LOAD_ITEM
     struct Sobj *list = Sframe_pop(frame);
 
     if (list->type == LIST_OBJ) {
-        if (index->value->value >= list->f_type->f_list->count) {
-            Sframe_push(frame, Sobj_set_int(0));
+        if (index->value->value > list->f_type->f_list->count) {
+            printf("Error: index out of range\n");  \
+            SUNY_BREAK_POINT;
             return frame;
         };
 
         struct Sobj *item = Slist_get(list->f_type->f_list, index->value->value);
+
+        if (!item) {
+            printf("Error: index out of range\n");  \
+            SUNY_BREAK_POINT;
+        }
+        
         Sframe_push(frame, item);
     } else if (list->type == STRING_OBJ) {
-        if (index->value->value >= list->f_type->f_str->size) {
-            Sframe_push(frame, Sobj_set_int(0));
+        if (index->value->value > list->f_type->f_str->size) {
+            printf("Error: index out of range\n");  \
+            SUNY_BREAK_POINT;
             return frame;
         };
+
         int index_value = index->value->value;
         char c = list->f_type->f_str->string[index_value];
         struct Sobj *obj = Sobj_make_char(c);
-      
+
+        if (!obj) {
+            printf("Error: index out of range\n");  \
+            SUNY_BREAK_POINT;
+        }
+
         Sframe_push(frame, obj);
     } else {
         Sframe_push(frame, Sobj_set_int(0));
@@ -718,6 +777,191 @@ Svm_evaluate_STORE_LOCAL
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_STORE_LOCAL(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_CLASS_BEGIN
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_CLASS_BEGIN(struct Sframe *frame) (building...)\n");
+#endif
+
+    byte_t op = get_next_code(frame);
+
+    struct Sclass *sclass = Sclass_new();
+
+    struct Scode *code = Scode_new();
+
+    while (op != CLASS_END) {
+        if (op == ADD_LABEL) {
+            op = get_next_code(frame);
+        }
+
+        else if (op == AND_LOG) {
+            frame = Svm_evaluate_AND_LOG(frame);
+        }
+
+        else if (op == OR_LOG) {
+            frame = Svm_evaluate_OR_LOG(frame);
+        }
+
+        else if (op == NOT_LOG) {
+            frame = Svm_evaluate_NOT_LOG(frame);
+        }
+
+        else if (op == PUSH_FLOAT) {
+            frame = Svm_evalutate_PUSH_FLOAT(frame);
+        }
+
+        else if (op == LOAD_GLOBAL) {
+            frame = Svm_evalutate_LOAD_GLOBAL(frame);
+        }
+
+        else if (op == STORE_GLOBAL) {
+            frame = Svm_evalutate_STORE_GLOBAL(frame);
+        }
+
+        else if (op == PUSH_STRING) {
+            frame = Svm_evaluate_PUSH_STRING(frame);
+        }
+
+        else if (op == BUILD_LIST) {
+            frame = Svm_evaluate_BUILD_LIST(frame);
+        }
+
+        else if (op == LEN_OF) {
+            frame = Svm_evaluate_LEN_OF(frame);
+        }
+
+        else if (op == POP_JUMP_IF_FALSE) {
+            frame = Svm_evaluate_POP_JUMP_IF_FALSE(frame);
+        }
+
+        else if (op == MAKE_FUNCTION) {
+            frame = Svm_evaluate_MAKE_FUNCTION(frame);
+        }
+        
+        else if (op == FUNCTION_CALL) {
+            frame = Svm_evaluate_FUNCTION_CALL(frame);
+        }
+
+        else if (op == JUMP_TO) {
+            frame = Svm_evaluate_JUMP_TO(frame);
+        }
+
+        else if (IS_BINARY_OPER(op)) {
+            frame = Svm_evalutate_BINARY_OPER(frame, op);
+        }
+
+        else if (op == POP_TOP) {
+            struct Sobj *obj = Sframe_pop(frame);
+            Sgc_dec_ref(obj, frame->gc_pool);
+        }
+
+        else if (op == LOAD_ITEM) {
+            frame = Svm_evaluate_LOAD_ITEM(frame);
+        }
+
+        else if (op == STORE_ITEM) {
+            frame = Svm_evaluate_STORE_ITEM(frame);
+        }
+
+        else if (op == PRINT) {
+            frame = Svm_evaluate_PRINT(frame);
+        } 
+
+        else if (op == LOAD_TRUE) {
+            frame = Svm_evaluate_LOAD_TRUE(frame);
+        }
+
+        else if (op == LOAD_FALSE) {
+            frame = Svm_evaluate_LOAD_FALSE(frame);
+        }
+
+        op = get_next_code(frame);
+    }
+
+    return frame;
+}
+
+struct Sframe*
+Svm_evaluate_NOT_LOG
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_NOT_LOG(struct Sframe *frame) (building...)\n");
+#endif    
+    struct Sobj *obj = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj, frame->gc_pool);
+
+    int value = !obj->value->value;
+
+    if (value) {
+        Sframe_push(frame, Sobj_make_true());
+    } else {
+        Sframe_push(frame, Sobj_make_false());
+    }
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_NOT_LOG(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe*
+Svm_evaluate_AND_LOG
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_AND_LOG(struct Sframe *frame) (building...)\n");
+#endif
+
+    struct Sobj *obj1 = Sframe_pop(frame);
+    struct Sobj *obj2 = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj1, frame->gc_pool);
+    Sgc_dec_ref(obj2, frame->gc_pool);
+
+    int value = obj1->value->value && obj2->value->value;
+
+    if (value) {
+        Sframe_push(frame, Sobj_make_true());
+    } else {
+        Sframe_push(frame, Sobj_make_false());
+    }
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_AND_LOG(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe*
+Svm_evaluate_OR_LOG
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_OR_LOG(struct Sframe *frame) (building...)\n");
+#endif
+    struct Sobj *obj1 = Sframe_pop(frame);
+    struct Sobj *obj2 = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj1, frame->gc_pool);
+    Sgc_dec_ref(obj2, frame->gc_pool);
+
+    int value = obj1->value->value || obj2->value->value;
+
+    if (value) {
+        Sframe_push(frame, Sobj_make_true());
+    } else {
+        Sframe_push(frame, Sobj_make_false());
+    }
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_OR_LOG(struct Sframe *frame) (done)\n");
 #endif
 
     return frame;

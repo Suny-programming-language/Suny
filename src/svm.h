@@ -9,6 +9,8 @@
 #include "sstr.h"
 #include "sinitialize.h"
 #include "seval.h"
+#include "sclass.h"
+#include "sbool.h"
 
 #include <math.h>
 
@@ -36,14 +38,6 @@ Svm_evalutate_LOAD_GLOBAL
 struct Sframe *
 Svm_evalutate_STORE_GLOBAL
 (struct Sframe *frame);
-
-struct Sframe *
-Svm_evalutate_BINARY_OPER
-(struct Sframe *frame, byte_t op);
-
-struct Sframe *
-Svm_run_call_context
-(struct Scall_context *context);
 
 struct Sframe *
 Svm_evaluate_MAKE_FUNCTION
@@ -100,5 +94,29 @@ Svm_evaluate_LOAD_LOCAL
 struct Sframe *
 Svm_evaluate_STORE_LOCAL
 (struct Sframe *frame);
+
+struct Sframe *
+Svm_evaluate_CLASS_BEGIN
+(struct Sframe *frame);
+
+struct Sframe*
+Svm_evaluate_NOT_LOG
+(struct Sframe *frame);
+
+struct Sframe*
+Svm_evaluate_AND_LOG
+(struct Sframe *frame);
+
+struct Sframe*
+Svm_evaluate_OR_LOG
+(struct Sframe *frame);
+
+struct Sframe *
+Svm_evalutate_BINARY_OPER
+(struct Sframe *frame, byte_t op);
+
+struct Sframe *
+Svm_run_call_context
+(struct Scall_context *context);
 
 #endif // SVM_H

@@ -62,6 +62,12 @@ struct Sbool {
     int _bool;
 };
 
+struct Sclass {
+    struct Sobj** methods;
+    int count;
+    int capacity;
+};
+
 struct Stype {
 
     struct Sfunc *f_func;
@@ -69,6 +75,7 @@ struct Stype {
     struct Svalue *f_value;
     struct Sframe *f_frame;
     struct Scode *f_code;
+    struct Sclass *f_class;
     struct Sobj *f_obj;
     struct Slist *f_list;
     struct Sbool *f_bool;

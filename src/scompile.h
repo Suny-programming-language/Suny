@@ -89,6 +89,22 @@ Scompile_for
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_class
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_or
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_and
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_not
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);

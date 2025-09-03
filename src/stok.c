@@ -150,6 +150,14 @@ Stok_get_identifier
         return BREAK;
     } else if (strcmp(lexeme, "continue") == 0) {
         return CONTINUE;
+    } else if (strcmp(lexeme, "class") == 0) {
+        return CLASS;
+    } else if (strcmp(lexeme, "and") == 0) {
+        return AND;
+    } else if (strcmp(lexeme, "or") == 0) {
+        return OR;
+    } else if (strcmp(lexeme, "not") == 0) {
+        return NOT;
     } else {
         return IDENTIFIER;
     }    

@@ -210,3 +210,27 @@ Sdll_func dll_get_func(char* func_name, char* dll_name) {
 
     return func;
 }
+
+int
+Sisdigit(char chr) {
+    if (chr >= '0' && chr <= '9') return 1;
+    return 0;
+}
+
+int
+Sisstrdigit(char *str) {
+    int dot_count = 0;
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        char c = str[i];
+
+        if (c == '.') {
+            dot_count++;
+            if (dot_count > 1) return 0;
+        } else if (!Sisdigit(c)) {
+            return 0;
+        }
+    }
+
+    return 1;
+}

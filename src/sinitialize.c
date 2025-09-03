@@ -42,16 +42,17 @@ int SunyInstallLib
 )
 
 {
-    SunyInitialize_c_api_func(frame, compiler, 20, "print", 1, Sprintf);
-    SunyInitialize_c_api_func(frame, compiler, 21, "exit", 1, Sexit);
-    SunyInitialize_c_api_func(frame, compiler, 22, "call", 3, Sload_dll);
-    SunyInitialize_c_api_func(frame, compiler, 23, "push", 2, Spush);
-    SunyInitialize_c_api_func(frame, compiler, 24, "pop", 1, Spop);
-    SunyInitialize_c_api_func(frame, compiler, 25, "size", 1, Ssize);
-    SunyInitialize_c_api_func(frame, compiler, 27, "range", 2, Srange);
-    SunyInitialize_c_api_func(frame, compiler, 28, "read", 1, Sread);
-    SunyInitialize_c_api_func(frame, compiler, 29, "puts", 1, Sputs);
-    SunyInitialize_c_api_func(frame, compiler, 30, "number", 1, Snumber);
+    SunyInitialize_c_api_func(frame, compiler, 10, "print", 1, Sprintf);
+    SunyInitialize_c_api_func(frame, compiler, 11, "exit", 1, Sexit);
+    SunyInitialize_c_api_func(frame, compiler, 12, "call", 3, Sload_dll);
+    SunyInitialize_c_api_func(frame, compiler, 13, "push", 2, Spush);
+    SunyInitialize_c_api_func(frame, compiler, 14, "pop", 1, Spop);
+    SunyInitialize_c_api_func(frame, compiler, 15, "size", 1, Ssize);
+    SunyInitialize_c_api_func(frame, compiler, 17, "range", 2, Srange);
+    SunyInitialize_c_api_func(frame, compiler, 18, "read", 1, Sread);
+    SunyInitialize_c_api_func(frame, compiler, 19, "puts", 1, Sputs);
+    SunyInitialize_c_api_func(frame, compiler, 20, "number", 1, Snumber);
+    SunyInitialize_c_api_func(frame, compiler, 21, "isdigit", 1, Sisdigit_builtin);
     
     return 0;
 }

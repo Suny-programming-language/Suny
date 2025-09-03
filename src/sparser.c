@@ -67,6 +67,10 @@ Sparser_parse(struct Sparser *parser) {
         }
     }
 
+    if (parser->token->type == CLASS) {
+        return Sparser_parse_class(parser);
+    }
+
     if (parser->token->type == RETURN) {
         return Sparser_parse_return(parser);
     }
@@ -326,7 +330,7 @@ Sparser_parse_print
 struct Sast *
 Sparser_parse_logic_expression
 (struct Sparser *parser) {
-    struct Sast *left = Sparser_parse_comparison_expression(parser);
+    struct Sast *left = Sparser_parse_or(parser);
 
     if (!left) {
         Serror_parser("Expected comparison expression", parser->lexer);
@@ -811,6 +815,100 @@ Sparser_parse_for
 
     node->block = block->block;
     node->block_size = block->block_size;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_class
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_CLASS, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type != IDENTIFIER) {
+        Serror_parser("Expected identifier", parser->lexer);
+        return NULL;
+    }
+
+    node->lexeme = parser->token->lexeme;
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *block = Sparser_parse_block(parser);
+
+    node->block = block->block;
+    node->block_size = block->block_size;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_not
+(struct Sparser *parser) {
+    if (parser->token->type == NOT) {
+        struct Sast *node = AST(AST_NOT_EXPRESSION, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        struct Sast *expr = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, expr);
+        Sast_expected_expression(expr);
+
+        node->expr = expr;
+
+        return node;
+    }
+
+    return Sparser_parse_comparison_expression(parser);
+}
+
+struct Sast *
+Sparser_parse_and
+(struct Sparser *parser) {
+    struct Sast *node = Sparser_parse_not(parser);
+
+    while (parser->token->type == AND) {
+        struct Sast *and_node = AST(AST_AND_EXPRESSION, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        struct Sast *expr = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, expr);
+        Sast_expected_expression(expr);
+
+        and_node->left = node;
+        and_node->right = expr;
+
+        node = and_node;
+
+        return node;
+    }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_or
+(struct Sparser *parser) {
+    struct Sast *node = Sparser_parse_and(parser);
+
+    while (parser->token->type == OR) {
+        struct Sast *or_node = AST(AST_OR_EXPRESSION, 0, NULL);
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        struct Sast *expr = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, expr);
+        Sast_expected_expression(expr);
+
+        or_node->left = node;
+        or_node->right = expr;
+
+        node = or_node;
+
+        return node;
+    }
 
     return node;
 }

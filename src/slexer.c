@@ -124,6 +124,11 @@ Slexer_tokenize_string
 
     current(lexer);
 
+    if (lexer->cur == '"') {
+        get_next_c(lexer);
+        return TOKEN(STRING, 0, "");
+    }
+
     lexeme[len++] = lexer->cur;
 
     get_next_c(lexer);
