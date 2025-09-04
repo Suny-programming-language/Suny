@@ -235,6 +235,10 @@ Svm_run_call_context(struct Scall_context *context) {
             f_frame = Svm_evalutate_PUSH_FLOAT(f_frame);
         }
 
+        else if (op == MAKE_FUNCTION) {
+            f_frame = Scall_context_make_inner_function(context);
+        }
+
         else if (op == LOAD_GLOBAL) {
             f_frame = Svm_evaluate_LOAD_LOCAL(f_frame);
         }
@@ -295,6 +299,61 @@ Svm_run_call_context(struct Scall_context *context) {
     return context->main_frame;
 }
 
+struct Sframe*
+Scall_context_make_inner_function
+(struct Scall_context *context) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Scall_context_make_inner_function(struct Scall_context *context) (building...)\n");
+#endif
+
+    struct Sframe *f_frame = context->frame;
+
+    byte_t faddress = get_next_code(f_frame);
+    byte_t fargs_count = get_next_code(f_frame);
+
+    int code_size = 0;
+
+    struct Scode *code = Scode_new();
+
+    byte_t op = get_next_code(f_frame); 
+
+    int func_level = 1;
+
+    while (1) {
+        if (op == MAKE_FUNCTION) {
+            func_level++;
+        }
+
+        PUSH(code, op);
+        ++code_size;
+
+        op = get_next_code(f_frame);
+
+        if (op == END_FUNCTION) {
+            func_level--;
+        }
+
+        if (op == END_FUNCTION && func_level == 0) break;
+    }
+
+    PUSH(code, END_FUNCTION);
+
+    struct Sfunc *func = Sfunc_set(code, fargs_count, code_size);
+
+    func->args_size = fargs_count;
+
+    struct Sobj *f_obj = Sobj_set_func(func);
+
+    Sfunc_ready(func, fargs_count);
+    Sframe_store_local(f_frame, faddress, f_obj, FUNC_OBJ);
+    
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Scall_context_make_inner_function(struct Scall_context *context) (done)\n");
+#endif
+
+    return f_frame;
+}
+
 struct Sframe *
 Svm_evaluate_MAKE_FUNCTION
 (struct Sframe *frame) {
@@ -309,11 +368,23 @@ Svm_evaluate_MAKE_FUNCTION
     struct Scode *code = Scode_new();
 
     byte_t op = get_next_code(frame);
+    int func_level = 1;
 
-    while (op != END_FUNCTION) {
+    while (1) {
+        if (op == MAKE_FUNCTION) {
+            func_level++;
+        }
+
         PUSH(code, op);
-        op = get_next_code(frame);
         ++code_size;
+
+        op = get_next_code(frame);
+
+        if (op == END_FUNCTION) {
+            func_level--;
+        }
+
+        if (op == END_FUNCTION && func_level == 0) break;
     }
 
     PUSH(code, END_FUNCTION);

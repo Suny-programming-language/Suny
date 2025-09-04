@@ -1,5 +1,16 @@
 #include "sbuiltin.h"
 
+struct Sc_api_func* 
+Sc_api_func_set
+(void* func, char* name, int address, int args_size) {
+    struct Sc_api_func* api_func = malloc(sizeof(struct Sc_api_func));
+    api_func->func = func;
+    api_func->name = name;
+    api_func->address = address;
+    api_func->args_size = args_size;
+    return api_func;
+}
+
 SUNY_API struct Sobj *Sisdigit_builtin(struct Sframe *frame) {
     struct Sobj *obj = Sframe_pop(frame);
 
@@ -14,17 +25,6 @@ SUNY_API struct Sobj *Sisdigit_builtin(struct Sframe *frame) {
     }
 
     return NULL;
-}
-
-struct Sc_api_func* 
-Sc_api_func_set
-(void* func, char* name, int address, int args_size) {
-    struct Sc_api_func* api_func = malloc(sizeof(struct Sc_api_func));
-    api_func->func = func;
-    api_func->name = name;
-    api_func->address = address;
-    api_func->args_size = args_size;
-    return api_func;
 }
 
 SUNY_API struct Sobj* Snumber(struct Sframe* frame) {

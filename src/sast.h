@@ -32,11 +32,14 @@ enum Sast_t {
     AST_STATEMENT,
     AST_EXPRESSION,
     AST_PRINT,
+    AST_IMPORT,
+    AST_INCLUDE,
     AST_BREAK,
     AST_CONTINUE,
     AST_ASSIGNMENT,
     AST_IF,
     AST_WHILE,
+    AST_VAR_LIST,
     AST_DO_LOOP,
     AST_COMPARE_EXPRESSION,
     AST_AND_EXPRESSION,
@@ -67,6 +70,14 @@ struct Sast {
 
     struct Sast *print_value;
     struct Sast *expr;
+
+    char** var_list;
+    int var_list_size;
+    int var_list_capacity;
+
+    struct Sast **var_list_values;
+    int var_list_values_size;
+    int var_list_values_capacity;
 
     struct Sast *left;
     struct Sast *right;
@@ -157,5 +168,11 @@ Sast_get_child
 
 struct Sast*
 Sast_add_element(struct Sast *list, struct Sast *element);
+
+struct Sast*
+Sast_add_var_list(struct Sast *ast, char* var_name);
+
+struct Sast*
+Sast_add_var_list_value(struct Sast *ast, struct Sast *var_value);
 
 #endif

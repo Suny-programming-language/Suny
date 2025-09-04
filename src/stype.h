@@ -9,6 +9,10 @@
 
 struct Sfunc {
     struct Sfunc *inner;
+    
+    struct Sobj** inner_funcs;
+    int inner_funcs_size;
+    int inner_funcs_capacity;
 
     struct Sframe *frame;
     struct Scode *code;

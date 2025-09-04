@@ -7,6 +7,10 @@ Sfunc_obj_new(void) {
     func->args_index = 0;
     func->code_index = 0;
 
+    func->inner_funcs = NULL;
+    func->inner_funcs_size = 0;
+    func->inner_funcs_capacity = 0;
+
     func->code_size = 0;
     func->args_size = 0;
     

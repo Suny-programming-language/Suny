@@ -954,3 +954,33 @@ Sparser_parse_or
 
     return node;
 }
+
+struct Sast *
+Sparser_parse_var_list
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_VAR_LIST, 0, NULL);
+
+    if (parser->token->type != IDENTIFIER) {
+        Serror_parser("Expected identifier", parser->lexer);
+        return NULL;
+    }
+
+
+}
+
+struct Sast *
+Sparser_parse_include
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_INCLUDE, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type != STRING) {
+        Serror_parser("Expected file name, file name must be a string", parser->lexer);
+        return NULL;
+    }
+
+    node->lexeme = parser->token->lexeme;
+
+    return node;
+}

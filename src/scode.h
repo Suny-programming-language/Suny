@@ -14,6 +14,7 @@
 struct Scode {
     unsigned char code[MAX_CODE_SIZE];
     int size;
+    int capacity;
 };
 
 struct Scode *

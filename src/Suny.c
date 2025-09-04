@@ -71,3 +71,22 @@ struct Sframe* SunyRunFile(char* file) {
 
     return frame;
 }
+
+struct Scode* SunyCompileFile(char* file) {
+    struct SZIO* zio = Sbuff_read_file(file);
+
+    struct Slexer *lexer = Slexer_init(zio->buffer);
+    lexer->file = zio;
+
+    struct Sparser *parser = Sparser_init(lexer);
+    struct Sast *ast = Sparser_parse_program(parser);
+
+    struct Scompiler *compiler = Scompiler_new();
+
+    struct Sframe *frame = Sframe_new();
+    SunyInstallLib(frame, compiler);
+
+    struct Scode *code = Scompile_program(ast, compiler);
+
+    return code;
+}

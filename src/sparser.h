@@ -125,6 +125,14 @@ Sparser_parse_class
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_var_list
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_include
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_store_index
 (struct Sparser *parser, struct Sast* extract_obj);
 

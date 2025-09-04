@@ -119,4 +119,8 @@ struct Sframe *
 Svm_run_call_context
 (struct Scall_context *context);
 
+struct Sframe*
+Scall_context_make_inner_function
+(struct Scall_context *context);
+
 #endif // SVM_H

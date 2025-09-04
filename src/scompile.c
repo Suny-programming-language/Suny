@@ -380,6 +380,14 @@ Scompile_body_func
     }
 
     for (int i = 0; i < block_size; i++) {
+        if (block[i]->type == AST_FUNCTION_STATEMENT) {
+            struct Scode *child = Scompile(block[i], compiler);
+            compiler->is_in_func = 1;
+            
+            INSERT(code, child);
+            continue;
+        }
+
         struct Scode *child = Scompile(block[i], compiler);
         INSERT(code, child);
 

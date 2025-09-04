@@ -5,6 +5,7 @@ Scode_new(void) {
     struct Scode *code = malloc(sizeof(struct Scode));
 
     code->size = 0;
+    code->capacity = MAX_CODE_SIZE;
     
     return code;
 }
@@ -20,13 +21,6 @@ int
 Scode_add
 (struct Scode *code, unsigned char c) {
     code->code[code->size++] = c;
-
-    if (code->size > MAX_CODE_SIZE) {
-        printf("Error: code size limit exceeded (max size: %d < current size: %d)\n", 
-            MAX_CODE_SIZE, code->size);
-        return -1;
-    }
-
     return 0;
 }
 
