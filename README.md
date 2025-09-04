@@ -1,3 +1,3 @@
-<iframe src="./document.pdf" width="100%" height="600px">
-</iframe>
+# Suny Programming Language
 
+👉 [Watch document PDF)](./document.pdf)
