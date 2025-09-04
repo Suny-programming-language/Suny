@@ -1,3 +1,3 @@
 # Suny Programming Language
 
-👉 [Watch document PDF)](./document.pdf)
+👉 [Watch document (PDF)](./document.pdf)
