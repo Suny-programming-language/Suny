@@ -687,7 +687,7 @@ Sparser_parse_if
 
     node->condition = expr;
 
-    if (parser->token->type != THEN) {
+    if (parser->token->type != THEN && parser->token->type != DO) {
         Serror_parser("Expected 'then'", parser->lexer);
         return NULL;
     }
