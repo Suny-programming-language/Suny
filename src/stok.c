@@ -106,58 +106,49 @@ Stok_free
 }
 
 enum Stok_t 
-Stok_get_identifier
-(char *lexeme) {
-    if (strcmp(lexeme, "let") == 0) {
+Stok_get_identifier(char *lexeme) {
+    if (strcmp(lexeme, LET_S) == 0) {
         return LET;
-    } else if (strcmp(lexeme, "if") == 0) {
+    } else if (strcmp(lexeme, IF_S) == 0) {
         return IF;
-    } else if (strcmp(lexeme, "while") == 0) {
+    } else if (strcmp(lexeme, WHILE_S) == 0) {
         return WHILE;
-    } else if (strcmp(lexeme, "else") == 0) {
+    } else if (strcmp(lexeme, ELSE_S) == 0) {
         return ELSE;
-    } else if (strcmp(lexeme, "elif") == 0) {
+    } else if (strcmp(lexeme, ELIF_S) == 0) {
         return ELIF;
-    } else if (strcmp(lexeme, "then") == 0) {
+    } else if (strcmp(lexeme, THEN_S) == 0) {
         return THEN;
-    } else if (strcmp(lexeme, "do") == 0) {
+    } else if (strcmp(lexeme, DO_S) == 0) {
         return DO;
-    } else if (strcmp(lexeme, "for") == 0) {
+    } else if (strcmp(lexeme, FOR_S) == 0) {
         return FOR;
-    } else if (strcmp(lexeme, "in") == 0) {
+    } else if (strcmp(lexeme, IN_S) == 0) {
         return IN_T;
-    } else if (strcmp(lexeme, "not") == 0) {
+    } else if (strcmp(lexeme, NOT_S) == 0) {
         return NOT;
-    } else if (strcmp(lexeme, "is") == 0) {
+    } else if (strcmp(lexeme, IS_S) == 0) {
         return IS;
-    } else if (strcmp(lexeme, "and") == 0) {
+    } else if (strcmp(lexeme, AND_S) == 0) {
         return AND;
-    } else if (strcmp(lexeme, "or") == 0) {
+    } else if (strcmp(lexeme, OR_S) == 0) {
         return OR;
-    } else if (strcmp(lexeme, "function") == 0) {
+    } else if (strcmp(lexeme, FUNCTION_S) == 0) {
         return FUNCTION;
-    } else if (strcmp(lexeme, "return") == 0) {
+    } else if (strcmp(lexeme, RETURN_S) == 0) {
         return RETURN;
-    } else if (strcmp(lexeme, "true") == 0 || strcmp(lexeme, "True") == 0) {
+    } else if (strcmp(lexeme, TRUE_S) == 0 || strcmp(lexeme, "True") == 0) {
         return TRUE_T;
-    } else if (strcmp(lexeme, "false") == 0 || strcmp(lexeme, "False") == 0) {
+    } else if (strcmp(lexeme, FALSE_S) == 0 || strcmp(lexeme, "False") == 0) {
         return FALSE_T;
-    } else if (strcmp(lexeme, "do") == 0) {
-        return DO;
-    } else if (strcmp(lexeme, "end") == 0) {
+    } else if (strcmp(lexeme, END_S) == 0) {
         return END;
-    } else if (strcmp(lexeme, "break") == 0) {
+    } else if (strcmp(lexeme, BREAK_S) == 0) {
         return BREAK;
-    } else if (strcmp(lexeme, "continue") == 0) {
+    } else if (strcmp(lexeme, CONTINUE_S) == 0) {
         return CONTINUE;
-    } else if (strcmp(lexeme, "class") == 0) {
+    } else if (strcmp(lexeme, CLASS_S) == 0) {
         return CLASS;
-    } else if (strcmp(lexeme, "and") == 0) {
-        return AND;
-    } else if (strcmp(lexeme, "or") == 0) {
-        return OR;
-    } else if (strcmp(lexeme, "not") == 0) {
-        return NOT;
     } else {
         return IDENTIFIER;
     }    

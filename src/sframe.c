@@ -145,6 +145,7 @@ Sframe_store_global
 
     global->type = type;
     global->f_value = obj;
+    global->f_value->address = address;
     global->address = address;
 
     frame->f_globals[frame->f_globals_index++] = global;
@@ -201,6 +202,7 @@ Sframe_store_local
 
     local->type = LOCAL_OBJ;
     local->f_value = obj;
+    local->f_value->address = address;
     local->address = address;
 
 

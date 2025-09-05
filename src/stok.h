@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ssyntax.h"
+
 #define MAX_STACK_SIZE 100
 #define MAX_IDENTIFIER_SIZE 1024
 #define MAX_NUMBER_LEN 1024
@@ -47,6 +49,8 @@ enum Stok_t {
     AND,
     OR,
     NOT,
+
+    ANONYMOUS,
 
     TRUE_T,
     FALSE_T,

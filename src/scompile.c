@@ -48,6 +48,8 @@ Scompile
             return Scompile_and(ast, compiler);
         case AST_NOT_EXPRESSION:
             return Scompile_not(ast, compiler);
+        case AST_ANONYMOUS_FUNCTION:
+            return Scompile_anonymous_function(ast, compiler);
         case AST_TRUE: {
             struct Scode *code = Scode_new();
             PUSH(code, LOAD_TRUE);
@@ -293,12 +295,14 @@ Scompile_function
     struct Scode *body = Scompile_body_func(ast->body, compiler, ast->body_size, ast->param_names, ast->args_count);
 
     PUSH(code, MAKE_FUNCTION);
-    PUSH(code, faddress);
     PUSH(code, fargs_count);
 
     INSERT(code, body);
 
     PUSH(code, END_FUNCTION);
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, faddress);
 
     return code;
 }
@@ -755,6 +759,24 @@ Scompile_not
     INSERT(code, expr);
 
     PUSH(code, NOT_LOG);
+
+    return code;
+}
+
+struct Scode*
+Scompile_anonymous_function
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *block = Scompile_body_func(ast->block, compiler, ast->block_size, ast->param_names, ast->args_count);
+    struct Scode *code = Scode_new();
+
+    int args_count = ast->args_count;
+
+    PUSH(code, MAKE_FUNCTION);
+    PUSH(code, args_count);
+
+    INSERT(code, block);
+
+    PUSH(code, END_FUNCTION);
 
     return code;
 }

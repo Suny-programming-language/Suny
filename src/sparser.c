@@ -100,6 +100,11 @@ Sparser_parse(struct Sparser *parser) {
     }
 
     if (parser->token->type == FUNCTION) {
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LPAREN) {
+            return Sparser_parse_logic_expression(parser);
+        }
+
         return Sparser_parse_function(parser);
     }
 
@@ -169,6 +174,15 @@ Sparser_parse_primary_expression
         }
 
         return node;
+    }
+
+    if (parser->token->type == FUNCTION) {
+        parser->next_token = Slexer_look_ahead(parser->lexer);
+        if (parser->next_token->type == LPAREN) {
+            return Sparser_parse_anonymous_function(parser);
+        } else {
+            Serror_parser("Expected anonymous function", parser->lexer);
+        }
     }
 
     if (parser->token->type == LBRACKET) {
@@ -613,6 +627,35 @@ Sparser_parse_block
     return node;
 }
 
+
+struct Sast *
+Sparser_parse_block_expression
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_BLOCK, 0, NULL);
+
+    if (parser->token->type != DO) {
+        Serror_parser("Expected 'do'", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    while (parser->token->type != END) {
+        struct Sast *stmt = Sparser_parse(parser);
+        Sast_set_line(parser->lexer, node);
+        Sast_add_block(node, stmt);
+
+        node->block_size++;
+
+        if (!stmt) {
+            Serror_parser("Expected statement", parser->lexer);
+            return NULL;
+        }
+    }
+
+    return node;
+}
+
 struct Sast *
 Sparser_parse_return
 (struct Sparser *parser) {
@@ -981,6 +1024,50 @@ Sparser_parse_include
     }
 
     node->lexeme = parser->token->lexeme;
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_anonymous_function
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_ANONYMOUS_FUNCTION, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type == LPAREN) {
+        while (parser->token->type != RPAREN) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+            if (parser->token->type == IDENTIFIER) {
+                Sast_set_para(node, parser->token->lexeme);
+                node->args_count++;
+                node->is_having_params = 1;
+                parser->token = Slexer_get_next_token(parser->lexer);
+                if (parser->token->type == COMMA) {
+                    continue;
+                } else if (parser->token->type == RPAREN) {
+                    break;
+                } else {
+                    Serror_parser("Expected comma or closing parenthesis", parser->lexer);
+                    return NULL;
+                }
+            } else if (parser->token->type == RPAREN) {
+                break;
+            } else {
+                Serror_parser("Expected identifier or closing parenthesis", parser->lexer);
+                return NULL;
+            }
+        }
+
+        parser->token = Slexer_get_next_token(parser->lexer);
+        struct Sast *block = Sparser_parse_block_expression(parser);
+
+        node->block = block->block;
+        node->block_size = block->block_size;
+    } else {
+        Serror_parser("Expected opening parenthesis", parser->lexer);
+        return NULL;
+    }
 
     return node;
 }

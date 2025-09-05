@@ -308,7 +308,6 @@ Scall_context_make_inner_function
 
     struct Sframe *f_frame = context->frame;
 
-    byte_t faddress = get_next_code(f_frame);
     byte_t fargs_count = get_next_code(f_frame);
 
     int code_size = 0;
@@ -345,7 +344,8 @@ Scall_context_make_inner_function
     struct Sobj *f_obj = Sobj_set_func(func);
 
     Sfunc_ready(func, fargs_count);
-    Sframe_store_local(f_frame, faddress, f_obj, FUNC_OBJ);
+
+    Sframe_push(f_frame, f_obj);
     
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Scall_context_make_inner_function(struct Scall_context *context) (done)\n");
@@ -360,7 +360,6 @@ Svm_evaluate_MAKE_FUNCTION
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_MAKE_FUNCTION(struct Sframe *frame) (building...)\n");
 #endif
-    address_t address = get_next_code(frame);
     byte_t args_count = get_next_code(frame);
 
     int code_size = 0;
@@ -396,7 +395,8 @@ Svm_evaluate_MAKE_FUNCTION
     struct Sobj *f_obj = Sobj_set_func(func);
 
     Sfunc_ready(func, args_count);
-    Sframe_store_global(frame, address, f_obj,  FUNC_OBJ);
+    
+    Sframe_push(frame, f_obj);
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_MAKE_FUNCTION(struct Sframe *frame) (done)\n");

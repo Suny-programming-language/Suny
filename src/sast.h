@@ -22,6 +22,7 @@
                         || (ast)->type == AST_NOT_EXPRESSION                \
                         || (ast)->type == AST_COMPARE_EXPRESSION            \
                         || (ast)->type == AST_LIST                          \
+                        || (ast)->type == AST_ANONYMOUS_FUNCTION            \
                         || (ast)->type == AST_EXTRACT                       \
                         || (ast)->type == AST_LITERAL                       \
                         || (ast)->type == AST_STRING_EXPRESSION)
@@ -38,6 +39,7 @@ enum Sast_t {
     AST_CONTINUE,
     AST_ASSIGNMENT,
     AST_IF,
+    AST_ANONYMOUS_FUNCTION,
     AST_WHILE,
     AST_VAR_LIST,
     AST_DO_LOOP,

@@ -85,6 +85,10 @@ Sparser_parse_function
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_block_expression
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_function_call
 (struct Sparser *parser);
 
@@ -130,6 +134,10 @@ Sparser_parse_var_list
 
 struct Sast *
 Sparser_parse_include
+(struct Sparser *parser);
+
+struct Sast *
+Sparser_parse_anonymous_function
 (struct Sparser *parser);
 
 struct Sast *
