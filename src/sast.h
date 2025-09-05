@@ -11,20 +11,21 @@
 
 #define AST(t, v, l) Sast_init(t, v, l)
 
-#define is_expr(ast) ((ast)->type == AST_EXPRESSION                         \
-                        || (ast)->type == AST_BINARY_EXPRESSION             \
-                        || (ast)->type == AST_IDENTIFIER                    \
-                        || (ast)->type == AST_FUNCTION_CALL_EXPRESSION      \
-                        || (ast)->type == AST_TRUE                          \
-                        || (ast)->type == AST_FALSE                         \
-                        || (ast)->type == AST_AND_EXPRESSION                \
-                        || (ast)->type == AST_OR_EXPRESSION                 \
-                        || (ast)->type == AST_NOT_EXPRESSION                \
-                        || (ast)->type == AST_COMPARE_EXPRESSION            \
-                        || (ast)->type == AST_LIST                          \
-                        || (ast)->type == AST_ANONYMOUS_FUNCTION            \
-                        || (ast)->type == AST_EXTRACT                       \
-                        || (ast)->type == AST_LITERAL                       \
+#define is_expr(ast) ((ast)->type == AST_EXPRESSION                             \
+                        || (ast)->type == AST_BINARY_EXPRESSION                 \
+                        || (ast)->type == AST_IDENTIFIER                        \
+                        || (ast)->type == AST_FUNCTION_CALL_EXPRESSION          \
+                        || (ast)->type == AST_TRUE                              \
+                        || (ast)->type == AST_FALSE                             \
+                        || (ast)->type == AST_AND_EXPRESSION                    \
+                        || (ast)->type == AST_OR_EXPRESSION                     \
+                        || (ast)->type == AST_FUNCTION_CALL_PRIMARY_EXPRESSION  \
+                        || (ast)->type == AST_NOT_EXPRESSION                    \
+                        || (ast)->type == AST_COMPARE_EXPRESSION                \
+                        || (ast)->type == AST_LIST                              \
+                        || (ast)->type == AST_ANONYMOUS_FUNCTION                \
+                        || (ast)->type == AST_EXTRACT                           \
+                        || (ast)->type == AST_LITERAL                           \
                         || (ast)->type == AST_STRING_EXPRESSION)
 
 enum Sast_t {
@@ -52,6 +53,7 @@ enum Sast_t {
     AST_FALSE,
     AST_NOT_EXPRESSION,
     AST_FUNCTION_CALL_EXPRESSION,
+    AST_FUNCTION_CALL_PRIMARY_EXPRESSION,
     AST_FUNCTION_STATEMENT,
     AST_FOR,
     AST_CLASS,  

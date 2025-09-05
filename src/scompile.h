@@ -109,6 +109,10 @@ Scompile_anonymous_function
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_function_call_primary
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);

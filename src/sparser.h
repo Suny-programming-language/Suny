@@ -89,8 +89,12 @@ Sparser_parse_block_expression
 (struct Sparser *parser);
 
 struct Sast *
-Sparser_parse_function_call
+Sparser_parse_function_call_identifier
 (struct Sparser *parser);
+
+struct Sast* 
+Sparser_parse_function_call_primary
+(struct Sparser *parser); 
 
 struct Sast *
 Sparser_parse_block
@@ -142,7 +146,11 @@ Sparser_parse_anonymous_function
 
 struct Sast *
 Sparser_parse_store_index
-(struct Sparser *parser, struct Sast* extract_obj);
+(struct Sparser *parser, struct Sast* extract_obj);\
+
+struct Sast *
+Sparser_parse_function_call
+(struct Sparser *parser, struct Sast *expr);
 
 struct Sast *
 Sparser_parse_extract

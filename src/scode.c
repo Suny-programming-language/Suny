@@ -198,12 +198,11 @@ Scode_print
             case MAKE_FUNCTION: {
                 printf("MAKE_FUNCTION ");
 
-                unsigned char address = code->code[i + 1];
                 unsigned char size = code->code[i + 2];
 
-                printf("%d %d\n", address, size);
+                printf("%d\n", size);
 
-                i += 2;
+                i += 1;
                 break;
             }
 

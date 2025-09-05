@@ -30,6 +30,8 @@ Scompile
             return Scompile_while(ast, compiler);
         case AST_BREAK:
             return Scompile_break(ast, compiler);
+        case AST_FUNCTION_CALL_PRIMARY_EXPRESSION:
+            return Scompile_function_call_primary(ast, compiler);
         case AST_CONTINUE:
             return Scompile_continue(ast, compiler);
         case AST_LIST:
@@ -135,7 +137,7 @@ Scompile_identifier
         if (address == NOT_FOUND) {
             address = find_scope(compiler, ast->lexeme);
             if (address == NOT_FOUND) {
-                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable in function", ast->lexer);
                 Serror_syntax_error(error);
             }
 
@@ -395,6 +397,8 @@ Scompile_body_func
         struct Scode *child = Scompile(block[i], compiler);
         INSERT(code, child);
 
+        compiler->is_in_func = 1;
+
         if (is_expr(block[i])) {
             PUSH(code, POP_TOP);
         }
@@ -415,10 +419,10 @@ Scompile_return
 (struct Sast *ast, struct Scompiler *compiler) {
     struct Scode *code = Scompile(ast->ret_val, compiler);
 
-    if (compiler->is_in_func == 0) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Return outside of function", ast->lexer);
-        Serror_syntax_error(error);
-    }
+    // if (compiler->is_in_func == 0) {
+    //     struct Serror *error = Serror_set("COMPILER_ERROR", "Return outside of function", ast->lexer);
+    //     Serror_syntax_error(error);
+    // }
 
     PUSH(code, RETURN_TOP);
     return code;
@@ -777,6 +781,23 @@ Scompile_anonymous_function
     INSERT(code, block);
 
     PUSH(code, END_FUNCTION);
+
+    return code;
+}
+
+struct Scode*
+Scompile_function_call_primary
+(struct Sast *ast, struct Scompiler *compiler) {
+    Sreverse((void **) ast->params, ast->param_count);
+    struct Scode *params = Scompile_block(ast->params, compiler, ast->param_count);
+    struct Scode *expr = Scompile(ast->expr, compiler);
+
+    struct Scode *code = Scode_new();
+
+    INSERT(code, params);
+    INSERT(code, expr);
+
+    PUSH(code, FUNCTION_CALL);
 
     return code;
 }
