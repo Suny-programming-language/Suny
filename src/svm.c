@@ -341,6 +341,8 @@ Scall_context_make_inner_function
 
     func->args_size = fargs_count;
 
+    func->frame = f_frame;
+
     struct Sobj *f_obj = Sobj_set_func(func);
 
     Sfunc_ready(func, fargs_count);
@@ -427,10 +429,16 @@ Svm_evaluate_FUNCTION_CALL
 
     struct Scall_context *context = Scall_context_new();
     struct Sframe *f_frame = context->frame;
+
+    struct Sframe *fp_frame = f_obj->f_type->f_func->frame;
+
     f_frame->f_label_map = Slabel_map_set_program(f_obj->f_type->f_func->code);
 
     f_frame->f_globals = frame->f_globals;
     f_frame->f_globals_size = frame->f_globals_size;
+
+    f_frame->f_locals = fp_frame->f_locals;
+    f_frame->f_locals_size = fp_frame->f_locals_size;
 
     context->main_frame = frame;
     context->ret_obj = Sobj_set_int(0);
@@ -446,10 +454,6 @@ Svm_evaluate_FUNCTION_CALL
     }
     
     Svm_run_call_context(context);
-
-    free(f_local);
-    free(context);
-    free(f_frame);
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
