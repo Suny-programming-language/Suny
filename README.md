@@ -7,4 +7,4 @@ My youtube: https://www.youtube.com/@haidinhson
 ## Requirements
 - **OS**: Windows 10+
 - **Compiler**: MinGW (GCC) hoặc MSVC (Microsoft Visual C++)
-- **Tools**: `make` (tùy chọn, nếu bạn dùng Makefile để build)
+- **Tools**: `make` 
