@@ -145,6 +145,10 @@ Sparser_parse_anonymous_function
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_loop
+(struct Sparser *parser);
+
+struct Sast *
 Sparser_parse_store_index
 (struct Sparser *parser, struct Sast* extract_obj);\
 

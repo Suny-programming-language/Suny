@@ -226,3 +226,44 @@ Scode_print
         }
     }
 }
+
+struct Scode *
+Scode_get_code_from(char* file, struct Scompiler *compiler) {
+    struct SZIO* zio = Sbuff_read_file(file);
+
+    struct Slexer *lexer = Slexer_init(zio->buffer);
+    lexer->file = zio;
+
+    struct Sparser *parser = Sparser_init(lexer);
+    struct Sast *ast = Sparser_parse_program(parser);
+
+    SunyScopeInitializeCompiler(compiler);
+
+    struct Scode *code = Scode_new();
+    
+    for (int i = 0; i < ast->child_count; i++) {
+        struct Scode *child = Scompile(ast->children[i], compiler);
+        INSERT(code, child);
+
+        if (is_expr(ast->children[i])) {
+            PUSH(code, POP_TOP);
+        }
+    }
+
+    return code;
+}
+
+struct Scode *
+Scode_insert_to_top(struct Scode *code, struct Scode *insert) {
+    struct Scode *new_code = Scode_new();
+
+    for (int i = 0; i < insert->size; i++) {
+        Scode_add(new_code, insert->code[i]);
+    }
+
+    for (int i = 0; i < code->size; i++) {
+        Scode_add(new_code, code->code[i]);
+    }
+
+    return new_code;
+}

@@ -44,6 +44,7 @@ enum Sast_t {
     AST_WHILE,
     AST_VAR_LIST,
     AST_DO_LOOP,
+    AST_LOOP,
     AST_COMPARE_EXPRESSION,
     AST_AND_EXPRESSION,
     AST_RETURN_STATEMENT,
@@ -53,6 +54,7 @@ enum Sast_t {
     AST_FALSE,
     AST_NOT_EXPRESSION,
     AST_FUNCTION_CALL_EXPRESSION,
+    AST_ASSIGNMENT_STATEMENT,
     AST_FUNCTION_CALL_PRIMARY_EXPRESSION,
     AST_FUNCTION_STATEMENT,
     AST_FOR,
@@ -129,6 +131,11 @@ struct Sast {
 
     struct Sast *extract_obj;
     struct Sast *extract_value;
+
+    int is_assign;
+    int is_lambda;
+    int has_until;
+    int has_times;
 
     struct Slexer *lexer;
 };

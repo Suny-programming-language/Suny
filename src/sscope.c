@@ -177,3 +177,18 @@ remove_scope_local
     
     return NOT_FOUND;
 }
+
+int SunyScopeInitializeCompiler(struct Scompiler *compiler) {
+    add_scope(compiler, "print", 10, 1);
+    add_scope(compiler, "exit", 11, 1);
+    add_scope(compiler, "call", 12, 3);
+    add_scope(compiler, "push", 13, 2);
+    add_scope(compiler, "pop", 14, 1);
+    add_scope(compiler, "size", 15, 1);
+    add_scope(compiler, "range", 17, 2);
+    add_scope(compiler, "read", 18, 1);
+    add_scope(compiler, "puts", 19, 1);
+    add_scope(compiler, "number", 20, 1);
+    add_scope(compiler, "isdigit", 21, 1);
+    return 0;
+}

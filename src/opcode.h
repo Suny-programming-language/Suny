@@ -70,6 +70,6 @@
 #define OR_LOG '\x43'
 #define NOT_LOG '\x44'
 
-#define MAKE_FUNCTION_OBJECT '\x45'
+#define SKIP '\x45' // program will skip this op and jump to next op 
 
 #endif // OPCODE_H

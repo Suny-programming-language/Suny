@@ -113,6 +113,10 @@ Scompile_function_call_primary
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_include
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);
@@ -128,5 +132,9 @@ Scompile_body_func
     int block_size, 
     char **args, 
     int args_size);
+
+struct Scode*
+Scompile_function_expr
+(struct Sast *ast, struct Scompiler *compiler, int args_count, char **param_names);
 
 #endif // SCOMPILE_H

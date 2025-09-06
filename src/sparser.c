@@ -64,7 +64,13 @@ Sparser_parse(struct Sparser *parser) {
 
         if (parser->next_token->type == ASSIGN) {
             return Sparser_parse_assignment(parser);
+        } else if (parser->next_token->type == ADD_ASSIGN || parser->next_token->type == SUB_ASSIGN || parser->next_token->type == MUL_ASSIGN || parser->next_token->type == DIV_ASSIGN) {
+            return Sparser_parse_assignment(parser);
         }
+    }
+
+    if (parser->token->type == INCLUDE) {
+        return Sparser_parse_include(parser);
     }
 
     if (parser->token->type == CLASS) {
@@ -296,9 +302,11 @@ Sparser_parse_let
     struct Sast *node = AST(AST_ASSIGNMENT, 0, NULL);
     parser->token = Slexer_get_next_token(parser->lexer);
 
+    char* lexeme;
+
     if (parser->token->type == IDENTIFIER) {
         node->var_name = parser->token->lexeme;
-
+        lexeme = parser->token->lexeme;
     } else {
         Serror_parser("Expected identifier", parser->lexer);
         return NULL;
@@ -320,7 +328,7 @@ Sparser_parse_let
     } else if (parser->token->type == LPAREN) {
         struct Sast *node = AST(AST_FUNCTION_STATEMENT, 0, NULL);
 
-        parser->token = Slexer_get_next_token(parser->lexer);
+        node->lexeme = lexeme;
 
         while (parser->token->type != RPAREN) {
             parser->token = Slexer_get_next_token(parser->lexer);
@@ -337,8 +345,10 @@ Sparser_parse_let
                     Serror_parser("Expected comma or closing parenthesis", parser->lexer);
                     return NULL;
                 }
+            } else if (parser->token->type == RPAREN) {
+                break;
             } else {
-                Serror_parser("Expected identifier", parser->lexer);
+                Serror_parser("Expected identifier in function", parser->lexer);
                 return NULL;
             }
         }
@@ -346,13 +356,13 @@ Sparser_parse_let
         parser->token = Slexer_get_next_token(parser->lexer);
         if (parser->token->type == ASSIGN) {
             parser->token = Slexer_get_next_token(parser->lexer);
-            struct Sast *body = Sparser_parse(parser);
+            struct Sast *expr = Sparser_parse(parser);
 
-            struct Sast *ret = AST(AST_RETURN_STATEMENT, 0, NULL);
-            ret->ret_val = body;
+            Sast_set_line(parser->lexer, expr);
+            Sast_expected_expression(expr);
 
-            node->body[0] = ret;
-            node->body_size = 1;
+            node->expr = expr;
+            node->is_lambda = 1;
 
             return node;
         } else {
@@ -393,7 +403,7 @@ Sparser_parse_logic_expression
         return NULL;
     }
 
-    if (parser->token->type == ASSIGN) {
+    if (parser->token->type == ASSIGN || parser->token->type == ADD_ASSIGN || parser->token->type == SUB_ASSIGN || parser->token->type == MUL_ASSIGN || parser->token->type == DIV_ASSIGN) {
         if (left->type == AST_EXTRACT) {
             return Sparser_parse_store_index(parser, left);
         }
@@ -484,6 +494,19 @@ Sparser_parse_assignment
         Sast_set_line(parser->lexer, node);
 
         return node;
+    } else if (parser->token->type == ADD_ASSIGN || parser->token->type == SUB_ASSIGN || parser->token->type == MUL_ASSIGN || parser->token->type == DIV_ASSIGN) {
+        node->op = parser->token->type;
+        parser->token = Slexer_get_next_token(parser->lexer);
+
+        node->var_value = Sparser_parse(parser);
+
+        Sast_set_line(parser->lexer, node->var_value);
+        Sast_expected_expression(node->var_value);
+        Sast_set_line(parser->lexer, node);
+
+        node->is_assign = 1;
+
+        return node;
     } else {
         Serror_parser("Expected assignment", parser->lexer);
     }   
@@ -545,7 +568,7 @@ Sparser_parse_function
             return NULL;
         }
     } else {
-        Serror_parser("Expected identifier", parser->lexer);
+        Serror_parser("Expected function name", parser->lexer);
         return NULL;
     }
 
@@ -856,6 +879,11 @@ Sparser_parse_store_index
 
     node->extract_obj = extract_obj;
 
+    if (parser->token->type == ADD_ASSIGN || parser->token->type == SUB_ASSIGN || parser->token->type == MUL_ASSIGN || parser->token->type == DIV_ASSIGN) {
+        node->op = parser->token->type;
+        node->is_assign = 1;
+    }
+
     parser->token = Slexer_get_next_token(parser->lexer);
 
     struct Sast *expr = Sparser_parse(parser);
@@ -1024,6 +1052,8 @@ Sparser_parse_include
     }
 
     node->lexeme = parser->token->lexeme;
+
+    parser->token = Slexer_get_next_token(parser->lexer);
 
     return node;
 }

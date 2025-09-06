@@ -107,6 +107,8 @@ Serror_unknown_error
 
 int
 Sast_expected_expression(struct Sast *sast) {
+    Sast_set_line(sast->lexer, sast);
+
     if (!sast) {
         struct Serror *error = Serror_set("SYNTAX_ERROR", "Expected expression", sast->lexer);
         Serror_syntax_error(error);

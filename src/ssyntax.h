@@ -35,4 +35,7 @@ extern char* CLASS_S;
 extern char* TRUE_S;
 extern char* FALSE_S;
 
+extern char* INCLUDE_S;
+extern char* IMPORT_S;
+
 #endif

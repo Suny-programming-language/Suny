@@ -2,6 +2,9 @@
 #define SCODE_H
 
 #include "score.h"
+#include "scompile.h"
+
+struct Scompiler;
 
 #define MAX_CODE_SIZE 1024
 
@@ -16,6 +19,12 @@ struct Scode {
     int size;
     int capacity;
 };
+
+struct Scode *
+Scode_get_code_from(char* file, struct Scompiler *compiler);
+
+struct Scode *
+Scode_insert_to_top(struct Scode *code, struct Scode *insert);
 
 struct Scode *
 Scode_new(void);

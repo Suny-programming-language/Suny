@@ -39,6 +39,8 @@ enum Stok_t {
     LPAREN, RPAREN,
     LBRACKET, RBRACKET,
 
+    ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN,
+
     ASSIGN,
     EQUALS,
     NOT_EQUALS,
@@ -49,6 +51,9 @@ enum Stok_t {
     AND,
     OR,
     NOT,
+
+    INCLUDE,
+    IMPORT,
 
     ANONYMOUS,
 

@@ -97,4 +97,8 @@ int
 remove_scope_local
 (struct Scompiler *compiler, char *name);
 
+int 
+SunyScopeInitializeCompiler
+(struct Scompiler *compiler);
+
 #endif

@@ -30,6 +30,10 @@ Sc_api_func_set
     int args_size
 );
 
+struct Sc_api_func* 
+Sc_api_func_set
+(void* func, char* name, int address, int args_size);
+
 SUNY_API struct Sobj* Sprintf(struct Sframe* frame);
 
 SUNY_API struct Sobj* Sexit(struct Sframe* frame);

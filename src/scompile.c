@@ -10,6 +10,8 @@ Scompile
             return Scompile_identifier(ast, compiler);
         case AST_LITERAL:
             return Scompile_literal(ast, compiler);
+        case AST_INCLUDE:
+            return Scompile_include(ast, compiler);
         case AST_ASSIGNMENT:
             return Scompile_assignment(ast, compiler);
         case AST_PRINT:
@@ -196,6 +198,11 @@ Scompile_assignment
         int address = found;
 
         if (found == NOT_FOUND) {
+            if (ast->is_assign) {
+                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable in function", ast->lexer);
+                Serror_syntax_error(error);
+            }
+
             address = ++compiler->address;
             add_scope_local(compiler, ast->var_name, address, 0);
 
@@ -205,6 +212,22 @@ Scompile_assignment
             PUSH(code, address);
         } else {
             INSERT(code, value);
+
+            if (ast->is_assign) {
+                PUSH(code, LOAD_GLOBAL);
+                PUSH(code, address);
+
+                switch (ast->op) {
+                    case ADD_ASSIGN: PUSH(code, BINARY_ADD); break;
+                    case SUB_ASSIGN: PUSH(code, BINARY_SUB); break;
+                    case MUL_ASSIGN: PUSH(code, BINARY_MUL); break;
+                    case DIV_ASSIGN: PUSH(code, BINARY_DIV); break;
+                    default:
+                        struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown operator", ast->lexer);
+                        Serror_syntax_error(error);
+                        break;
+                }
+            }
 
             PUSH(code, STORE_GLOBAL);
             PUSH(code, address);
@@ -220,10 +243,31 @@ Scompile_assignment
     if (found != NOT_FOUND) {
         address = found;
     } else {
+        if (ast->is_assign) {
+            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+            Serror_syntax_error(error);
+        }
+
         address = add_scope(compiler, ast->var_name, address, 0);
     }
 
     INSERT(code, value);
+
+    if (ast->is_assign) {
+        PUSH(code, LOAD_GLOBAL);
+        PUSH(code, address);
+
+        switch (ast->op) {
+            case ADD_ASSIGN: PUSH(code, BINARY_ADD); break;
+            case SUB_ASSIGN: PUSH(code, BINARY_SUB); break;
+            case MUL_ASSIGN: PUSH(code, BINARY_MUL); break;
+            case DIV_ASSIGN: PUSH(code, BINARY_DIV); break;
+            default:
+                struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown operator", ast->lexer);
+                Serror_syntax_error(error);
+                break;
+        }
+    }
 
     PUSH(code, STORE_GLOBAL);
     PUSH(code, address);
@@ -294,6 +338,24 @@ Scompile_function
     add_scope(compiler, ast->lexeme, address, ast->args_count);
 
     struct Scode *code = Scode_new();
+
+    if (ast->is_lambda) {
+        struct Scode *body_expr = Scompile_function_expr(ast->expr, compiler, ast->args_count, ast->param_names);
+
+        PUSH(code, MAKE_FUNCTION);
+        PUSH(code, fargs_count);
+
+        INSERT(code, body_expr);
+        PUSH(code, RETURN_TOP);
+
+        PUSH(code, END_FUNCTION);
+
+        PUSH(code, STORE_GLOBAL);
+        PUSH(code, faddress);
+
+        return code;
+    }
+
     struct Scode *body = Scompile_body_func(ast->body, compiler, ast->body_size, ast->param_names, ast->args_count);
 
     PUSH(code, MAKE_FUNCTION);
@@ -601,7 +663,25 @@ Scompile_store_index
 
     INSERT(code, obj);
     INSERT(code, index);
+
     INSERT(code, value);
+
+    if (ast->is_assign) {
+        INSERT(code, obj);
+        INSERT(code, index);
+        PUSH(code, LOAD_ITEM);
+
+        switch (ast->op) {
+            case ADD_ASSIGN: PUSH(code, BINARY_ADD); break;
+            case SUB_ASSIGN: PUSH(code, BINARY_SUB); break;
+            case MUL_ASSIGN: PUSH(code, BINARY_MUL); break;
+            case DIV_ASSIGN: PUSH(code, BINARY_DIV); break;
+            default: 
+                struct Serror *error = Serror_set("COMPILER_ERROR", "Unknown operator", ast->lexer);
+                Serror_syntax_error(error);
+                break;
+        }
+    }
 
     PUSH(code, STORE_ITEM);
 
@@ -800,4 +880,29 @@ Scompile_function_call_primary
     PUSH(code, FUNCTION_CALL);
 
     return code;
+}
+
+struct Scode*
+Scompile_function_expr
+(struct Sast *ast, struct Scompiler *compiler, int args_count, char **param_names) {
+    int address = 0;
+    for (int i = 0; i < args_count; i++) {
+        add_scope(compiler, param_names[i], address++, 0);
+    }
+
+    compiler->is_in_func = 1;
+
+    struct Scode *code = Scompile(ast, compiler);
+
+    compiler->is_in_func = 0;
+
+    return code;
+}
+
+struct Scode*
+Scompile_include
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *include = Scode_get_code_from(ast->lexeme, compiler);
+
+    return include;
 }

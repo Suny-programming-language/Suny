@@ -32,3 +32,6 @@ char* CLASS_S     = "class";
 
 char* TRUE_S      = "true";
 char* FALSE_S     = "false";
+
+char* INCLUDE_S   = "include";
+char* IMPORT_S    = "import";

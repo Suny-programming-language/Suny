@@ -137,6 +137,10 @@ Stok_get_identifier(char *lexeme) {
         return FUNCTION;
     } else if (strcmp(lexeme, RETURN_S) == 0) {
         return RETURN;
+    } else if (strcmp(lexeme, IMPORT_S) == 0) {
+        return IMPORT;
+    } else if (strcmp(lexeme, INCLUDE_S) == 0) {
+        return INCLUDE;
     } else if (strcmp(lexeme, TRUE_S) == 0 || strcmp(lexeme, "True") == 0) {
         return TRUE_T;
     } else if (strcmp(lexeme, FALSE_S) == 0 || strcmp(lexeme, "False") == 0) {
@@ -204,6 +208,10 @@ get_2_char
     if (c1 == '>' && c2 == '=') return BIGGER_EQUALS;
     if (c1 == '<' && c2 == '=') return SMALLER_EQUALS;
     if (c1 == '!' && c2 == '=') return NOT_EQUALS;
+    if (c1 == '+' && c2 == '=') return ADD_ASSIGN;
+    if (c1 == '-' && c2 == '=') return SUB_ASSIGN;
+    if (c1 == '*' && c2 == '=') return MUL_ASSIGN;
+    if (c1 == '/' && c2 == '=') return DIV_ASSIGN;
 
     enum Stok_t tok = get_1_char(c1);
 
@@ -217,5 +225,9 @@ is_2_char
     if (c1 == '>' && c2 == '=') return 1;
     if (c1 == '<' && c2 == '=') return 1;
     if (c1 == '!' && c2 == '=') return 1;
+    if (c1 == '+' && c2 == '=') return 1;
+    if (c1 == '-' && c2 == '=') return 1;
+    if (c1 == '*' && c2 == '=') return 1;
+    if (c1 == '/' && c2 == '=') return 1;
     return 0;
 }

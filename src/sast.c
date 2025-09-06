@@ -76,6 +76,9 @@ Sast_new(void) {
     struct Sast *sast = malloc(sizeof(struct Sast));
     sast->type = AST_NULL;
     sast->lexeme = NULL;
+    sast->is_assign = 0;
+    sast->has_until = 0;
+    sast->has_times = 0;
     
     sast->value = 0;
     sast->child_count = 0;
