@@ -38,4 +38,7 @@ extern char* FALSE_S;
 extern char* INCLUDE_S;
 extern char* IMPORT_S;
 
+extern char* LOOP_S;
+extern char* TIMES_S;
+
 #endif

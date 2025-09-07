@@ -8,7 +8,6 @@ char* THEN_S      = "then";
 char* ELSE_S      = "else";
 char* END_S       = "end";
 char* DO_S        = "do";
-char* LOOP_S      = "loop";
 char* BREAK_S     = "break";
 char* FOR_S       = "for";
 char* TO_S        = "to";
@@ -35,3 +34,6 @@ char* FALSE_S     = "false";
 
 char* INCLUDE_S   = "include";
 char* IMPORT_S    = "import";
+
+char* LOOP_S = "loop";
+char* TIMES_S = "times";

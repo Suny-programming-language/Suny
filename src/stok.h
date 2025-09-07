@@ -55,6 +55,9 @@ enum Stok_t {
     INCLUDE,
     IMPORT,
 
+    LOOP,
+    TIMES,
+
     ANONYMOUS,
 
     TRUE_T,

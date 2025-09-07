@@ -140,7 +140,9 @@ struct Sast {
     struct Slexer *lexer;
 };
 
-int Sast_set_line(struct Slexer *lexer, struct Sast *sast);
+int 
+Sast_set_line
+(struct Slexer *lexer, struct Sast *sast);
 
 struct Sast* 
 Sast_new(void);
@@ -178,12 +180,23 @@ Sast_get_child
 (struct Sast *sast, int index);
 
 struct Sast*
-Sast_add_element(struct Sast *list, struct Sast *element);
+Sast_add_element
+(struct Sast *list, struct Sast *element);
 
 struct Sast*
-Sast_add_var_list(struct Sast *ast, char* var_name);
+Sast_add_var_list_value
+(struct Sast *ast, struct Sast *var_value);
 
-struct Sast*
-Sast_add_var_list_value(struct Sast *ast, struct Sast *var_value);
+struct Sast* 
+Sast_add_var_list_name
+(struct Sast *sast, char* var_name);
+
+struct Sast* 
+Sast_add_var_list_value
+(struct Sast *sast, struct Sast *var_value);
+
+struct Sast* 
+Sast_assign_var_list_value
+(struct Sast *sast);
 
 #endif

@@ -151,6 +151,10 @@ Stok_get_identifier(char *lexeme) {
         return BREAK;
     } else if (strcmp(lexeme, CONTINUE_S) == 0) {
         return CONTINUE;
+    } else if (strcmp(lexeme, LOOP_S) == 0) {
+        return LOOP;
+    } else if (strcmp(lexeme, TIMES_S) == 0) {
+        return TIMES;
     } else if (strcmp(lexeme, CLASS_S) == 0) {
         return CLASS;
     } else {

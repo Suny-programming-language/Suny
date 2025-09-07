@@ -117,6 +117,10 @@ Scompile_include
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_var_list
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);

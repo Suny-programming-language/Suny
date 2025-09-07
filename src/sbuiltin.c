@@ -56,12 +56,7 @@ SUNY_API struct Sobj* Sprintf(struct Sframe* frame) {
 }
 
 SUNY_API struct Sobj* Sread(struct Sframe* frame) {
-    struct Sobj *obj = Sframe_pop(frame);
     char buffer[1024];
-
-    if (obj) {
-        Sio_write(obj);
-    }
 
     if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
         struct Sobj *empty = Sobj_make_str("", 0);

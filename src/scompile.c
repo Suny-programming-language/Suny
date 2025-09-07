@@ -38,6 +38,8 @@ Scompile
             return Scompile_continue(ast, compiler);
         case AST_LIST:
             return Scompile_list(ast, compiler);
+        case AST_VAR_LIST:
+            return Scompile_var_list(ast, compiler);
         case AST_EXTRACT:
             return Scompile_extract(ast, compiler);
         case AST_STORE_INDEX:
@@ -905,4 +907,17 @@ Scompile_include
     struct Scode *include = Scode_get_code_from(ast->lexeme, compiler);
 
     return include;
+}
+
+struct Scode*
+Scompile_var_list
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *code = Scode_new();
+
+    for (int i = 0; i < ast->child_count; i++) {
+        struct Scode *expr = Scompile(ast->children[i], compiler);
+        INSERT(code, expr);
+    }
+
+    return code;
 }

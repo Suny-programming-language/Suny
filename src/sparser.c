@@ -66,6 +66,8 @@ Sparser_parse(struct Sparser *parser) {
             return Sparser_parse_assignment(parser);
         } else if (parser->next_token->type == ADD_ASSIGN || parser->next_token->type == SUB_ASSIGN || parser->next_token->type == MUL_ASSIGN || parser->next_token->type == DIV_ASSIGN) {
             return Sparser_parse_assignment(parser);
+        } else if (parser->next_token->type == COMMA) {
+            return Sparser_parse_variable_list(parser);
         }
     }
 
@@ -120,6 +122,10 @@ Sparser_parse(struct Sparser *parser) {
 
     if (parser->token->type == LET) {
         return Sparser_parse_let(parser);
+    }
+
+    if (parser->token->type == LOOP) {
+        return Sparser_parse_loop(parser);
     }
 
     if (parser->token->type == IF) {
@@ -634,6 +640,7 @@ Sparser_parse_block
 
     while (parser->token->type != END) {
         struct Sast *stmt = Sparser_parse(parser);
+        
         Sast_set_line(parser->lexer, node);
         Sast_add_block(node, stmt);
 
@@ -1027,19 +1034,6 @@ Sparser_parse_or
 }
 
 struct Sast *
-Sparser_parse_var_list
-(struct Sparser *parser) {
-    struct Sast *node = AST(AST_VAR_LIST, 0, NULL);
-
-    if (parser->token->type != IDENTIFIER) {
-        Serror_parser("Expected identifier", parser->lexer);
-        return NULL;
-    }
-
-
-}
-
-struct Sast *
 Sparser_parse_include
 (struct Sparser *parser) {
     struct Sast *node = AST(AST_INCLUDE, 0, NULL);
@@ -1149,6 +1143,91 @@ struct Sast* Sparser_parse_function_call_primary(struct Sparser *parser) {
     if (parser->next_token->type == LPAREN) {
         return Sparser_parse_function_call(parser, node);
     }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_loop
+(struct Sparser *parser) {  
+    struct Sast *node = AST(AST_LOOP, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type == DO) {
+        parser->token = Slexer_get_next_token(parser->lexer);
+        struct Sast *block = Sparser_parse_block(parser);
+        node->block = block->block;
+        node->block_size = block->block_size;
+        return node;
+    } else {
+        struct Sast *times = Sparser_parse(parser);
+        node->expr = times;
+        Sast_set_line(parser->lexer, times);
+        Sast_expected_expression(times);
+
+        if (parser->token->type == TIMES) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+            struct Sast *block = Sparser_parse_block(parser);
+            node->block = block->block;
+            node->block_size = block->block_size;
+            return node;
+        } else {
+            Serror_parser("Expected 'times'", parser->lexer);
+            return NULL;
+        }
+    }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_variable_list
+(struct Sparser *parser) {
+    struct Sast *node = AST(AST_VAR_LIST, 0, NULL);
+
+    while (parser->token->type != ASSIGN) {
+        if (parser->token->type == IDENTIFIER) {
+            Sast_add_var_list_name(node, parser->token->lexeme);
+            parser->token = Slexer_get_next_token(parser->lexer);
+            if (parser->token->type == COMMA) {
+                parser->token = Slexer_get_next_token(parser->lexer);
+            } else if (parser->token->type == ASSIGN) {
+                break;
+            } else {
+                Serror_parser("Expected comma or assignment", parser->lexer);
+                return NULL;
+            }
+        } else {
+            Serror_parser("Expected identifier", parser->lexer);
+            return NULL;
+        }
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    while (1) {
+        struct Sast *expr = Sparser_parse(parser);
+
+        Sast_set_line(parser->lexer, expr);
+        Sast_expected_expression(expr);
+
+        Sast_add_var_list_value(node, expr);
+
+        if (parser->token->type == COMMA) {
+            parser->token = Slexer_get_next_token(parser->lexer);
+        } else {
+            break;
+        }
+    }
+
+    if (node->var_list_size != node->var_list_values_size) {
+        Serror_parser("Expected same number of variables and values", parser->lexer);
+        return NULL;
+    }
+
+    Sast_assign_var_list_value(node);
+    Sast_set_line(parser->lexer, node);
 
     return node;
 }

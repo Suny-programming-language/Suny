@@ -84,6 +84,14 @@ Sast_new(void) {
     sast->child_count = 0;
     sast->child_capacity = 0;
 
+    sast->var_list_size = 0;
+    sast->var_list_capacity = MAX_STATEMENT_SIZE;
+    sast->var_list = calloc(sast->var_list_capacity, sizeof(char *));
+
+    sast->var_list_values_size = 0;
+    sast->var_list_values_capacity = MAX_STATEMENT_SIZE;
+    sast->var_list_values = calloc(sast->var_list_values_capacity, sizeof(struct Sast *));
+
     sast->children = NULL;
 
     sast->print_value = NULL;
@@ -212,6 +220,43 @@ Sast_add_block
     parent->block[parent->block_count++] = child;
 
     return 0;
+}
+
+struct Sast* 
+Sast_add_var_list_name
+(struct Sast *sast, char* var_name) {
+    if (sast->var_list_size >= sast->var_list_capacity) {
+        sast->var_list_capacity *= 2;
+        sast->var_list = (char **)realloc(sast->var_list, sizeof(char *) * sast->var_list_capacity);
+    }
+
+    sast->var_list[sast->var_list_size++] = var_name;
+    return sast;
+}
+
+struct Sast* 
+Sast_add_var_list_value
+(struct Sast *sast, struct Sast *var_value) {
+    if (sast->var_list_values_size >= sast->var_list_values_capacity) {
+        sast->var_list_values_capacity *= 2;
+        sast->var_list_values = (struct Sast **)realloc(sast->var_list_values, sizeof(struct Sast *) * sast->var_list_values_capacity);
+    }
+
+    sast->var_list_values[sast->var_list_values_size++] = var_value;
+    return sast;
+}
+
+struct Sast* 
+Sast_assign_var_list_value
+(struct Sast *sast) {
+    for (int i = 0; i < sast->var_list_values_size; i++) {
+        struct Sast *assign = Sast_init(AST_ASSIGNMENT, 0, NULL);
+        assign->var_name = sast->var_list[i];
+        assign->var_value = sast->var_list_values[i];
+        Sast_add_child(sast, assign);
+    }
+
+    return sast;
 }
 
 struct Sast* 
