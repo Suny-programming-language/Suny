@@ -1,0 +1,53 @@
+function tokenize(buff) do
+    n = size(buff)
+    i = 0
+    tokens = []
+
+    while i < n do
+        if buff[i] == "+" or buff[i] == "-" then
+            push(tokens, buff[i])
+            i += 1
+            continue
+        end
+
+        if isdigit(buff[i]) then
+            num = ""
+            while isdigit(buff[i]) and i < n do
+                num += buff[i]
+                i += 1
+            end
+            push(tokens, num)
+            continue
+        end
+
+        i += 1
+    end
+
+    return tokens
+end
+
+function eval(t) do
+    i = 1
+    n = size(t)
+    result = number(t[0])
+
+    while i < n do
+        if t[i] == "+" then
+            result += number(t[i + 1])
+            i += 2
+            continue
+        end
+
+        if t[i] == "-" then
+            result -= number(t[i + 1])
+            i += 2
+            continue
+        end
+    end
+
+    return result
+end 
+
+a = tokenize("1 + 1")
+b = eval(a)
+print(b)
