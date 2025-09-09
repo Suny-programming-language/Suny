@@ -282,7 +282,7 @@ Sast_add_args
 struct Sast*
 Sast_add_element(struct Sast *list, struct Sast *element) {
     if (list->list_capacity == 0) {
-        list->list_capacity = 4;
+        list->list_capacity = 1024;
         list->list = (struct Sast **)malloc(sizeof(struct Sast *) * list->list_capacity);
     } else if (list->list_count >= list->list_capacity) {
         list->list_capacity *= 2;

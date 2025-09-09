@@ -338,6 +338,7 @@ Scompile_function
     byte_t fargs_count = ast->args_count;
 
     add_scope(compiler, ast->lexeme, address, ast->args_count);
+    compiler_set_func(compiler, ast->lexeme);
 
     struct Scode *code = Scode_new();
 
@@ -354,6 +355,8 @@ Scompile_function
 
         PUSH(code, STORE_GLOBAL);
         PUSH(code, faddress);
+
+        remove_all_local_scope(compiler);
 
         return code;
     }
@@ -445,8 +448,9 @@ Scompile_body_func
     compiler->is_in_func = 1;
 
     int args_address = 0;
+
     for (int i = 0; i < args_size; i++) {
-        add_scope(compiler, args[i], args_address++, 0);
+        add_scope_local(compiler, args[i], args_address++, 0);
     }
 
     for (int i = 0; i < block_size; i++) {
@@ -470,10 +474,12 @@ Scompile_body_func
 
     int address = 0;
     for (int i = 0; i < args_size; i++) {
-        remove_scope(compiler, args[i]);
+        remove_scope_local_address(compiler, address++);
+
     }
 
     compiler->is_in_func = 0;
+    remove_all_local_scope(compiler);
 
     return code;
 }
@@ -596,11 +602,6 @@ Scompile_while
 struct Scode*
 Scompile_break
 (struct Sast *ast, struct Scompiler *compiler) {
-    if (!compiler->is_in_loop) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Break outside of loop", ast->lexer);
-        Serror_syntax_error(error);
-    }
-
     struct Scode *code = Scode_new();
     struct loop_stack loop = Scompile_get_loop(compiler);
     int address = loop.break_label;
@@ -612,11 +613,6 @@ Scompile_break
 struct Scode*
 Scompile_continue
 (struct Sast *ast, struct Scompiler *compiler) {
-    if (!compiler->is_in_loop) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Continue outside of loop", ast->lexer);
-        Serror_syntax_error(error);
-    }
-
     struct Scode *code = Scode_new();
     struct loop_stack loop = Scompile_get_loop(compiler);
     int address = loop.continue_label;

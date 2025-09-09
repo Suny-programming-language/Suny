@@ -66,8 +66,6 @@ Sparser_parse(struct Sparser *parser) {
             return Sparser_parse_assignment(parser);
         } else if (parser->next_token->type == ADD_ASSIGN || parser->next_token->type == SUB_ASSIGN || parser->next_token->type == MUL_ASSIGN || parser->next_token->type == DIV_ASSIGN) {
             return Sparser_parse_assignment(parser);
-        } else if (parser->next_token->type == COMMA) {
-            return Sparser_parse_variable_list(parser);
         }
     }
 
@@ -85,17 +83,17 @@ Sparser_parse(struct Sparser *parser) {
 
     if (parser->token->type == BREAK) {
         struct Sast *node = AST(AST_BREAK, 0, NULL);
+        Sast_set_line(parser->lexer, node);
 
         parser->token = Slexer_get_next_token(parser->lexer);
-        Sast_set_line(parser->lexer, node);
         return node;
     } 
 
     if (parser->token->type == CONTINUE) {
         struct Sast *node = AST(AST_CONTINUE, 0, NULL);
+        Sast_set_line(parser->lexer, node);
 
         parser->token = Slexer_get_next_token(parser->lexer);
-        Sast_set_line(parser->lexer, node);
         return node;
     }
 

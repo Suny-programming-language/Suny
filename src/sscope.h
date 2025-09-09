@@ -12,6 +12,8 @@
 
 #define creat_label(compiler) (++compiler->label)
 
+#define compiler_set_func(c, f) ((c)->function_name = f)
+
 struct loop_stack {
     int continue_label;
     int break_label;
@@ -21,6 +23,8 @@ struct Scope {
     char *name;
     int address;
     int args_size;
+    int func_tag; // if this global is in a function
+    char* func_name; // same but its its function 
 };
 
 struct Scompiler {
@@ -44,8 +48,18 @@ struct Scompiler {
     int is_in_class;
     int is_in_loop;
 
+    char* function_name;
+
     int label;
 };
+
+struct Scope
+creat_scope
+(char *name, int address, int args_size, int func_tag, char *func_name);
+
+int 
+remove_all_local_scope
+(struct Scompiler *compiler);
 
 struct Scompiler*
 Scompile_add_loop(struct Scompiler *compiler, int continue_label, int break_label);
@@ -84,6 +98,10 @@ Scompiler_reset(struct Scompiler *compiler);
 int
 add_scope_local
 (struct Scompiler *compiler, char *name, int address, int args_size);
+
+int
+remove_scope_local_address
+(struct Scompiler *compiler, int address);
 
 int
 find_scope_local
