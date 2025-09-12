@@ -88,3 +88,10 @@ int Sgc_deactivate(struct Sframe *frame) {
     frame->gc_pool->is_activate = 0;
     return 0;
 }
+
+int Sgc_free_pool(struct Garbage_pool* pool) {
+    Sobj_free_objs(pool->garbage_pool, pool->pool_index);
+    free(pool->garbage_pool);
+    free(pool);
+    return 0;
+}

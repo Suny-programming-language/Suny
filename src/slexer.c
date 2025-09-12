@@ -65,6 +65,7 @@ Slexer_skip_comment
     if (lexer->cur == '#') {
         while (lexer->cur != '\n') {
             Slexer_get_next_c(lexer);
+            current(lexer);
         }
     }
 

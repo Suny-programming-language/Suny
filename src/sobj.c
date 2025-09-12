@@ -14,6 +14,9 @@ Sobj_new(void) {
 
     obj->gc = Sgc_new();
 
+    obj->dname = NULL;
+    obj->ddoc = NULL;
+
     obj->type = NULL_OBJ;
     obj->value = Svalue_new();
     obj->size = 0;
@@ -21,6 +24,8 @@ Sobj_new(void) {
 
     obj->f_value = NULL;
     obj->f_type = NULL;
+
+    obj->meta = NULL;
 
     return obj;
 }
@@ -42,7 +47,7 @@ Sobj_free
     }
 
     else if (obj->type == FUNC_OBJ) {
-        free(obj->f_type->f_func);
+        Sfunc_free(obj->f_type->f_func);
         free(obj->f_type);
     }
 
@@ -64,4 +69,22 @@ Sobj_set_int
     obj->type = NUMBER_OBJ;
     obj->value->value = value;
     return obj;
+}
+
+int
+Sobj_free_objs
+(struct Sobj** objs, int size) {
+#ifdef DEBUG
+    printf("[sobj.c] int Sobj_free_objs(struct Sobj** objs, int size) (building... %d)\n", size);
+#endif
+    for (int i = 0; i < size; i++) {
+        Sobj_free(objs[i]);
+    }
+    
+    free(objs);
+
+#ifdef DEBUG
+    printf("[sobj.c] int Sobj_free_objs(struct Sobj** objs, int size) (done %d)\n", size);
+#endif
+    return 0;
 }

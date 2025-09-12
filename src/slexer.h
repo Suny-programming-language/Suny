@@ -29,7 +29,7 @@
 #define current(lexer) (lexer->cur = lexer->input[lexer->index], lexer->next = lexer->input[lexer->index + 1], lexer->prev = lexer->input[lexer->index - 1])
 
 #define is_keyword(c) ( \
-    (c) == '!'  || (c) == '@'  || (c) == '#'  || (c) == '$'  || \
+    (c) == '!'  || (c) == '@'  || (c) == '`'  || (c) == '$'  || \
     (c) == '%'  || (c) == '^'  || (c) == '&'  || (c) == '*'  || \
     (c) == '('  || (c) == ')'  || (c) == '_'  || (c) == '+'  || \
     (c) == '/'  || (c) == '<'  || (c) == '>'  || (c) == ';'  || \

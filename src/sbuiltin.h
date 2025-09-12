@@ -7,8 +7,11 @@
 #include "sio.h"
 
 struct Sframe;
+struct Scompiler;
 
 typedef struct Sobj* (*builtin_func)(struct Sframe*);
+
+typedef struct Sframe* (*main_func)(struct Sframe*, struct Scompiler*);
 
 #define call_func(func, frame) ((struct Sobj* (*)(struct Sframe*)) (func))((frame));
 

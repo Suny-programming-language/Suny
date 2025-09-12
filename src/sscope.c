@@ -11,6 +11,11 @@ new_scope(void) {
     return scope;
 }
 
+struct Scompiler* Scompiler_set_frame(struct Scompiler* compiler, struct Sframe* frame) {
+    compiler->frame = frame;
+    return compiler;
+}
+
 struct Scompiler*
 Scompiler_new(void) {
     struct Scompiler *compiler = malloc(sizeof(struct Scompiler));

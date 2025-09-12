@@ -7,6 +7,23 @@
 #include "scode.h"
 #include "max.h"
 
+typedef void (*SunyGcFn)(void* data);
+typedef void (*SunyToStringFn)(void* data, char* buf, size_t bufsize);
+
+struct Scall_context;
+struct Sfunc;
+struct Sstr;
+struct Slist;
+struct Sbool;
+struct Sclass;
+struct Stype;
+struct Suserdata;
+
+struct Suserdata {
+    void* data;
+    struct Stype* type;
+};
+
 struct Sfunc {
     struct Sfunc *inner;
     
@@ -25,6 +42,8 @@ struct Sfunc {
 
     struct Sobj *obj;
     struct Sobj **params;
+
+    struct Scall_context *call_context;
 };
 
 struct Scall_context {
@@ -86,6 +105,14 @@ struct Stype {
 
     struct Scall_context *f_call_context;
 
+    struct Suserdata *f_userdata;
+
+    SunyGcFn gc;
+    SunyToStringFn tostring;
+
+    char* doc; // document of userdata
+    char* name; // name of userdata
+    
     int f_size;
 };
 

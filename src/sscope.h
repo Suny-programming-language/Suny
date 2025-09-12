@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sframe.h"
+
 #define ALREADY_DEFINED 999
 
 #define NOT_FOUND 998
@@ -51,7 +53,13 @@ struct Scompiler {
     char* function_name;
 
     int label;
+
+    struct Sframe* frame;
 };
+
+struct Sframe;
+
+struct Scompiler* Scompiler_set_frame(struct Scompiler* compiler, struct Sframe* frame);
 
 struct Scope
 creat_scope

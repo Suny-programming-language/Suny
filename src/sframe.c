@@ -36,13 +36,32 @@ Sframe_new(void) {
 
     frame->gc_pool = Sgc_new_pool();
 
+    struct Scompile *compiler = NULL;
+
     return frame;
 }
 
 int
 Sframe_free
 (struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[frame.c] int Sframe_free(struct Sframe *frame) (building...)\n");
+#endif
+
+    Sobj_free_objs(frame->f_stack, frame->f_stack_index);
+    Sobj_free_objs(frame->f_const, frame->f_const_index);
+
+    Sobj_free_objs(frame->f_locals, frame->f_locals_size);
+    Sobj_free_objs(frame->f_globals, frame->f_globals_size);
+
+    free(frame->f_label_map);
+
     free(frame);
+
+#ifdef DEBUG
+    printf("[frame.c] int Sframe_free(struct Sframe *frame) (done)\n");
+#endif
+
     return 0;
 }
 

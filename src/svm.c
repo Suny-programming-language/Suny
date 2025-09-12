@@ -416,44 +416,52 @@ Svm_evaluate_FUNCTION_CALL
     struct Sobj *f_obj = Sframe_pop(frame);
 
     if (f_obj->type == BUILTIN_OBJ) {
+#ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (builtin)\n");
+#endif
         struct Sobj* (*func)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
 
         struct Sobj* result = func(frame);
 
         Sframe_push(frame, result);
-
+#ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
+#endif
         return frame;
     }
 
-    struct Sobj **f_local = malloc(sizeof(struct Sobj*) * MAX_ARGS_SIZE);
-
     struct Scall_context *context = Scall_context_new();
     struct Sframe *f_frame = context->frame;
-
-    struct Sframe *fp_frame = f_obj->f_type->f_func->frame;
 
     f_frame->f_label_map = Slabel_map_set_program(f_obj->f_type->f_func->code);
 
     f_frame->f_globals = frame->f_globals;
     f_frame->f_globals_size = frame->f_globals_size;
 
-    f_frame->f_locals = fp_frame->f_locals;
-    f_frame->f_locals_size = fp_frame->f_locals_size;
+    f_frame->f_locals = f_obj->f_type->f_func->frame->f_locals;
+    f_frame->f_locals_size = f_obj->f_type->f_func->frame->f_locals_size;
 
     context->main_frame = frame;
-    context->ret_obj = Sobj_set_int(0);
 
     Scall_context_set_func(context, f_obj->f_type->f_func);
 
     int address = 0;
 
     for (int i = 0; i < f_obj->f_type->f_func->args_size; ++i) {
+    #ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (arg start %d)\n", i);
+    #endif
         struct Sobj* value = Sframe_pop(frame);
 
         Sframe_store_local(f_frame, address++, value, LOCAL_OBJ);
+    #ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (arg end %d)\n", i);
+    #endif
     }
-    
+
     Svm_run_call_context(context);
+
+    f_obj->f_type->f_func->call_context = context;
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");

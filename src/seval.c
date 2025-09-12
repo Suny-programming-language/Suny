@@ -43,7 +43,15 @@ Seval_add
         struct Sobj *sobj = Sobj_make_list(list);
         
         return sobj;
-    } 
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_add) {
+            return obj1->meta->mm_add(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data add not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    }
     else {
         return Sobj_set_int(obj1->value->value + obj2->value->value);
     }
@@ -52,6 +60,20 @@ Seval_add
 struct Sobj *
 Seval_sub
 (struct Sobj *obj1, struct Sobj *obj2) {
+#ifdef DEBUG
+    printf("[seval.c] struct Sobj *Seval_sub(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
+#endif
+
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_sub) {
+            return obj1->meta->mm_sub(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data sub not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    }
+
     return Sobj_set_int(obj1->value->value - obj2->value->value);
 }
 
@@ -89,6 +111,14 @@ Seval_mul
         struct Sobj *sobj = Sobj_make_list(slist);
         
         return sobj;
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_mul) {
+            return obj1->meta->mm_mul(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data mul not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
     } else {
         return Sobj_set_int(obj1->value->value * obj2->value->value);
     }
@@ -100,6 +130,16 @@ Seval_div
 #ifdef DEBUG
     printf("[seval.c] struct Sobj *Seval_div(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
 #endif
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_div) {
+            return obj1->meta->mm_div(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data div not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    }
+
     return Sobj_set_int(obj1->value->value / obj2->value->value);
 }
 

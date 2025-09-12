@@ -3,6 +3,11 @@
 
 #include "score.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
 double 
 Satof(const char *str);
 
@@ -52,5 +57,7 @@ int
 Sisstrdigit(char *str);
 
 Sdll_func dll_get_func(char* func_name, char* dll_name);
+
+char* Sstring_new(const char* fmt, ...);
 
 #endif

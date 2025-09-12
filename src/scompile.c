@@ -141,7 +141,8 @@ Scompile_identifier
         if (address == NOT_FOUND) {
             address = find_scope(compiler, ast->lexeme);
             if (address == NOT_FOUND) {
-                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable in function", ast->lexer);
+                char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
+                struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
                 Serror_syntax_error(error);
             }
 
@@ -157,7 +158,8 @@ Scompile_identifier
 
     if (address == NOT_FOUND) {
         if (address == NOT_FOUND) {
-            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+            char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
             Serror_syntax_error(error);
         }
     } else {
@@ -201,7 +203,8 @@ Scompile_assignment
 
         if (found == NOT_FOUND) {
             if (ast->is_assign) {
-                struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable in function", ast->lexer);
+                char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
+                struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
                 Serror_syntax_error(error);
             }
 
@@ -246,7 +249,8 @@ Scompile_assignment
         address = found;
     } else {
         if (ast->is_assign) {
-            struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined variable", ast->lexer);
+            char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
             Serror_syntax_error(error);
         }
 
@@ -385,8 +389,12 @@ Scompile_function_call
     int found = find_scope(compiler, ast->lexeme);
 
     if (found == NOT_FOUND) {
-        struct Serror *error = Serror_set("COMPILER_ERROR", "Undefined function", ast->lexer);
-        Serror_syntax_error(error);
+        found = find_scope_local(compiler, ast->lexeme);
+        if (found == NOT_FOUND) {
+            char* message = Sstring_new("Undefined function '%s'", ast->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+        }
     }
 
     int address = scope.address;

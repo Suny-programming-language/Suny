@@ -19,8 +19,7 @@ int Sio_write(struct Sobj *obj) {
         printf("false");
     } else if (obj->type == FUNC_OBJ) {
         printf("<function object %p defined in Suny VM at address %i>", obj->f_type->f_func, obj->address);
-    }
-    else {
+    } else {
         printf("%g", obj->value->value);
     }
 

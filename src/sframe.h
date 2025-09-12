@@ -9,21 +9,7 @@
 
 #define PUSH_OBJ(obj) Sframe_push(frame, obj)
 
-#ifndef SOBJ_T
-#define SOBJ_T
-enum Sobj_t {
-    NUMBER_OBJ,
-    GLOBAL_OBJ,
-    BUILTIN_OBJ,
-    LOCAL_OBJ,
-    STRING_OBJ,
-    LIST_OBJ,
-    TRUE_OBJ,
-    FALSE_OBJ,
-    FUNC_OBJ,
-    NULL_OBJ,
-};
-#endif
+enum Sobj_t;
 
 struct Sframe {
     int f_locals_size;
@@ -64,6 +50,8 @@ struct Sframe {
     struct Sobj *f_globals_top;
 
     struct Garbage_pool *gc_pool;
+    
+    struct Scompiler *compiler;
 };
 
 struct Sframe *

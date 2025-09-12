@@ -24,13 +24,14 @@ struct Garbage_pool {
 #define inc_ref(obj) ((obj)->gc->ref_count++)
 #define dec_ref(obj) ((obj)->gc->ref_count--)
 
-#define POOL_SIZE_LIMIT 1024
+#define POOL_SIZE_LIMIT 5
 
 struct Sgarbarge_obj* Sgc_new(void);
 
 struct Sgarbarge_obj* Sgc_new_obj(struct Sobj* obj);
 
 struct Garbage_pool* Sgc_new_pool(void);
+int Sgc_free_pool(struct Garbage_pool* pool);
 struct Garbage_pool* Sgc_push_garbage_obj(struct Garbage_pool* pool, struct Sobj* obj);
 
 void Sgc_collect(struct Garbage_pool* pool);

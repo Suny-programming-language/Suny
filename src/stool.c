@@ -234,3 +234,29 @@ Sisstrdigit(char *str) {
 
     return 1;
 }
+
+char* Sstring_new(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    va_list args_copy;
+    va_copy(args_copy, args);
+    int len = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
+
+    if (len < 0) {
+        va_end(args);
+        return NULL;
+    }
+
+    char* buf = (char*)malloc(len + 1);
+    if (!buf) {
+        va_end(args);
+        return NULL;
+    }
+
+    vsnprintf(buf, len + 1, fmt, args);
+    va_end(args);
+
+    return buf;
+}

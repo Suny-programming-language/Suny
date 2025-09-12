@@ -4,9 +4,12 @@
 #include "score.h"
 #include "stype.h"
 #include "sstr.h"
+#include "sfunc.h"
+#include "smeta.h"
 
 struct Sgarbarge_obj;
 struct Garbage_pool;
+struct Smeta;
 
 #define GC_HEAD struct Sgarbarge_obj* gc
 
@@ -23,8 +26,6 @@ typedef int address_t;
 
 #define Typeof(obj) ((obj)->type)
 
-#ifndef SOBJ_T
-#define SOBJ_T
 enum Sobj_t {
     NUMBER_OBJ,
     GLOBAL_OBJ,
@@ -32,12 +33,12 @@ enum Sobj_t {
     LOCAL_OBJ,
     STRING_OBJ,
     LIST_OBJ,
+    USER_DATA_OBJ,
     TRUE_OBJ,
     FALSE_OBJ,
     FUNC_OBJ,
     NULL_OBJ,
 };
-#endif
 
 struct Svalue {
     float value;
@@ -52,6 +53,9 @@ struct Sobj {
     int address;
     int size;
 
+    char* dname; // data name
+    char* ddoc; // data document
+
     struct Sobj *next;
     struct Sobj *prev;
 
@@ -60,6 +64,8 @@ struct Sobj {
     struct Stype *f_type; // real value
 
     struct Sc_api_func* c_api_func;
+
+    struct Smeta* meta; // metatable
 };
 
 struct Svalue* 
@@ -71,6 +77,10 @@ Sobj_new(void);
 int 
 Sobj_free
 (struct Sobj* obj);
+
+int
+Sobj_free_objs
+(struct Sobj** objs, int size);
 
 struct Sobj*
 Sobj_set_int
