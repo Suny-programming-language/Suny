@@ -1,6 +1,6 @@
 # Suny Programming Language
 
-👉 [Watch document (PDF)](./document.pdf)
+👉 [Watch document (PDF)](./document/document.pdf)
 
 My youtube: https://www.youtube.com/@haidinhson
 
