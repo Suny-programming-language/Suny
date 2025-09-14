@@ -2,7 +2,7 @@ CC = gcc
 SRC = $(wildcard ./src/*.c)
 OUT = ./bin/suny
 DEBUG = ./bin/dsuny
-LIB = ./bin/Suny.a
+LIB = ./bin/libSuny.a
 
 ifeq ($(OS),Windows_NT)
     RM = del /Q
@@ -20,3 +20,4 @@ all:
 	@ar rcs $(LIB) *.o
 	@$(RM) *.o
 	@echo Done.
+
