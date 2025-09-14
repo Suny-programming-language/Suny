@@ -2,7 +2,7 @@ CC = gcc
 SRC = $(wildcard ./src/*.c)
 OUT = ./bin/suny$(EXT)
 DEBUG = ./bin/dsuny$(EXT)
-LIB = ./bin/Suny.a
+LIB = ./bin/libSuny.a
 
 ifeq ($(OS),Windows_NT)
     RM = del /Q
