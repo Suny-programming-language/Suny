@@ -260,3 +260,66 @@ char* Sstring_new(const char* fmt, ...) {
 
     return buf;
 }
+
+char* remove_substr(char* str, const char* to_remove) {
+    if (!str || !to_remove) return str;
+
+    size_t len_str = strlen(str);
+    size_t len_rem = strlen(to_remove);
+    if (len_rem == 0) return str;
+
+    char* result = malloc(len_str + 1);
+    if (!result) return NULL;
+
+    char* p = str;
+    char* r = result;
+
+    while (*p) {
+        if (strncmp(p, to_remove, len_rem) == 0) {
+            p += len_rem;
+        } else {
+            *r++ = *p++;
+        }
+    }
+
+    *r = '\0';
+    return result;
+}
+
+int if_file_exists(const char* filename) {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0 && S_ISREG(buffer.st_mode));
+}
+
+int if_file_exists_in(const char* filename, const char* path) {
+    if (!filename || !path) return 0;
+
+    size_t len = strlen(filename) + strlen(path) + 2;
+    char *fullpath = malloc(len);
+    if (!fullpath) return 0;
+
+    snprintf(fullpath, len, "%s/%s", path, filename);
+    int exists = if_file_exists(fullpath);
+    free(fullpath);
+
+    return exists;
+}
+
+int if_folder_exists(const char* foldername) {
+    struct stat buffer;
+    return (stat(foldername, &buffer) == 0 && S_ISDIR(buffer.st_mode));
+}
+
+int if_folder_exists_in(const char* foldername, const char* path) {
+    if (!foldername || !path) return 0;
+
+    size_t len = strlen(foldername) + strlen(path) + 2;
+    char *fullpath = malloc(len);
+    if (!fullpath) return 0;
+
+    snprintf(fullpath, len, "%s/%s", path, foldername);
+    int exists = if_folder_exists(fullpath);
+    free(fullpath);
+
+    return exists;
+}

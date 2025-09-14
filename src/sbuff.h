@@ -6,15 +6,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h> 
 
 struct SZIO {
     char *file;
     char *buffer;
     int size;
+
+    char** folders;
+    int nf;
+    int maxf;
+    
 };
 
 struct SZIO*
 Sbuff_new(void);
+
+struct SZIO*
+Sbuff_find_file_in(char* filename, char* path);
+
+struct SZIO*
+Sbuff_read_folder_name(char* path);
 
 int
 Sbuff_free

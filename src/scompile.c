@@ -931,7 +931,19 @@ Scompile_var_list
 struct Scode*
 Scompile_import
 (struct Sast *ast, struct Scompiler *compiler) {
-    char* file = ast->lexeme;
+    char* file = Sstring_new("%s.dll", ast->lexeme);
+    char* lib_file = Sstring_new("C:\\Suny\\libs\\%s.dll", ast->lexeme);
+
+    if (!if_file_exists(file)) {
+        if (!if_file_exists(lib_file)) {
+            char* message = Sstring_new("Cannot find library '%s'", ast->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+            return NULL_CODE_PTR;
+        } else {
+            file = lib_file;
+        }
+    }
 
     Sdll_func dll_func = dll_get_func("Smain", file);
 

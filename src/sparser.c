@@ -1250,25 +1250,5 @@ Sparser_parse_import
 
     parser->token = Slexer_get_next_token(parser->lexer);
 
-    if (parser->token->type == FROM) {
-        parser->token = Slexer_get_next_token(parser->lexer);
-        if (parser->token->type != STRING) {
-            Serror_parser("Expected module name, module name must be a string", parser->lexer);
-            return NULL;
-        }
-
-        char* module_name = parser->token->lexeme;
-        if (strcmp(module_name, "Suny") == 0) {
-            char* module_path = PATH_TO_SUNY_LIB_WINDOW;
-            char* path = strcpy(module_path, node->lexeme);
-            node->lexeme = path;
-        } else {
-            char* path = strcpy(module_name, node->lexeme);
-            node->lexeme = path;
-        }
-
-        parser->token = Slexer_get_next_token(parser->lexer);
-    }
-
     return node;
 }

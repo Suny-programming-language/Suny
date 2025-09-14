@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>    
 
 double 
 Satof(const char *str);
@@ -59,5 +61,13 @@ Sisstrdigit(char *str);
 Sdll_func dll_get_func(char* func_name, char* dll_name);
 
 char* Sstring_new(const char* fmt, ...);
+
+char* remove_substr(char* str, const char* to_remove);
+
+int if_file_exists(const char* filename);
+int if_file_exists_in(const char* filename, const char* path);
+
+int if_folder_exists(const char* foldername);
+int if_folder_exists_in(const char* foldername, const char* path);
 
 #endif
