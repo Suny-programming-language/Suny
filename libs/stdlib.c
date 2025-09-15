@@ -489,10 +489,6 @@ struct Sobj* Scot(struct Sframe* frame) {
 
 // ================ Big Integer Functions =================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 struct Sbigint {
     char* digits; // string representation of the big integer
     int length;   // number of digits
