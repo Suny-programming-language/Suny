@@ -1,4 +1,14 @@
-#include <Suny.h>
+#include "../src/Suny.h"
+
+#include <math.h>
+
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
+
+#ifndef E
+#define E 2.71828182845904523536
+#endif
 
 // ================= Vector Library =================
 
@@ -149,9 +159,16 @@ struct Sobj* Sobj_sub_vector(struct Sobj* obj1, struct Sobj* obj2) {
 }
 
 struct Sobj* Sobj_mul_vector(struct Sobj* obj1, struct Sobj* obj2) {
-    if (obj1->type != USER_DATA_OBJ || obj2->type != USER_DATA_OBJ) {
-        fprintf(stderr, "Error: Both operands must be vectors for multiplication.\n");
-        return NULL;
+    if (obj2->type == NUMBER_OBJ) {
+        struct Svector* v1 = obj1->f_type->f_userdata->data;
+        struct Svector* result_vec = Svector_new();
+        for (int i = 0; i < v1->count; i++) {
+            struct Sobj* item = Seval_mul(v1->items[i], obj2);
+            Svector_push(result_vec, item);
+        }
+        struct Sobj* result_obj = Sobj_make_userdata(result_vec);
+        result_obj->meta = obj1->meta;
+        return result_obj;
     }
 
     struct Svector* v1 = obj1->f_type->f_userdata->data;
@@ -167,9 +184,16 @@ struct Sobj* Sobj_mul_vector(struct Sobj* obj1, struct Sobj* obj2) {
 }
 
 struct Sobj* Sobj_div_vector(struct Sobj* obj1, struct Sobj* obj2) {
-    if (obj1->type != USER_DATA_OBJ || obj2->type != USER_DATA_OBJ) {
-        fprintf(stderr, "Error: Both operands must be vectors for division.\n");
-        return NULL;
+    if (obj2->type == NUMBER_OBJ) {
+        struct Svector* v1 = obj1->f_type->f_userdata->data;
+        struct Svector* result_vec = Svector_new();
+        for (int i = 0; i < v1->count; i++) {
+            struct Sobj* item = Seval_div(v1->items[i], obj2);
+            Svector_push(result_vec, item);
+        }
+        struct Sobj* result_obj = Sobj_make_userdata(result_vec);
+        result_obj->meta = obj1->meta;
+        return result_obj;
     }
 
     struct Svector* v1 = obj1->f_type->f_userdata->data;
@@ -247,6 +271,9 @@ struct Sobj* Scot(struct Sframe* frame) {
 // ================ End of Math Functions =================
 
 SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
+    SunyInitialize_variable(frame, compiler, 30, "pi", NUMBER_OBJ, Sobj_set_int(PI));
+    SunyInitialize_variable(frame, compiler, 31, "e", NUMBER_OBJ, Sobj_set_int(E));
+ 
     SunyInitialize_c_api_func(frame, compiler, 33, "vector", 1, Sobj_make_vector);
 
     SunyInitialize_c_api_func(frame, compiler, 34, "cos", 1, Scos);
@@ -254,7 +281,5 @@ SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) 
     SunyInitialize_c_api_func(frame, compiler, 36, "tan", 1, Stan);
     SunyInitialize_c_api_func(frame, compiler, 37, "cot", 1, Scot);
     
-
-
     return frame;
 }

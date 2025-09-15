@@ -35,6 +35,21 @@ int SunyInitialize_c_api_func
     return Sinitialize_c_api_func(frame, compiler, api_func);
 }
 
+int SunyInitialize_variable
+(
+    struct Sframe *frame, 
+    struct Scompiler *compiler, 
+    int address, 
+    char* name,
+    enum Sobj_t type,
+    struct Sobj* value
+) 
+
+{
+    add_scope(compiler, name, address, 0);
+    return Sframe_store_global(frame, address, value, type);
+}
+
 int SunyInstallLib
 (
     struct Sframe *frame, 

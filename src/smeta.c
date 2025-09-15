@@ -17,4 +17,14 @@ void Smeta_set(struct Sobj* obj, const char* name, void* fn) {
 
     else if (strcmp(name, "__tostring__") == 0) obj->meta->mm_tostring = fn;
     else if (strcmp(name, "__type__") == 0) obj->meta->mm_type = fn;
+
+    else if (strcmp(name, "__eq__") == 0) obj->meta->mm_eq = fn;
+    else if (strcmp(name, "__ne__") == 0) obj->meta->mm_ne = fn;
+    else if (strcmp(name, "__gt__") == 0) obj->meta->mm_gt = fn;
+    else if (strcmp(name, "__ge__") == 0) obj->meta->mm_ge = fn;
+    else if (strcmp(name, "__lt__") == 0) obj->meta->mm_lt = fn;
+    else if (strcmp(name, "__le__") == 0) obj->meta->mm_le = fn;
+
+    else if (strcmp(name, "__call__") == 0) obj->meta->mm_call = fn;
+    else if (strcmp(name, "__index__") == 0) obj->meta->mm_index = fn;
 }

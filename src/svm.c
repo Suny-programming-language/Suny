@@ -747,6 +747,15 @@ Svm_evaluate_LOAD_ITEM
         }
 
         Sframe_push(frame, obj);
+    } else if (list->type == USER_DATA_OBJ) {
+        struct Sobj *ret = NULL;
+        if (list->meta && list->meta->mm_index) {
+            ret = list->meta->mm_index(list, index);
+            Sframe_push(frame, ret);
+        } else {
+            printf("Error: user data index not supported\n");
+            SUNY_BREAK_POINT;
+        }
     } else {
         Sframe_push(frame, Sobj_set_int(0));
     }

@@ -43,9 +43,17 @@ Seval_add
         struct Sobj *sobj = Sobj_make_list(list);
         
         return sobj;
-    } else if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+    } else if (obj1->type == USER_DATA_OBJ) {
         if (obj1->meta && obj1->meta->mm_add) {
             return obj1->meta->mm_add(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data add not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_add) {
+            return obj2->meta->mm_add(obj1, obj2);
         } else {
             printf("Error seval.c: user data add not supported\n");
             SUNY_BREAK_POINT;
@@ -64,9 +72,17 @@ Seval_sub
     printf("[seval.c] struct Sobj *Seval_sub(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
 #endif
 
-    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+    if (obj1->type == USER_DATA_OBJ) {
         if (obj1->meta && obj1->meta->mm_sub) {
             return obj1->meta->mm_sub(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data sub not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_sub) {
+            return obj2->meta->mm_sub(obj1, obj2);
         } else {
             printf("Error seval.c: user data sub not supported\n");
             SUNY_BREAK_POINT;
@@ -111,9 +127,17 @@ Seval_mul
         struct Sobj *sobj = Sobj_make_list(slist);
         
         return sobj;
-    } else if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+    } else if (obj1->type == USER_DATA_OBJ) {
         if (obj1->meta && obj1->meta->mm_mul) {
             return obj1->meta->mm_mul(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data mul not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_mul) {
+            return obj2->meta->mm_mul(obj1, obj2);
         } else {
             printf("Error seval.c: user data mul not supported\n");
             SUNY_BREAK_POINT;
@@ -130,9 +154,17 @@ Seval_div
 #ifdef DEBUG
     printf("[seval.c] struct Sobj *Seval_div(struct Sobj *obj1, struct Sobj *obj2) (pass)\n");
 #endif
-    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+    if (obj1->type == USER_DATA_OBJ) {
         if (obj1->meta && obj1->meta->mm_div) {
             return obj1->meta->mm_div(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data div not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_div) {
+            return obj2->meta->mm_div(obj1, obj2);
         } else {
             printf("Error seval.c: user data div not supported\n");
             SUNY_BREAK_POINT;
@@ -170,6 +202,22 @@ Seval_bigger
         } else {
             return Sobj_make_false();
         }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_gt) {
+            return obj1->meta->mm_gt(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data gt not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_gt) {
+            return obj2->meta->mm_gt(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data gt not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
     } else {
         if (obj1->value->value > obj2->value->value) {
             return Sobj_make_true();
@@ -205,6 +253,22 @@ Seval_smaller
             return Sobj_make_true();
         } else {
             return Sobj_make_false();
+        }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_lt) {
+            return obj1->meta->mm_lt(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data lt not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_lt) {
+            return obj2->meta->mm_lt(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data lt not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
         }
     } else {
         if (obj1->value->value < obj2->value->value) {
@@ -242,6 +306,22 @@ Seval_equal
         } else {
             return Sobj_make_false();
         }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_eq) {
+            return obj1->meta->mm_eq(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data eq not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_eq) {
+            return obj2->meta->mm_eq(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data eq not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
     } else {
         if (obj1->value->value == obj2->value->value) {
             return Sobj_make_true();
@@ -277,6 +357,22 @@ Seval_not_equal
             return Sobj_make_true();
         } else {
             return Sobj_make_false();
+        }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_ne) {
+            return obj1->meta->mm_ne(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data ne not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_ne) {
+            return obj2->meta->mm_ne(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data ne not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
         }
     } else {
         if (obj1->value->value != obj2->value->value) {
@@ -315,6 +411,22 @@ Seval_bigger_and_equal
         } else {
             return Sobj_make_false();
         }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_ge) {
+            return obj1->meta->mm_ge(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data ge not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_ge) {
+            return obj2->meta->mm_ge(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data ge not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
     } else {
         if (obj1->value->value > obj2->value->value || obj1->value->value == obj2->value->value) {
             return Sobj_make_true();
@@ -351,6 +463,22 @@ Seval_smaller_and_equal
             return Sobj_make_true();
         } else {
             return Sobj_make_false();
+        }
+    } else if (obj1->type == USER_DATA_OBJ) {
+        if (obj1->meta && obj1->meta->mm_le) {
+            return obj1->meta->mm_le(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data le not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
+        }
+    } else if (obj2->type == USER_DATA_OBJ) {
+        if (obj2->meta && obj2->meta->mm_le) {
+            return obj2->meta->mm_le(obj1, obj2);
+        } else {
+            printf("Error seval.c: user data le not supported\n");
+            SUNY_BREAK_POINT;
+            return NULL;
         }
     } else {
         if (obj1->value->value < obj2->value->value || obj1->value->value == obj2->value->value) {

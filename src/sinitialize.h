@@ -23,6 +23,16 @@ int SunyInitialize_c_api_func
     void* func
 );
 
+int SunyInitialize_variable
+(
+    struct Sframe *frame, 
+    struct Scompiler *compiler, 
+    int address, 
+    char* name,
+    enum Sobj_t type,
+    struct Sobj* value
+);
+
 int SunyInstallLib
 (
     struct Sframe *frame, 
