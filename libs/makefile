@@ -1,2 +1,9 @@
+CC = gcc
+SRC = stdlib.c
+OUT = stdlib.dll
+INC = -I../src
+LIBDIR = -L..
+LIBS = -lSuny
+
 dll:
-	gcc -shared -o mathlib.dll mathlib.c -I../src -L../bin -lSuny
+	$(CC) -shared -o $(OUT) $(SRC) $(INC) $(LIBDIR) $(LIBS)
