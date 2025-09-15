@@ -1,0 +1,11 @@
+import "mathlib"
+
+a = vector([1, 2, 3])
+b = vector([4, 5, 6])
+
+print(a + b)  # Output: vector([5, 7, 9])
+print(a - b)  # Output: vector([-3, -3, -3])
+print(a * b)  # Output: vector([4, 10, 18])
+print(a / b)  # Output: vector([0.25, 0.4, 0.5])
+print(a * 2)  # Output: vector([2, 4, 6])
+print(a / 2)  # Output: vector([0.5, 1, 1.5])
