@@ -1,8 +1,8 @@
 CC = gcc
 SRC = $(wildcard ./src/*.c)
-OUT = ./bin/suny$(EXT)
-DEBUG = ./bin/dsuny$(EXT)
-LIB = ./bin/libSuny.a
+OUT = ./suny$(EXT)
+DEBUG = ./dsuny$(EXT)
+LIB = ./libSuny.a
 
 ifeq ($(OS),Windows_NT)
     RM = del /Q
