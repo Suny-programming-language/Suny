@@ -1,11 +1,9 @@
 CC = gcc
 SRC = $(wildcard ./src/*.c)
-
-OUT = ./suny$(EXT)
-DEBUG = ./dsuny$(EXT)
-LIB = ./libSuny.a
-DLL = ./Suny.dll
-IMPLIB = ./libSuny.dll.a
+OBJ = $(SRC:.c=.o)
+OUT = suny
+DEBUG = dsuny
+LIB = libSuny.a
 
 ifeq ($(OS),Windows_NT)
     RM = del /Q
@@ -15,33 +13,22 @@ else
     EXT =
 endif
 
-all: exe lib dll
+all: $(OUT)$(EXT) $(DEBUG)$(EXT) $(LIB)
 
-exe:
-	@echo Compiling EXE...
-	@$(CC) $(SRC) -o $(OUT)
-	@$(CC) $(SRC) -DDEBUG -o $(DEBUG)
-	@echo Done EXE.
+$(OUT)$(EXT): $(SRC)
+	@echo Building release exe...
+	@$(CC) $(SRC) -o $@
 
-lib:
-	@echo Compiling Static Library...
-	@$(CC) -c $(SRC)
-	@ar rcs $(LIB) *.o
-	@$(RM) *.o
-	@echo Done LIB.
+$(DEBUG)$(EXT): $(SRC)
+	@echo Building debug exe...
+	@$(CC) -DDEBUG $(SRC) -o $@
 
-dll:
-	@echo Compiling DLL...
-	@$(CC) -shared $(SRC) -o $(DLL) \
-		-Wl,--out-implib=$(IMPLIB)
-	@echo Done DLL.
+$(LIB): $(OBJ)
+	@echo Building static library...
+	ar rcs $(LIB) $(OBJ)
+
+./src/%.o: ./src/%.c ./src/Suny.h
+	$(CC) -c $< -o $@
 
 clean:
-	@echo Cleaning...
-	@$(RM) *.o
-	@$(RM) $(OUT)
-	@$(RM) $(DEBUG)
-	@$(RM) $(LIB)
-	@$(RM) $(DLL)
-	@$(RM) $(IMPLIB)
-	@echo Done.
+	$(RM) $(OUT)$(EXT) $(DEBUG)$(EXT) $(OBJ) $(LIB)
