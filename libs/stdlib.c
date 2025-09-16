@@ -12,9 +12,6 @@
 
 // ================= Vector Library =================
 
-#define DOC "Mathematical vector operations"
-#define LIB_NAME "vector"
-
 #define vector_set_meta(obj) \
     obj->meta = malloc(sizeof(struct Smeta)); \
     obj->meta->mm_add = Sobj_add_vector; \

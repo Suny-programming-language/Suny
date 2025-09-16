@@ -13,3 +13,7 @@ struct Sobj* Sobj_make_false() {
     obj->value->value = 0;
     return obj;
 }
+
+struct Sobj* Sobj_make_bool(int value) {
+    return value ? Sobj_make_true() : Sobj_make_false();
+}

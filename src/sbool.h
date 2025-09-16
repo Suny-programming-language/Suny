@@ -7,4 +7,6 @@
 struct Sobj* Sobj_make_true();
 struct Sobj* Sobj_make_false();
 
+struct Sobj* Sobj_make_bool(int value);
+
 #endif // SBOOL_H

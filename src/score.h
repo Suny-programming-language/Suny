@@ -1,6 +1,13 @@
 #ifndef SCORE_H
 #define SCORE_H
 
+#define SUNY_VERSION "1.0"
+#define SUNY_COPYRIGHT "Copyright (c) 2025-present dinhsonhai132"
+#define AUTHOR "dinhsonhai132"
+
+#define SUNY_LIB_PATH "C:\\Suny\\Suny\\libs\\"
+#define PATH_TO_DLL_LIB "C:\\Suny\\Suny\\libs\\%s.dll"
+
 #ifdef _WIN32
     #include <windows.h>
     #define PATH_TO_SUNY_LIB_WINDOW "C:\\Suny\\libs\\"

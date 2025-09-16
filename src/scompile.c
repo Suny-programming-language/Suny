@@ -932,7 +932,7 @@ struct Scode*
 Scompile_import
 (struct Sast *ast, struct Scompiler *compiler) {
     char* file = Sstring_new("%s.dll", ast->lexeme);
-    char* lib_file = Sstring_new("C:\\Suny\\libs\\%s.dll", ast->lexeme);
+    char* lib_file = Sstring_new("C:/Suny/libs/%s.dll", ast->lexeme);
 
     if (!if_file_exists(file)) {
         if (!if_file_exists(lib_file)) {

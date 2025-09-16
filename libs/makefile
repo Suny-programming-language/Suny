@@ -1,7 +1,7 @@
 CC = gcc
 SRC = stdlib.c
 OUT = stdlib.dll
-INC = -I../src
+INC = -I../Suny
 LIBDIR = -L..
 LIBS = -lSuny
 
