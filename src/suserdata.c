@@ -32,3 +32,8 @@ struct Sframe* Sframe_register_userdata(struct Sframe* frame, struct Scompiler* 
     add_scope(compiler, name, address, 0);
     return frame;
 }
+
+int Suserdata_free(struct Suserdata* userdata) {
+    free(userdata);
+    return 0;
+}

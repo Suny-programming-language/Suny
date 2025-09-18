@@ -117,6 +117,12 @@ Sframe_pop
 
     struct Sobj *obj = frame->f_stack[--frame->f_stack_index];
 
+    if (!obj) {
+        printf("Error frame.c: stack underflow stack index: %d\n", frame->f_stack_index);
+        SUNY_BREAK_POINT;
+        return NULL;
+    }
+
     dec_ref(obj);
 
 #ifdef DEBUG

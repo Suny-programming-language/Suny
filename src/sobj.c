@@ -17,6 +17,8 @@ Sobj_new(void) {
     obj->dname = NULL;
     obj->ddoc = NULL;
 
+    obj->is_free = 0;
+
     obj->type = NULL_OBJ;
     obj->value = Svalue_new();
     obj->size = 0;
@@ -34,8 +36,14 @@ int
 Sobj_free
 (struct Sobj* obj) {
 #ifdef DEBUG
-    printf("[sobj.c] int Sobj_free(struct Sobj* obj) (building...)\n");
+    printf("[sobj.c] int Sobj_free(struct Sobj* obj) (building... %p)\n", obj);
 #endif
+    // if (obj->is_free) {
+    //     return 0;
+    // }
+
+    obj->is_free = 1;
+
     if (obj->type == STRING_OBJ) {
         Sstr_free(obj->f_type->f_str);
         free(obj->f_type);
@@ -51,12 +59,23 @@ Sobj_free
         free(obj->f_type);
     }
 
+    else if (obj->type == USER_DATA_OBJ) {
+        Suserdata_free(obj->f_type->f_userdata);
+        Stype_free(obj->f_type);
+
+        if (obj->meta) {
+            if (obj->meta->mm_free) {
+                obj->meta->mm_free(obj);
+            }
+        }
+    }
+
     free(obj->value);
     free(obj->gc);
     free(obj);
 
 #ifdef DEBUG
-    printf("[sobj.c] int Sobj_free(struct Sobj* obj) (done)\n");
+    printf("[sobj.c] int Sobj_free(struct Sobj* obj %p) (done)\n", obj);
 #endif
 
     return 0;

@@ -165,11 +165,11 @@ Svm_run_program(struct Sframe *frame) {
             }
 
             op = get_next_code(frame);
-
+            
             if (frame->gc_pool->pool_index > POOL_SIZE_LIMIT) {
                 Sgc_activate(frame);
                 Sgc_collect(frame->gc_pool);
-                Sgc_deactivate(frame);
+                Sgc_deactivate(frame);   
             }
         }
     } else {
@@ -424,11 +424,16 @@ Svm_evaluate_FUNCTION_CALL
         struct Sobj* result = func(frame);
 
         Sframe_push(frame, result);
+
 #ifdef DEBUG
         printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
 #endif
         return frame;
     }
+
+    #ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (func)\n");
+    #endif
 
     struct Scall_context *context = Scall_context_new();
     struct Sframe *f_frame = context->frame;
@@ -443,7 +448,15 @@ Svm_evaluate_FUNCTION_CALL
 
     context->main_frame = frame;
 
+    #ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (context)\n");
+    #endif
+
     Scall_context_set_func(context, f_obj->f_type->f_func);
+
+    #ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (args)\n");
+    #endif
 
     int address = 0;
 
@@ -510,7 +523,7 @@ Svm_evalutate_LOAD_GLOBAL
     int address = get_next_code(frame);
     struct Sobj *obj = Sframe_load_global(frame, address);
 
-    PUSH_OBJ(obj->f_value);
+    Sframe_push(frame, obj->f_value);
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evalutate_LOAD_GLOBAL(struct Sframe *frame) (done)\n");
 #endif
@@ -696,7 +709,7 @@ Svm_evaluate_BUILD_LIST
 
     struct Sobj *obj = Sobj_make_list(list);
 
-    PUSH_OBJ(obj);
+    Sframe_push(frame, obj);
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_BUILD_LIST(struct Sframe *frame) (done)\n");
@@ -717,7 +730,7 @@ Svm_evaluate_LOAD_ITEM
 
     if (list->type == LIST_OBJ) {
         if (index->value->value > list->f_type->f_list->count) {
-            printf("Error: index out of range\n");  \
+            printf("Error: index out of range\n");
             SUNY_BREAK_POINT;
             return frame;
         };
@@ -725,14 +738,14 @@ Svm_evaluate_LOAD_ITEM
         struct Sobj *item = Slist_get(list->f_type->f_list, index->value->value);
 
         if (!item) {
-            printf("Error: index out of range\n");  \
+            printf("Error: index out of range\n");
             SUNY_BREAK_POINT;
         }
         
         Sframe_push(frame, item);
     } else if (list->type == STRING_OBJ) {
         if (index->value->value > list->f_type->f_str->size) {
-            printf("Error: index out of range\n");  \
+            printf("Error: index out of range\n");
             SUNY_BREAK_POINT;
             return frame;
         };
@@ -742,7 +755,7 @@ Svm_evaluate_LOAD_ITEM
         struct Sobj *obj = Sobj_make_char(c);
 
         if (!obj) {
-            printf("Error: index out of range\n");  \
+            printf("Error: index out of range\n");
             SUNY_BREAK_POINT;
         }
 
@@ -763,8 +776,8 @@ Svm_evaluate_LOAD_ITEM
     printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ITEM(struct Sframe *frame) (done)\n");
 #endif
 
-    Sgc_dec_ref(index, frame->gc_pool);
     Sgc_dec_ref(list, frame->gc_pool);
+    Sgc_dec_ref(index, frame->gc_pool);
 
     return frame;
 }

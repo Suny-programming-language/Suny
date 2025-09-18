@@ -22,6 +22,7 @@ struct Smeta {
     struct Sobj* (*mm_tostring)(struct Sobj*); // to string
     struct Sobj* (*mm_type)(struct Sobj*); // type
 
+    int (*mm_free)(struct Sobj*); // free
 };
 struct Smeta* Smeta_new(void);
 

@@ -6,6 +6,8 @@ int prompt() {
     struct Sframe *frame = Sframe_new();
     struct Scompiler *compiler = Scompiler_new();
 
+    compiler->frame = frame;
+
     SunyInstallLib(frame, compiler);
 
     char buff[1024];

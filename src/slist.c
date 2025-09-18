@@ -89,11 +89,15 @@ struct Slist* Slist_range(int start, int end) {
 
     if (start > end) {
         for (int i = end; i < start; i++) {
-            Slist_add(list, Sobj_set_int(i));
+            struct Sobj* value = Sobj_set_int(i);
+            Sgc_inc_ref(value);
+            Slist_add(list, value);
         }
     } else {
         for (int i = start; i < end; i++) {
-            Slist_add(list, Sobj_set_int(i));
+            struct Sobj* value = Sobj_set_int(i);
+            Sgc_inc_ref(value);
+            Slist_add(list, value);
         }
     }
 

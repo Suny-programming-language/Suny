@@ -5,6 +5,7 @@
 #include "stype.h"
 #include "sstr.h"
 #include "sfunc.h"
+#include "score.h"
 #include "smeta.h"
 #include "suserdata.h"
 
@@ -55,6 +56,8 @@ struct Sobj {
     
     int address;
     int size;
+
+    int is_free;
 
     char* dname; // data name
     char* ddoc; // data document

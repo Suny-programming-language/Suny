@@ -708,7 +708,7 @@ Scompile_for
 
     Scompile_add_loop(compiler, loop_start, loop_end);
 
-    add_scope(compiler, ast->lexeme, iden, 0);
+    iden = add_scope(compiler, ast->lexeme, iden, 0);
 
     struct Scode *for_body = Scompile_body(ast->block, compiler, ast->block_size);
     struct Scode *iter = Scompile(ast->expr, compiler);
@@ -732,6 +732,15 @@ Scompile_for
 
     PUSH(code, STORE_GLOBAL);
     PUSH(code, __i__a);
+
+    PUSH(code, PUSH_FLOAT);
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+    PUSH(code, '\x00');
+
+    PUSH(code, STORE_GLOBAL);
+    PUSH(code, iden);
 
     PUSH(code, ADD_LABEL);
     PUSH(code, loop_start);

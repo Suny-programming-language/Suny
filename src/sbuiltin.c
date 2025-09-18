@@ -150,5 +150,8 @@ struct Sobj *Srange(struct Sframe *frame) {
     struct Slist *list = Slist_range(start_value, end_value);
     struct Sobj *obj = Sobj_make_list(list);
 
+    Sgc_dec_ref(start, frame->gc_pool);
+    Sgc_dec_ref(end, frame->gc_pool);
+
     return obj;
 }
