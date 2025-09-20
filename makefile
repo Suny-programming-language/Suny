@@ -15,6 +15,12 @@ endif
 
 all: $(OUT)$(EXT) $(DEBUG)$(EXT) $(LIB)
 
+bin: $(OUT)$(EXT)
+
+debug: $(DEBUG)$(EXT)
+
+lib: $(LIB)
+
 $(OUT)$(EXT): $(SRC)
 	@echo Building release exe...
 	@$(CC) $(SRC) -o $@
@@ -31,4 +37,5 @@ $(LIB): $(OBJ)
 	$(CC) -c $< -o $@
 
 clean:
-	$(RM) $(OUT)$(EXT) $(DEBUG)$(EXT) $(OBJ) $(LIB)
+	del /Q .\src\*.o
+
