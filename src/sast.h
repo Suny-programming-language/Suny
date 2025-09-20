@@ -23,6 +23,7 @@
                         || (ast)->type == AST_NOT_EXPRESSION                    \
                         || (ast)->type == AST_COMPARE_EXPRESSION                \
                         || (ast)->type == AST_LIST                              \
+                        || (ast)->type == AST_ATTRIBUTE_EXPRESSION              \
                         || (ast)->type == AST_ANONYMOUS_FUNCTION                \
                         || (ast)->type == AST_EXTRACT                           \
                         || (ast)->type == AST_LITERAL                           \
@@ -34,6 +35,8 @@ enum Sast_t {
     AST_STATEMENT,
     AST_EXPRESSION,
     AST_PRINT,
+    AST_ATTRIBUTE_EXPRESSION,
+    AST_STORE_ATTRIBUTE,
     AST_IMPORT,
     AST_INCLUDE,
     AST_BREAK,
@@ -131,6 +134,8 @@ struct Sast {
 
     struct Sast *extract_obj;
     struct Sast *extract_value;
+
+    struct Sast *attribute;
 
     int is_assign;
     int is_lambda;

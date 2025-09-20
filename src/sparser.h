@@ -44,6 +44,10 @@ struct Sast *
 Sparser_parse_primary_expression
 (struct Sparser *parser);
 
+struct Sast* 
+Sparser_parse_second_primary
+(struct Sparser *parser); 
+
 struct Sast *
 Sparser_parse_additive_expression
 (struct Sparser *parser);
@@ -91,10 +95,6 @@ Sparser_parse_block_expression
 struct Sast *
 Sparser_parse_function_call_identifier
 (struct Sparser *parser);
-
-struct Sast* 
-Sparser_parse_function_call_primary
-(struct Sparser *parser); 
 
 struct Sast *
 Sparser_parse_block
@@ -153,8 +153,20 @@ Sparser_parse_import
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_store_attribute
+(struct Sparser *parser, struct Sast* object);
+
+struct Sast *
+Sparser_parse_attribute_expression
+(struct Sparser *parser, struct Sast* object);
+
+struct Sast *
 Sparser_parse_store_index
-(struct Sparser *parser, struct Sast* extract_obj);\
+(struct Sparser *parser, struct Sast* extract_obj);
+
+struct Sast *
+Sparser_parse_attribute
+(struct Sparser *parser, struct Sast* object, struct Sast* attribute);
 
 struct Sast *
 Sparser_parse_function_call

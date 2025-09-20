@@ -70,6 +70,10 @@
 #define OR_LOG '\x43'
 #define NOT_LOG '\x44'
 
-#define SKIP '\x45' // program will skip this op and jump to next op 
+#define SKIP '\x45' // program will skip this op and jump to next op
+
+#define LOAD_ATTR '\x46'
+#define STORE_ATTR '\x47'
+#define LOAD_METHOD '\x48'
 
 #endif // OPCODE_H

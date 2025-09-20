@@ -58,6 +58,12 @@ Scompile
             return Scompile_not(ast, compiler);
         case AST_ANONYMOUS_FUNCTION:
             return Scompile_anonymous_function(ast, compiler);
+        case AST_ATTRIBUTE_EXPRESSION:
+            return Scompile_attribute(ast, compiler);
+        case AST_PROGRAM:
+            return Scompile_program(ast, compiler);
+        case AST_STORE_ATTRIBUTE:
+            return Scompile_store_attribute(ast, compiler);
         case AST_TRUE: {
             struct Scode *code = Scode_new();
             PUSH(code, LOAD_TRUE);
@@ -961,4 +967,75 @@ Scompile_import
     f(compiler->frame, compiler);
 
     return NULL_CODE_PTR;
+}
+
+struct Scode*
+Scompile_attribute
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Scode *code = Scode_new();
+    struct Scode *expr = Scompile(ast->expr, compiler);
+
+    INSERT(code, expr);
+
+    if (ast->attribute->type == AST_IDENTIFIER) {
+        int address = find_scope(compiler, ast->attribute->lexeme);
+
+        if (address == NOT_FOUND) {
+            char* message = Sstring_new("Undefined variable '%s'", ast->attribute->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+        }
+
+        PUSH(code, LOAD_ATTR);
+        PUSH(code, address);
+    } else if (ast->attribute->type == AST_FUNCTION_CALL_EXPRESSION) {
+        int address = find_scope(compiler, ast->attribute->lexeme);
+
+        if (address == NOT_FOUND) {
+            char* message = Sstring_new("Undefined variable '%s'", ast->attribute->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+        }
+
+        PUSH(code, LOAD_ATTR);
+        PUSH(code, address);
+
+        PUSH(code, FUNCTION_CALL);
+    }
+
+    return code;
+}
+
+struct Scode*
+Scompile_store_attribute
+(struct Sast *ast, struct Scompiler *compiler) {
+    struct Sast* assign = ast->expr;
+    struct Sast* value = ast->attribute;
+    
+    struct Scode *assign_c = Scompile(assign->expr, compiler);
+    struct Scode *value_c = Scompile(value, compiler);
+
+    struct Scode *code = Scode_new();
+    
+    INSERT(code, value_c);
+    INSERT(code, assign_c);
+
+    if (assign->attribute->type == AST_IDENTIFIER) {
+        int address = find_scope(compiler, assign->attribute->lexeme);
+
+        if (address == NOT_FOUND) {
+            char* message = Sstring_new("Undefined variable '%s'", assign->attribute->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, assign->lexer);
+            Serror_syntax_error(error);
+        }
+
+        PUSH(code, STORE_ATTR);
+        PUSH(code, address);
+    } else {
+        char* message = Sstring_new("Wrong attribute can not assign to it '%s'", assign->attribute->lexeme);
+        struct Serror *error = Serror_set("COMPILER_ERROR", message, assign->lexer);
+        Serror_syntax_error(error);
+    }
+
+    return code;
 }

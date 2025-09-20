@@ -38,6 +38,8 @@ enum Sobj_t {
     STRING_OBJ,
     LIST_OBJ,
     USER_DATA_OBJ,
+    CLASS_OBJ,
+    INSTANCE_OBJ,
     TRUE_OBJ,
     FALSE_OBJ,
     FUNC_OBJ,

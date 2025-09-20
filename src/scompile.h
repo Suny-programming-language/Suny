@@ -125,6 +125,14 @@ Scompile_import
 (struct Sast *ast, struct Scompiler *compiler);
 
 struct Scode*
+Scompile_attribute
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_store_attribute
+(struct Sast *ast, struct Scompiler *compiler);
+
+struct Scode*
 Scompile_block
 (struct Sast **block, struct Scompiler *compiler, 
     int block_size);

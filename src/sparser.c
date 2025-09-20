@@ -275,14 +275,14 @@ Sparser_parse_additive_expression
 struct Sast *
 Sparser_parse_multiplicative_expression
 (struct Sparser *parser) {
-    struct Sast *left = Sparser_parse_function_call_primary(parser);
+    struct Sast *left = Sparser_parse_second_primary(parser);
 
     parser->token = Slexer_get_next_token(parser->lexer);
     while (parser->token->type == MUL || parser->token->type == DIV) {
         enum Stok_t op = parser->token->type;
 
         parser->token = Slexer_get_next_token(parser->lexer);
-        struct Sast *right = Sparser_parse_function_call_primary(parser);
+        struct Sast *right = Sparser_parse_second_primary(parser);
 
         if (!right) {
             Serror_parser("Expected primary expression", parser->lexer);
@@ -414,6 +414,8 @@ Sparser_parse_logic_expression
     if (parser->token->type == ASSIGN || parser->token->type == ADD_ASSIGN || parser->token->type == SUB_ASSIGN || parser->token->type == MUL_ASSIGN || parser->token->type == DIV_ASSIGN) {
         if (left->type == AST_EXTRACT) {
             return Sparser_parse_store_index(parser, left);
+        } else if (left->type == AST_ATTRIBUTE_EXPRESSION) {
+            return Sparser_parse_store_attribute(parser, left);
         }
     }
 
@@ -1138,12 +1140,16 @@ Sparser_parse_function_call
     return NULL;
 }
 
-struct Sast* Sparser_parse_function_call_primary(struct Sparser *parser) {
+struct Sast* Sparser_parse_second_primary(struct Sparser *parser) {
     struct Sast *node = Sparser_parse_primary_expression(parser);
 
     parser->next_token = Slexer_look_ahead(parser->lexer);
     if (parser->next_token->type == LPAREN) {
         return Sparser_parse_function_call(parser, node);
+    } else if (parser->next_token->type == LBRACKET) {
+        return Sparser_parse_extract(parser, node);
+    } else if (parser->next_token->type == DOT) {
+        return Sparser_parse_attribute_expression(parser, node);
     }
 
     return node;
@@ -1249,6 +1255,61 @@ Sparser_parse_import
     node->lexeme = parser->token->lexeme;
 
     parser->token = Slexer_get_next_token(parser->lexer);
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_attribute
+(struct Sparser *parser, struct Sast* object, struct Sast* attribute) {
+    struct Sast *node = AST(AST_ATTRIBUTE_EXPRESSION, 0, NULL);
+    node->expr = object;
+    node->attribute = attribute;
+    return node;
+}
+
+struct Sast *
+Sparser_parse_attribute_expression
+(struct Sparser *parser, struct Sast* object) {
+    struct Sast *node = AST(AST_ATTRIBUTE_EXPRESSION, 0, NULL);
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    if (parser->token->type != DOT) {
+        Serror_parser("Expected '.'", parser->lexer);
+        return NULL;
+    }
+
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *attribute = Sparser_parse_primary_expression(parser);
+
+    node->expr = object;
+    node->attribute = attribute;
+
+    parser->next_token = Slexer_look_ahead(parser->lexer);
+
+    if (parser->next_token->type == DOT) {
+        return Sparser_parse_attribute_expression(parser, node);
+    }
+
+    return node;
+}
+
+struct Sast *
+Sparser_parse_store_attribute
+(struct Sparser *parser, struct Sast* object) {
+    struct Sast *node = AST(AST_STORE_ATTRIBUTE, 0, NULL);
+    node->expr = object;
+    
+    parser->token = Slexer_get_next_token(parser->lexer);
+
+    struct Sast *value = Sparser_parse(parser);
+
+    Sast_set_line(parser->lexer, value);
+    Sast_expected_expression(value);
+
+    node->attribute = value;
 
     return node;
 }

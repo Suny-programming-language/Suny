@@ -110,6 +110,10 @@ Svm_run_program(struct Sframe *frame) {
                 frame = Svm_evaluate_POP_JUMP_IF_FALSE(frame);
             }
 
+            else if (op == LOAD_ATTR) {
+                frame = Svm_evaluate_LOAD_ATTR(frame);
+            }
+
             else if (op == MAKE_FUNCTION) {
                 frame = Svm_evaluate_MAKE_FUNCTION(frame);
             }
@@ -124,6 +128,10 @@ Svm_run_program(struct Sframe *frame) {
 
             else if (IS_BINARY_OPER(op)) {
                 frame = Svm_evalutate_BINARY_OPER(frame, op);
+            }
+
+            else if (op == STORE_ATTR) {
+                frame = Svm_evaluate_STORE_ATTR(frame);
             }
 
             else if (op == CLASS_BEGIN) {
@@ -428,6 +436,26 @@ Svm_evaluate_FUNCTION_CALL
 #ifdef DEBUG
         printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
 #endif
+        return frame;
+    }
+
+    if (f_obj->type == CLASS_OBJ) {
+#ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (class)\n");
+#endif
+        struct Sclass *sclass = Sclass_copy(f_obj->f_type->f_class);
+
+        struct Sobj* obj = Sobj_new();
+        obj->type = CLASS_OBJ;
+        obj->f_type = Stype_new();
+        obj->f_type->f_class = sclass;
+
+        Sframe_push(frame, obj);
+
+#ifdef DEBUG
+        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (class)\n");
+#endif
+
         return frame;
     }
 
@@ -898,8 +926,6 @@ Svm_evaluate_CLASS_BEGIN
 
     struct Sclass *sclass = Sclass_new();
 
-    struct Scode *code = Scode_new();
-
     while (op != CLASS_END) {
         if (op == ADD_LABEL) {
             op = get_next_code(frame);
@@ -926,7 +952,15 @@ Svm_evaluate_CLASS_BEGIN
         }
 
         else if (op == STORE_GLOBAL) {
-            frame = Svm_evalutate_STORE_GLOBAL(frame);
+#ifdef DEBUG
+            printf("[svm.c] struct Sframe *Svm_evaluate_STORE_GLOBAL(struct Sframe *frame) (building...)\n");
+#endif
+            int address = get_next_code(frame);
+            sclass = Sclass_store_object(sclass, frame, address);
+        
+#ifdef DEBUG
+            printf("[svm.c] struct Sframe *Svm_evaluate_STORE_GLOBAL(struct Sframe *frame) (done)\n");
+#endif
         }
 
         else if (op == PUSH_STRING) {
@@ -988,6 +1022,14 @@ Svm_evaluate_CLASS_BEGIN
 
         op = get_next_code(frame);
     }
+
+    struct Sobj *obj = Sobj_make_class(sclass);
+
+    Sframe_push(frame, obj);
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_CLASS_BEGIN(struct Sframe *frame) (done)\n");
+#endif
 
     return frame;
 }
@@ -1067,6 +1109,60 @@ Svm_evaluate_OR_LOG
 
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_OR_LOG(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe*
+Svm_evaluate_LOAD_ATTR
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ATTR(struct Sframe *frame) (building...)\n");
+#endif
+
+    int address = get_next_code(frame);
+
+    struct Sobj* class = Sframe_pop(frame);
+
+    if (class->type == CLASS_OBJ) {
+        struct Sclass *sclass = class->f_type->f_class;
+
+        struct Sobj* value = Sclass_get_object(sclass, address);
+
+        if (value != NULL) {
+            Sframe_push(frame, value->f_value);
+        } else {
+            Sframe_push(frame, Sobj_set_int(0));
+        }
+    }
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ATTR(struct Sframe *frame) (done)\n");
+#endif
+
+    return frame;
+}
+
+struct Sframe*
+Svm_evaluate_STORE_ATTR
+(struct Sframe *frame) {
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_ATTR(struct Sframe *frame) (building...)\n");
+#endif
+
+    struct Sobj* class = Sframe_pop(frame);
+    struct Sobj* value = Sframe_pop(frame);
+
+    int address = get_next_code(frame);
+
+    if (class->type == CLASS_OBJ) {
+        struct Sclass *sclass = class->f_type->f_class;
+        Sclass_store_member(sclass, frame, value, address);
+    }
+
+#ifdef DEBUG
+    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_ATTR(struct Sframe *frame) (done)\n");
 #endif
 
     return frame;

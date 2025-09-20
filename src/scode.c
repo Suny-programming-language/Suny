@@ -206,6 +206,38 @@ Scode_print
                 break;
             }
 
+            case LOAD_ATTR: {
+                printf("LOAD_ATTR ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+
+                break;
+            }
+
+            case STORE_ATTR: {
+                printf("STORE_ATTR ");
+
+                unsigned char address = code->code[i + 1];
+
+                printf("%d\n", address);
+
+                i += 1;
+
+                break;
+            }
+
+            case CLASS_BEGIN:
+                printf("CLASS_BEGIN\n");
+                break;
+
+            case CLASS_END:
+                printf("CLASS_END\n");
+                break;
+
             case END_FUNCTION:
                 printf("END_FUNCTION\n");
                 break;

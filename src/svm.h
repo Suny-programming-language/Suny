@@ -7,6 +7,7 @@
 #include "sobj.h"
 #include "sfunc.h"
 #include "sstr.h"
+#include "scopy.h"
 #include "sinitialize.h"
 #include "seval.h"
 #include "sclass.h"
@@ -109,6 +110,14 @@ Svm_evaluate_AND_LOG
 
 struct Sframe*
 Svm_evaluate_OR_LOG
+(struct Sframe *frame);
+
+struct Sframe*
+Svm_evaluate_LOAD_ATTR
+(struct Sframe *frame);
+
+struct Sframe*
+Svm_evaluate_STORE_ATTR
 (struct Sframe *frame);
 
 struct Sframe *

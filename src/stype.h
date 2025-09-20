@@ -87,6 +87,8 @@ struct Sbool {
 
 struct Sclass {
     struct Sobj** methods;
+    struct Sclass* super_class;
+    struct Sclass* dad;
     int count;
     int capacity;
 };
