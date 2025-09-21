@@ -1,0 +1,14 @@
+function random() do
+    return call("Srandom", "C:\\Suny\\libs\\random\\random.dll", [])
+end
+
+random()
+
+function randint(a, b) do
+    if a > b then
+        tmp = a
+        a = b
+        b = tmp
+    end
+    return a + int(random() * (b - a + 1))
+end
