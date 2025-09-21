@@ -12,6 +12,8 @@
 
 #define ADDRESS_START 127
 
+#define SELF_ADDRESS 126
+
 #define creat_label(compiler) (++compiler->label)
 
 #define compiler_set_func(c, f) ((c)->function_name = f)
@@ -96,6 +98,9 @@ find_scope_obj
 int
 remove_scope
 (struct Scompiler *compiler, char *name);
+
+int
+remove_scope_address(struct Scompiler *compiler, int address);
 
 struct Scompiler*
 Scompiler_new(void);

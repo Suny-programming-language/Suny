@@ -1,7 +1,7 @@
 #include "Suny.h"
 
 int prompt() {
-    printf("Suny 1.0-beta Copyright (C) 2025-present, by dinhsonhai132\n");
+    printf("Suny 1.0 Copyright (C) 2025-present, by dinhsonhai132\n");
 
     struct Sframe *frame = Sframe_new();
     struct Scompiler *compiler = Scompiler_new();

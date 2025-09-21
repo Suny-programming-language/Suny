@@ -47,7 +47,6 @@ Sclass_store_object
     return sclass;
 }
 
-
 struct Sobj* 
 Sclass_get_object
 (struct Sclass* sclass, int address) {
@@ -80,8 +79,6 @@ Sclass_push_obj
     sclass->methods[sclass->count++] = obj;
     return obj;
 }
-
-
 
 struct Sclass* 
 Sclass_store_member

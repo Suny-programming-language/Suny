@@ -155,3 +155,9 @@ struct Sobj *Srange(struct Sframe *frame) {
 
     return obj;
 }
+
+struct Sobj *Sint(struct Sframe *frame) {
+    int value = Sframe_pop(frame)->value->value;
+    struct Sobj *obj = Sobj_set_int(value);
+    return obj;
+}

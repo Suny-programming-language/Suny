@@ -74,6 +74,7 @@
 
 #define LOAD_ATTR '\x46'
 #define STORE_ATTR '\x47'
+
 #define LOAD_METHOD '\x48'
 
 #endif // OPCODE_H

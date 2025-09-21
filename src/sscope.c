@@ -131,6 +131,19 @@ remove_scope(struct Scompiler *compiler, char *name) {
     return NOT_FOUND;
 }
 
+int
+remove_scope_address(struct Scompiler *compiler, int address) {
+    for (int i = 0; i < compiler->scope_index; i++) {
+        struct Scope scope = compiler->scope[i];
+        if (scope.address == address) {
+            scope.name = NULL;
+            scope.address = 0;
+            return 0;
+        }
+    }
+    return NOT_FOUND;
+}
+
 struct Scompiler*
 Scompiler_reset(struct Scompiler *compiler) {
     compiler->scope_index = 0;

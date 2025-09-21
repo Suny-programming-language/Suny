@@ -68,6 +68,7 @@ int SunyInstallLib
     SunyInitialize_c_api_func(frame, compiler, 19, "puts", 1, Sputs);
     SunyInitialize_c_api_func(frame, compiler, 20, "number", 1, Snumber);
     SunyInitialize_c_api_func(frame, compiler, 21, "isdigit", 1, Sisdigit_builtin);
+    SunyInitialize_c_api_func(frame, compiler, 22, "int", 1, Sint);
     
     return 0;
 }

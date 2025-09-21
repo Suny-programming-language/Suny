@@ -29,6 +29,8 @@ char* FUNCTION_S  = "function";
 char* RETURN_S    = "return";
 char* CLASS_S     = "class";
 
+char* OUT_S       = "out";
+
 char* TRUE_S      = "true";
 char* FALSE_S     = "false";
 

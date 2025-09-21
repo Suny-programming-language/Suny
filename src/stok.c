@@ -159,6 +159,8 @@ Stok_get_identifier(char *lexeme) {
         return TIMES;
     } else if (strcmp(lexeme, CLASS_S) == 0) {
         return CLASS;
+    } else if (strcmp(lexeme, OUT_S) == 0) {
+        return PRINT_T;
     } else {
         return IDENTIFIER;
     }    

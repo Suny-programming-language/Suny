@@ -807,7 +807,10 @@ Scompile_class
     struct Scode *class_body = Scompile_block(ast->block, compiler, ast->block_size);
 
     int address = ++compiler->address;
+
     add_scope(compiler, ast->lexeme, address, 0);
+    
+    add_scope(compiler, "self", SELF_ADDRESS, 0);
 
     struct Scode *code = Scode_new();
 
@@ -820,7 +823,7 @@ Scompile_class
     PUSH(code, STORE_GLOBAL);
 
     PUSH(code, address);
-    
+
     return code;
 }
 
@@ -925,9 +928,47 @@ Scompile_function_expr
 struct Scode*
 Scompile_include
 (struct Sast *ast, struct Scompiler *compiler) {
-    struct Scode *include = Scode_get_code_from(ast->lexeme, compiler);
+    if (if_file_exists(ast->lexeme)) {
+        return Scode_get_code_from(ast->lexeme, compiler);
+    }
 
-    return include;
+    if (if_folder_exists(ast->lexeme)) {
+        char* file = Sstring_new("%s/main.mer", ast->lexeme);
+
+        if (if_file_exists(file)) {
+            return Scode_get_code_from(file, compiler);
+        } else {
+            char* message = Sstring_new("Cannot find file '%s' make sure main.mer exists in the folder", file);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+            return NULL_CODE_PTR;
+        }
+    }
+
+    if (if_file_exists_in(ast->lexeme, "C:\\Suny\\libs\\")) {
+        char* file = Sstring_new("C:\\Suny\\libs\\%s", ast->lexeme);
+        return Scode_get_code_from(file, compiler);
+    }
+
+    if (if_folder_exists_in(ast->lexeme, "C:\\Suny\\libs\\")) {
+        char* file = Sstring_new("C:\\Suny\\libs\\%s\\main.mer", ast->lexeme);
+
+        if (if_file_exists(file)) {
+            return Scode_get_code_from(file, compiler);
+        } else {
+            char* message = Sstring_new("Cannot find folder '%s' make sure main.mer exists in Library folder (C:\\Suny\\libs)", ast->lexeme);
+            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            Serror_syntax_error(error);
+            return NULL_CODE_PTR;
+        }
+    }
+
+    // Cannot find library
+
+    char* message = Sstring_new("Cannot find file '%s'", ast->lexeme);
+    struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+    Serror_syntax_error(error);
+    return NULL_CODE_PTR;
 }
 
 struct Scode*
@@ -947,18 +988,6 @@ struct Scode*
 Scompile_import
 (struct Sast *ast, struct Scompiler *compiler) {
     char* file = Sstring_new("%s.dll", ast->lexeme);
-    char* lib_file = Sstring_new("C:/Suny/libs/%s.dll", ast->lexeme);
-
-    if (!if_file_exists(file)) {
-        if (!if_file_exists(lib_file)) {
-            char* message = Sstring_new("Cannot find library '%s'", ast->lexeme);
-            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
-            Serror_syntax_error(error);
-            return NULL_CODE_PTR;
-        } else {
-            file = lib_file;
-        }
-    }
 
     Sdll_func dll_func = dll_get_func("Smain", file);
 
@@ -975,7 +1004,6 @@ Scompile_attribute
     struct Scode *code = Scode_new();
     struct Scode *expr = Scompile(ast->expr, compiler);
 
-    INSERT(code, expr);
 
     if (ast->attribute->type == AST_IDENTIFIER) {
         int address = find_scope(compiler, ast->attribute->lexeme);
@@ -985,9 +1013,11 @@ Scompile_attribute
             struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
             Serror_syntax_error(error);
         }
-
+        
+        INSERT(code, expr);
         PUSH(code, LOAD_ATTR);
         PUSH(code, address);
+        
     } else if (ast->attribute->type == AST_FUNCTION_CALL_EXPRESSION) {
         int address = find_scope(compiler, ast->attribute->lexeme);
 
@@ -996,6 +1026,13 @@ Scompile_attribute
             struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
             Serror_syntax_error(error);
         }
+        Sreverse((void **) ast->params, ast->param_count);
+
+        struct Scode *params = Scompile_block(ast->attribute->params, compiler, ast->attribute->param_count);
+        
+        INSERT(code, params);
+
+        INSERT(code, expr);
 
         PUSH(code, LOAD_ATTR);
         PUSH(code, address);

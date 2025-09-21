@@ -57,6 +57,8 @@ struct Sobj *Sload_dll(struct Sframe *frame);
 
 struct Sobj *Sisdigit_builtin(struct Sframe *frame);
 
+struct Sobj *Sint(struct Sframe *frame);
+
 struct Sobj *Srange(struct Sframe *frame);
 
 #endif // SBUILTIN_H

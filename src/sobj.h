@@ -22,6 +22,8 @@ struct Smeta;
 typedef unsigned char byte_t;
 typedef int address_t;
 
+#define null_obj Sobj_new()
+
 #define Sobj_get_value(obj) ((obj)->value->value)
 
 #define Addressof(obj) ((obj)->address)

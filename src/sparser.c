@@ -134,6 +134,10 @@ Sparser_parse(struct Sparser *parser) {
         return Sparser_parse_if(parser);
     }
 
+    if (parser->token->type == PRINT_T) {
+        return Sparser_parse_print(parser);
+    }
+
     return Sparser_parse_logic_expression(parser);
 }
 
@@ -397,7 +401,6 @@ Sparser_parse_print
     Sast_set_line(parser->lexer, node->print_value);
     Sast_expected_expression(node->print_value);
 
-    Sast_set_line(parser->lexer, node->print_value);
     return node;
 }
 
@@ -1144,7 +1147,12 @@ struct Sast* Sparser_parse_second_primary(struct Sparser *parser) {
     struct Sast *node = Sparser_parse_primary_expression(parser);
 
     parser->next_token = Slexer_look_ahead(parser->lexer);
+    
     if (parser->next_token->type == LPAREN) {
+        if (node->type == AST_LITERAL) {
+            return node;
+        }
+
         return Sparser_parse_function_call(parser, node);
     } else if (parser->next_token->type == LBRACKET) {
         return Sparser_parse_extract(parser, node);

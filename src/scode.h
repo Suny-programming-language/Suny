@@ -18,6 +18,10 @@ struct Scode {
     unsigned char code[MAX_CODE_SIZE];
     int size;
     int capacity;
+
+    int line[MAX_CODE_SIZE];
+    int size_line;
+    int capacity_line;
 };
 
 struct Scode *

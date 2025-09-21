@@ -42,5 +42,6 @@ extern char* FROM_S;
 
 extern char* LOOP_S;
 extern char* TIMES_S;
+extern char* OUT_S;
 
 #endif
