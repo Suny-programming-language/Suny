@@ -1,11 +1,48 @@
-import "mathlib"
+import "SGL"
 
-a = vector([1, 2, 3])
-b = vector([4, 5, 6])
+width = 500
+height = 500
 
-print(a + b) 
-print(a - b) 
-print(a * b) 
-print(a / b)
-print(a * 2) 
-print(a / 2)
+screen_color = [255, 255, 255]
+
+cube_x = 10
+cube_y = 10
+
+cube_size = 50
+
+cube_color = [0, 0, 0]
+
+cube_vel = 1
+
+init("Cube", width, height)
+
+running = true
+
+while running do
+    screen_fill(screen_color[0], screen_color[1], screen_color[2])
+
+    draw_square(cube_x, cube_y, cube_size, cube_color[0], cube_color[1], cube_color[2])
+    
+    key = get_key()
+    if key == "x" then
+        running = false
+    end
+
+    if key == "w" then
+        cube_y -= cube_vel
+    end
+
+    if key == "s" then
+        cube_y -= cube_vel
+    end
+
+    if key == "a" then
+        cube_x -= cube_vel
+    end
+
+    if key == "d" then
+        cube_x += cube_vel
+    end
+
+    flip()
+end
