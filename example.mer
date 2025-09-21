@@ -7,12 +7,9 @@ screen_color = [255, 255, 255]
 
 cube_x = 10
 cube_y = 10
-
-cube_size = 50
+cube_size = 20
 
 cube_color = [0, 0, 0]
-
-cube_vel = 1
 
 init("Cube", width, height)
 
@@ -20,29 +17,30 @@ running = true
 
 while running do
     screen_fill(screen_color[0], screen_color[1], screen_color[2])
-
     draw_square(cube_x, cube_y, cube_size, cube_color[0], cube_color[1], cube_color[2])
     
     key = get_key()
+
     if key == "x" then
         running = false
     end
-
-    if key == "w" then
-        cube_y -= cube_vel
-    end
-
-    if key == "s" then
-        cube_y -= cube_vel
-    end
-
     if key == "a" then
-        cube_x -= cube_vel
+        cube_x = cube_x - 5
+    end
+    if key == "d" then
+        cube_x = cube_x + 5
+    end
+    if key == "w" then
+        cube_y = cube_y - 5
+    end
+    if key == "s" then
+        cube_y = cube_y + 5
     end
 
-    if key == "d" then
-        cube_x += cube_vel
-    end
+    if cube_x < 0 then cube_x = 0 end
+    if cube_y < 0 then cube_y = 0 end
+    if cube_x + cube_size > width then cube_x = width - cube_size end
+    if cube_y + cube_size > height then cube_y = height - cube_size end
 
     flip()
 end
