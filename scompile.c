@@ -150,7 +150,7 @@ Scompile_identifier
             address = find_scope(compiler, ast->lexeme);
             if (address == NOT_FOUND) {
                 char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
-                struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+                struct Serror *error = Serror_set_line("COMPILER_ERROR", message, ast->ast_line, ast->ast_column);
                 Serror_syntax_error(error);
             }
 
@@ -167,7 +167,7 @@ Scompile_identifier
     if (address == NOT_FOUND) {
         if (address == NOT_FOUND) {
             char* message = Sstring_new("Undefined variable '%s'", ast->lexeme);
-            struct Serror *error = Serror_set("COMPILER_ERROR", message, ast->lexer);
+            struct Serror *error = Serror_set_line("COMPILER_ERROR", message, ast->ast_line, ast->ast_column);
             Serror_syntax_error(error);
         }
     } else {

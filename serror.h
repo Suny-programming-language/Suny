@@ -26,6 +26,9 @@ Serror_new(void);
 struct Serror *
 Serror_set(char *type, char *message, struct Slexer *lexer);
 
+struct Serror *Serror_set_line
+(char* type, char* message, int line, int column);
+
 int
 Serror_syntax_error
 (struct Serror *error);

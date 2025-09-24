@@ -354,9 +354,7 @@ Svm_run_call_context(struct Scall_context *context) {
             f_frame = Svm_evaluate_LOAD_FALSE(f_frame);
         }
 
-        if (f_frame->gc_pool->pool_index > POOL_SIZE_LIMIT) {
-            Sgc_collect(f_frame->gc_pool);
-        }
+        if (f_frame->gc_pool->pool_index > POOL_SIZE_LIMIT) Sgc_collect(f_frame->gc_pool);
 
         op = get_next_code(f_frame);
     }
@@ -545,6 +543,8 @@ Svm_evaluate_FUNCTION_CALL
 #ifdef DEBUG
     printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
 #endif
+
+    Sgc_dec_ref(f_obj, frame->gc_pool);
 
     return frame;
 }

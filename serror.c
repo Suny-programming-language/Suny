@@ -21,6 +21,19 @@ Serror_new(void) {
 }
 
 struct Serror *
+Serror_set_line(char* type, char* message, int line, int column) {
+    struct Serror *error = Serror_new();
+
+    error->type = type;
+    error->message = message;
+
+    error->line = line;
+    error->column = column;
+
+    return error;
+}
+
+struct Serror *
 Serror_set(char *type, char *message, struct Slexer *lexer) {
     struct Serror *error = Serror_new();
 
