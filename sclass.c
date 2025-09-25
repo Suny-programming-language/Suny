@@ -23,6 +23,9 @@ Sclass_free
 struct Sclass* 
 Sclass_store_object
 (struct Sclass* sclass, struct Sframe* frame, int address) {
+#ifdef DEBUG
+    printf("[sclass.c] struct Sclass* Sclass_store_object(struct Sclass* sclass, struct Sframe* frame, int address) (building...)\n");
+#endif
     struct Sobj* object = Sframe_pop(frame);
 
     if (sclass->count == sclass->capacity) {
@@ -44,6 +47,11 @@ Sclass_store_object
     method->address = address;
 
     sclass->methods[sclass->count++] = method;
+
+#ifdef DEBUG
+    printf("[sclass.c] struct Sclass* Sclass_store_object(struct Sclass* sclass, struct Sframe* frame, int address) (done)\n");
+#endif
+
     return sclass;
 }
 
@@ -81,7 +89,7 @@ Sclass_push_obj
 }
 
 struct Sclass* 
-Sclass_store_member
+Sclass_store_local_obj
 (struct Sclass* sclass, struct Sframe* frame, struct Sobj* value, int address) {
     for (int i = 0; i < sclass->count; i++) {
         if (sclass->methods[i]->address == address) {

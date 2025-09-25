@@ -117,7 +117,6 @@ int Scall_context_free_frame(struct Scall_context *context) {
 
     Sobj_free_objs(frame->f_stack, frame->f_stack_index);
     Slabel_map_free(frame->f_label_map);
-    Sgc_free_pool(frame->gc_pool);
     free(frame->f_locals);
     free(frame);
 

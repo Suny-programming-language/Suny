@@ -234,8 +234,6 @@ Svm_run_call_context(struct Scall_context *context) {
 
     context->ret_obj = null_obj;
 
-    Sgc_activate(f_frame);
-
     int done = 0;
 
     while (!done) {
@@ -354,12 +352,8 @@ Svm_run_call_context(struct Scall_context *context) {
             f_frame = Svm_evaluate_LOAD_FALSE(f_frame);
         }
 
-        if (f_frame->gc_pool->pool_index > POOL_SIZE_LIMIT) Sgc_collect(f_frame->gc_pool);
-
         op = get_next_code(f_frame);
     }
-
-    Sgc_deactivate(f_frame);
 
     Sframe_push(context->main_frame, context->ret_obj);
 
@@ -524,10 +518,12 @@ Svm_evaluate_FUNCTION_CALL
     f_frame->f_globals = frame->f_globals;
     f_frame->f_globals_size = frame->f_globals_size;
     f_frame->f_globals_index = frame->f_globals_index;
-    f_frame->gc_pool = Sgc_new_pool();
+    f_frame->gc_pool = frame->gc_pool;
     f_frame->f_code = f_code;
     f_frame->f_code_index = 0;
     f_frame->f_label_map = Slabel_map_set_program(f_code);
+
+    Sframe_store_local(f_frame, SELF_ADDRESS, f_obj, LOCAL_OBJ);
 
     int address = 0;
 
@@ -960,13 +956,6 @@ Svm_evaluate_CLASS_BEGIN
 
     struct Sclass *sclass = Sclass_new();
 
-    struct Sobj *self_obj = Sobj_new();
-    self_obj->type = CLASS_OBJ;
-    self_obj->f_type = Stype_new();
-    self_obj->f_type->f_class = sclass;
-
-    sclass = Sclass_store_member(sclass, frame, self_obj, 0);
-
     while (op != CLASS_END) {
         if (op == ADD_LABEL) {
             op = get_next_code(frame);
@@ -1203,7 +1192,7 @@ Svm_evaluate_STORE_ATTR
 
     if (class->type == CLASS_OBJ) {
         struct Sclass *sclass = class->f_type->f_class;
-        Sclass_store_member(sclass, frame, value, address);
+        Sclass_store_local_obj(sclass, frame, value, address);
     }
 
 #ifdef DEBUG

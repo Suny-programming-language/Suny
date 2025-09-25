@@ -18,7 +18,7 @@ Sclass_store_object
 (struct Sclass* sclass, struct Sframe* frame, int address);
 
 struct Sclass* 
-Sclass_store_member
+Sclass_store_local_obj
 (struct Sclass* sclass, struct Sframe* frame, struct Sobj* value, int address);
 
 struct Sobj* 

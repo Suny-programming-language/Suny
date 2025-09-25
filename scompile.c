@@ -352,6 +352,8 @@ Scompile_function
     add_scope(compiler, ast->lexeme, address, ast->args_count);
     compiler_set_func(compiler, ast->lexeme);
 
+    add_scope_local(compiler, "self", SELF_ADDRESS, 0);
+
     struct Scode *code = Scode_new();
 
     if (ast->is_lambda) {
@@ -385,6 +387,8 @@ Scompile_function
     PUSH(code, STORE_GLOBAL);
     PUSH(code, faddress);
 
+    remove_all_local_scope(compiler);
+
     return code;
 }
 
@@ -405,7 +409,7 @@ Scompile_function_call
         }
     }
 
-    int address = scope.address;
+    int address = found;
     int args_size = scope.args_size;
 
     // if (args_size != ast->param_count) {
@@ -876,7 +880,11 @@ Scompile_not
 struct Scode*
 Scompile_anonymous_function
 (struct Sast *ast, struct Scompiler *compiler) {
+    add_scope_local(compiler, "self", SELF_ADDRESS, 0);
+
     struct Scode *block = Scompile_body_func(ast->block, compiler, ast->block_size, ast->param_names, ast->args_count);
+    
+    remove_scope_local_address(compiler, SELF_ADDRESS);
     
     struct Scode *code = Scode_new();
 
@@ -889,6 +897,7 @@ Scompile_anonymous_function
     INSERT(code, block);
 
     PUSH(code, END_FUNCTION);
+
 
     return code;
 }

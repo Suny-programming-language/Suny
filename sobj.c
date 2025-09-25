@@ -38,9 +38,12 @@ Sobj_free
 #ifdef DEBUG
     printf("[sobj.c] int Sobj_free(struct Sobj* obj) (building... %p)\n", obj);
 #endif
-    // if (obj->is_free) {
-    //     return 0;
-    // }
+    if (obj->is_free) {
+#ifdef DEBUG
+        printf("[sobj.c] int Sobj_free(struct Sobj* obj) (done %p)\n", obj);
+#endif
+        return 0;
+    }
 
     obj->is_free = 1;
 

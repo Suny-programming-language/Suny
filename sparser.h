@@ -145,6 +145,10 @@ Sparser_parse_loop
 (struct Sparser *parser);
 
 struct Sast *
+Sparser_parse_second_if
+(struct Sparser *parser, struct Sast *expr);
+
+struct Sast *
 Sparser_parse_variable_list
 (struct Sparser *parser);
 
