@@ -2,225 +2,606 @@
 
 ## 1. Introduction
 
-**Suny** is a lightweight scripting language designed to be **simple, readable, and beginner-friendly**. It is ideal for people who are just starting programming, but also powerful enough to solve real problems.
+**Suny** is a lightweight scripting language designed to be **small but powerful**, combining the minimalism and efficiency of **Lua** with the clarity and readability of **Python**.
 
-Suny is written in **C**, which makes it **fast, efficient, and portable** across different platforms. Its syntax is clean, minimizing boilerplate code and focusing on **clarity and simplicity**.
+Suny is intended to be a language that is:
 
-### Key Features
+* **Small** in implementation, so it is easy to understand and port.
+* **Powerful** in expressiveness, so developers can solve real problems without feeling restricted.
+* **Beginner-friendly**, encouraging experimentation and rapid learning.
 
-* **Simplicity:** Minimal and easy-to-remember syntax.
-* **Clarity:** Readable code that is easy to understand.
-* **Flexibility:** Supports a wide range of programming tasks without complexity.
+### 1.1 Origins and Motivation
 
-### Typical Uses
+Suny was created as an experiment: *Can one person design and build a language from scratch that is both minimal and useful?*
 
-* Learn programming concepts quickly.
-* Write small scripts or automation tasks.
-* Experiment with application development in a lightweight way.
+Many modern languages are large, with complex standard libraries, heavy runtime systems, and thousands of pages of documentation. While this makes them powerful, it also makes them intimidating to beginners and difficult to fully understand.
 
-Suny encourages **learning by doing**, allowing users to experiment interactively and receive instant feedback through its REPL.
+Lua inspired Suny by showing that a small, elegant core can be extremely flexible. Python inspired Suny with its philosophy of readability and simplicity. Suny combines both ideas: a minimal implementation with a syntax that feels natural and beginner-friendly.
 
 ---
 
-## 2. Getting Started
+### 1.2 Philosophy of Suny
 
-All programs involve **input** (getting data from the user) and **output** (displaying results):
+The design of Suny is guided by three principles:
 
-* **Input:** Receives information from the user (usually as a string).
-* **Output:** Displays text, numbers, or other information on the screen.
+1. **Simplicity**
 
-### Example: Printing a Message
+   * The syntax is minimal, with few keywords.
+   * Code should be as close to “pseudocode” as possible.
+
+2. **Clarity**
+
+   * Programs should be easy to read and write.
+   * Indentation and structure should make logic clear at first glance.
+
+3. **Power from smallness**
+
+   * Instead of a large standard library, Suny focuses on a small but flexible core.
+   * Advanced features can be built from simple building blocks.
+   * The VM and bytecode are simple, so the language can be embedded or extended easily.
+
+---
+
+### 1.3 Typical Uses
+
+Suny is not meant to replace large general-purpose languages like C++ or Java. Instead, it is designed for:
+
+* **Learning programming concepts**: because the syntax is clean and the language is small, learners can quickly see how programming works.
+* **Rapid experimentation**: with its interactive REPL, Suny encourages trial and error.
+* **Scripting and automation**: Suny scripts can be written quickly to automate repetitive tasks.
+* **Language research**: Suny itself is a good case study for building interpreters, compilers, and VMs.
+
+---
+
+### 1.4 A First Taste of Suny
+
+Here is a simple Suny program:
+
+```suny
+print("Hello, Suny!")
+
+i = 1
+while i <= 5 do
+    print("Count:", i)
+    i = i + 1
+end
+```
+
+This small example demonstrates Suny’s philosophy:
+
+* Clean syntax (`while ... do ... end` is intuitive).
+* No unnecessary boilerplate (no `main()` required).
+* Immediate feedback in the REPL or script mode.
+
+---
+
+### 1.5 Implementation and Portability
+
+Suny is written in **C**, which makes it:
+
+* **Portable**: it can run on Windows, Linux, macOS, or even embedded devices.
+* **Efficient**: compiled C code executes quickly with minimal overhead.
+* **Compact**: the entire language implementation is small compared to larger interpreters.
+
+The virtual machine (VM) of Suny executes bytecode instructions, similar to Lua or Python, but with a simplified design so it is easy to understand.
+
+---
+
+### 1.6 Vision for Suny
+
+Suny will continue to evolve, but its vision will remain the same:
+
+* Stay **small**: the core should remain lightweight and easy to understand.
+* Stay **powerful**: expressive enough to build real applications.
+* Stay **friendly**: a tool for both learners and curious developers who want to explore language design.
+
+Like Lua, Suny will always value **elegance over complexity**. Like Python, it will always value **readability over clever tricks**.
+
+In this way, Suny aims to be a language that is both a learning tool and a practical scripting solution: **a small language with big possibilities.**
+
+# 2. Getting Started
+
+Every programming language revolves around two fundamental concepts:
+
+* **Input** – data provided to the program.
+* **Output** – results produced by the program.
+
+Suny follows the philosophy of being *small but powerful*: you can start writing programs immediately with very little setup, yet the language remains expressive enough for more complex projects.
+
+---
+
+## 2.1. Your First Program
+
+The very first program most people write is a greeting message:
 
 ```suny
 print("Hello, Suny!")
 ```
 
-**Output:**
+When executed, it produces:
 
 ```
 Hello, Suny!
 ```
 
-**Explanation:**
+---
 
-* `print()` is used to display text or values.
-* Text inside double quotes `" "` is a **string**, representing letters, numbers, or symbols.
+### Explanation
+
+* `print` is a **built-in function** that sends output to the screen.
+* `"Hello, Suny!"` is a **string literal**, which means a fixed sequence of characters enclosed in double quotes.
+* In Suny, strings can contain letters, numbers, punctuation, or even Unicode characters.
+
+This simple example already shows Suny’s core design principle: **clarity and simplicity**. With a single line of code, you can produce visible output.
 
 ---
 
-### Running Suny Programs
+## 2.2. More Printing Examples
 
-1. Save your code in a file with the extension `.suny`.
-2. Run it using the Suny interpreter:
-
-```bash
-prompt> suny my_program.suny
-```
-
-**Example:**
-
-```bash
-prompt> suny main.suny
-Hello, Suny!
-prompt>
-```
-
----
-
-### Using the REPL
-
-Suny includes a **REPL** (Read-Eval-Print-Loop) for interactive programming:
-
-```bash
-prompt> suny
-Suny 1.0 Copyright (C) 2025-present, by dinhsonhai132
->> print("Hello, REPL!")
-Hello, REPL!
->>
-```
-
-**How the REPL Works:**
-
-1. **Read:** Reads your input code.
-2. **Eval:** Executes the code.
-3. **Print:** Displays the result.
-4. **Loop:** Repeats the process until you exit.
-
-**Advantages of REPL:**
-
-* Instant feedback while learning.
-* Test small code snippets without creating files.
-* Experiment safely without affecting saved code.
-
----
-
-## 3. Simple Math and Operators
-
-Suny supports **basic arithmetic** and **comparison operations**, allowing you to perform calculations and make decisions.
-
-### Arithmetic Operations
+The `print` function is versatile. Here are a few variations:
 
 ```suny
-print(2 + 3)      # Addition: 5
-print(5 - 2)      # Subtraction: 3
-print(4 * 2)      # Multiplication: 8
-print(10 / 2)     # Division: 5.0
+print(123)                  -- prints a number
+print("Suny", "Language")   -- prints multiple values
+print(10 + 20)              -- prints the result of an expression
+print(nil)                  -- prints "nil"
+```
+
+Output:
+
+```
+123
+Suny Language
+30
+nil
+```
+
+**Notes:**
+
+* Unlike some languages, `print` in Suny automatically converts values to a string representation when displaying them.
+* Multiple arguments are separated by a space.
+* The special value `nil` represents “nothing” or “no value”.
+
+---
+
+## 2.3. Running Suny Programs
+
+There are two main ways to run Suny code:
+
+### (a) Interactive Prompt (REPL)
+
+The **REPL** (Read–Eval–Print Loop) lets you type commands one at a time and immediately see results.
+
+To start the prompt, open a terminal and run:
+
+```bash
+suny -p
+```
+
+Example session:
+
+```
+PS C:\Suny> suny -p
+Suny 1.0  Copyright (C) 2025-present, by dinhsonhai132
+Type "exit()" or press Ctrl+C to quit.
+>>> print("Suny is fun!")
+Suny is fun!
+>>> 5 * (2 + 3)
+25
+>>> exit()
+PS C:\Suny>
+```
+
+The REPL is ideal for **learning**, quick experiments, or testing small pieces of code.
+
+---
+
+### (b) Running from a File
+
+For larger programs, it is more convenient to save your code into a file with the extension `.suny`.
+
+Example: create a file called `main.suny` with the contents:
+
+```suny
+print("Welcome to Suny!")
+```
+
+Run it with:
+
+```bash
+PS C:\Suny> suny main.suny
+Welcome to Suny!
+PS C:\Suny>
+```
+
+This way, you can build reusable scripts and share them with others.
+
+---
+
+## 2.4. Command-Line Options
+
+The `suny` command supports several options. To see them, type:
+
+```bash
+PS C:\Suny> suny -h
+```
+
+You will see:
+
+```
+Suny 1.0 Copyright (C) 2025-present, by dinhsonhai132
+Usage: suny [options] [file]
+Options:
+  -c [file]   Compile the file
+  -p          Run the prompt
+  -h          Show this help
+```
+
+### Explanation:
+
+* `suny file.suny` → Runs the given program file.
+* `suny -p` → Starts the interactive prompt (REPL).
+* `suny -c file.suny` → Compiles the file (future versions may produce bytecode or executables).
+* `suny -h` → Displays the help message.
+
+---
+
+## 2.5. Summary
+
+At this point, you know how to:
+
+* Write your first Suny program.
+* Display text, numbers, and expressions using `print`.
+* Run code interactively in the REPL.
+* Execute code stored in `.suny` files.
+* Use the command-line options for Suny.
+
+Suny programs begin simple, but the language is designed to scale as you grow. In the following sections, we will cover **basic syntax, variables, data types, and control structures**, which together form the foundation of programming in Suny.
+
+# 3. Simple Math and Operators
+
+Suny supports a rich set of operators for performing **arithmetic calculations**, **comparisons**, and other common tasks. These operators form the foundation for writing expressions, which are evaluated to produce values.
+
+---
+
+## 3.1. Arithmetic Operators
+
+Arithmetic operators allow you to perform basic mathematical calculations.
+
+```suny
+print(2 + 3)       # Addition: 5
+print(5 - 2)       # Subtraction: 3
+print(4 * 2)       # Multiplication: 8
+print(10 / 2)      # Division: 5.0
 print((1 + 2) * 3) # Parentheses control order: 9
 ```
 
-### Comparison Operators
+### Explanation:
 
-Comparison operators are used to compare values. They return **Boolean values** (`true` or `false`):
+* `+` adds numbers.
+* `-` subtracts numbers.
+* `*` multiplies numbers.
+* `/` divides numbers and always produces a floating-point result (e.g., `5 / 2` → `2.5`).
+* Parentheses `()` can be used to control precedence, just like in mathematics.
+
+---
+
+### Integer Division and Remainder
+
+In addition to normal division, Suny provides:
 
 ```suny
-# Comparison examples
-print(3 < 5)   # true
-print(5 > 3)   # true
-print(2 == 2)  # true
-print(2 <= 3)  # true
-print(5 >= 5)  # true
+print(7 // 2)  # Integer division: 3
+print(7 % 2)   # Modulo (remainder): 1
 ```
 
-**Explanation:**
+* `//` performs **floor division**, discarding the decimal part.
+* `%` returns the **remainder** after division.
+
+---
+
+### Exponentiation
+
+You can raise numbers to a power with `**`:
+
+```suny
+print(2 ** 3)  # 2^3 = 8
+print(9 ** 0.5) # Square root of 9 = 3.0
+```
+
+---
+
+### Notes on Arithmetic
+
+* Division `/` always returns a floating-point number, even if the result is mathematically an integer.
+* Using `//` guarantees an integer result (rounded down).
+* Exponentiation works with both integers and floats.
+
+---
+
+## 3.2. Comparison Operators
+
+Comparison operators compare two values and return a **Boolean result** (`true` or `false`).
+
+```suny
+print(3 < 5)    # true
+print(5 > 3)    # true
+print(2 == 2)   # true
+print(2 <= 3)   # true
+print(5 >= 5)   # true
+print(10 != 5)  # true
+```
+
+### Explanation:
 
 * `<` → less than
 * `>` → greater than
 * `==` → equal to
 * `<=` → less than or equal to
 * `>=` → greater than or equal to
+* `!=` → not equal to
 
 ---
 
-## 4. Variables
+### Comparing Different Types
 
-### Global Variables
+In Suny, comparisons generally make sense when values are of the same type. For example:
 
-Variables store values your program can use.
-A global variable is defined outside of functions and can be used anywhere in the program.
-
-Example in Suny:
-
+```suny
+print("apple" == "apple")   # true
+print("apple" == "banana")  # false
 ```
+
+Comparing numbers and strings directly is not allowed and will raise an error:
+
+```suny
+print(5 == "5")  # Error: cannot compare number and string
+```
+
+This design keeps Suny simple and predictable.
+
+---
+
+## 3.3. Boolean Results
+
+The results of comparisons are Boolean values: `true` or `false`.
+
+```suny
+a = (5 > 3)
+print(a)    # true
+
+b = (10 == 2)
+print(b)    # false
+```
+
+These Boolean results are often used in **if statements** and **loops** (explained in later chapters).
+
+---
+
+## 3.4. Operator Precedence
+
+When multiple operators appear in the same expression, Suny follows a **precedence order**:
+
+1. Parentheses `()`
+2. Exponentiation `**`
+3. Multiplication, Division, Floor Division, Modulo `* / // %`
+4. Addition and Subtraction `+ -`
+5. Comparisons `< > <= >= == !=`
+
+Example:
+
+```suny
+print(2 + 3 * 4)    # 14, because * has higher precedence
+print((2 + 3) * 4)  # 20, because () overrides precedence
+```
+
+---
+
+## 3.5. Summary
+
+In this section, you learned:
+
+* Suny supports **basic arithmetic operators**: `+ - * / // % **`.
+* Division `/` always returns a float; use `//` for integer division.
+* The modulo operator `%` returns the remainder.
+* **Comparison operators** return Booleans (`true`/`false`) and include `<, >, ==, !=, <=, >=`.
+* Operator precedence follows standard mathematical rules.
+
+These operators are the building blocks for expressions. Combined with variables and control structures, they allow you to perform calculations, make decisions, and write meaningful programs.
+
+---
+
+# 4. Variables
+
+In programming, **variables** are like containers that hold values. Instead of writing the same number or string over and over, you can store it in a variable and use the variable’s name to refer to it. This makes your code shorter, clearer, and easier to change later.
+
+In **Suny**, variables are simple and flexible. You don’t have to declare their type (like `int` or `float` in C). Instead, Suny figures it out automatically when you assign a value.
+
+---
+
+## 4.1 Global Variables
+
+A **global variable** is a variable created outside of any function.
+It can be accessed from anywhere in the program: inside functions, loops, or just at the top level.
+
+This makes globals powerful, but also dangerous—if too many parts of your code can change the same variable, it’s easy to introduce bugs.
+
+### Example in Suny:
+
+```suny
 a = 1  
 b = 2  
 
-print(a)  # 1  
-print(b)  # 2  
+print(a)  # prints 1  
+print(b)  # prints 2  
+
+b = b + 5
+print(b)  # prints 7
 ```
 
-**Notes:**
+### Key Points:
 
-* Global variables can be read and modified from any part of the program.
-* Too many globals can make programs hard to manage. Prefer local variables inside functions to avoid name conflicts and unexpected changes.
+* A global is “visible” everywhere in the program.
+* Changing it inside a function changes it for everyone else too.
+* This makes programs easier to write at first, but harder to maintain in the long run.
+
+### Comparison:
+
+* **C/C++:** Globals must be declared outside of `main()` or any function, often with a type like `int x = 5;`.
+* **Python:** Any variable defined at the top level of a file is global, but inside functions you must use `global x` if you want to modify it.
+* **Lua:** All variables are global by default unless marked `local`.
+
+In Suny, like Lua, variables are global unless you put them inside a function, where they become local.
 
 ---
 
-### Local Variables
+## 4.2 Local Variables
 
-A local variable is defined inside a function and only exists while the function is running.
-It cannot be accessed outside the function.
+A **local variable** exists only inside the function where you create it.
+Once the function finishes running, the variable disappears, and you cannot access it anymore.
 
-Example in Suny:
+This is useful because it prevents different parts of the program from interfering with each other.
 
-```
+### Example in Suny:
+
+```suny
 function test() do  
     x = 10  
-    print(x)  # 10  
+    print(x)  # prints 10  
 end  
 
 test()  
 print(x)  # error: x is not defined  
 ```
 
-**Notes:**
-
-* Locals are safer than globals because they do not affect the rest of the program.
-* Use locals whenever possible.
+Here, `x` is local to `test()`. Trying to use it outside gives an error.
 
 ---
 
-### Assignment
+### Why Locals Are Better:
 
-Assignments update the value stored in a variable.
+* **Safety:** No other part of your program can accidentally change them.
+* **Clarity:** When reading the function, you know that the variable belongs only there.
+* **Memory:** Locals only live while the function is running, so they free up memory afterward.
 
-Example in Suny:
+### Good Practice:
 
+Always prefer **local variables** unless you have a strong reason to use globals.
+Globals are best for values that truly belong to the whole program, such as configuration settings or constants.
+
+---
+
+## 4.3 Assignment
+
+An **assignment** means giving a variable a new value.
+
+In Suny, this is done with the `=` operator:
+
+```suny
+a = 5
+b = "hello"
+c = true
 ```
-a = 0   # set variable  
+
+Once assigned, you can use the variable in calculations or other expressions.
+
+### Updating Variables
+
+You can change a variable by reassigning it:
+
+```suny
+a = 0  
+a = a + 1   # now a is 1  
+a = a * 2   # now a is 2
+```
+
+### Compound Assignment
+
+Suny also supports shorthand operators:
+
+```suny
+a = 0  
 a += 1  # increase by 1  
 a -= 1  # decrease by 1  
 a *= 2  # multiply by 2  
 a /= 2  # divide by 2  
 ```
 
-These compound assignments are shorthand for longer forms:
+These are equivalent to the longer forms:
 
-* `a += 1` is the same as `a = a + 1`
-* `a -= 1` is the same as `a = a - 1`
-* `a *= 2` is the same as `a = a * 2`
-* `a /= 2` is the same as `a = a / 2`
+* `a += 1` → `a = a + 1`
+* `a -= 1` → `a = a - 1`
+* `a *= 2` → `a = a * 2`
+* `a /= 2` → `a = a / 2`
 
 ---
 
-## 5. Data Types
+## 4.4 Example Program
 
-Suny is **dynamically typed**, which means variables do not need an explicit type declaration. Suny automatically determines the type based on the value.
+Here’s a full program that mixes globals, locals, and assignments:
 
-### 5.1 Boolean
+```suny
+score = 0   # global variable
 
-Booleans represent truth values:
+function add_points(points) do
+    local_bonus = 2      # local variable
+    score += points + local_bonus
+    print("Added", points, "points. Current score:", score)
+end
+
+add_points(5)   # Added 5 points. Current score: 7
+add_points(3)   # Added 3 points. Current score: 12
+
+print(score)    # 12
+print(local_bonus)  # error: local_bonus is not defined
+```
+
+---
+
+## 4.5 Summary
+
+* **Variables** hold values like numbers, strings, or booleans.
+* **Globals** can be used anywhere but may cause conflicts if overused.
+* **Locals** are safer and should be preferred.
+* **Assignments** let you change a variable’s value, and compound assignments make it shorter.
+
+Think of globals as “public” values and locals as “private” values.
+If you want your code to be clean, predictable, and bug-free—use locals as much as possible.
+
+# 5. Data Types
+
+Suny is **dynamically typed**, meaning you don’t need to declare the type of a variable explicitly.
+The type of a variable is determined automatically at runtime based on the value you assign to it.
+
+This makes Suny flexible and expressive, while still providing a consistent set of **core data types**.
+
+The main built-in types in Suny are:
+
+* **Boolean** (`true`, `false`)
+* **Numbers** (integers and floats)
+* **Strings** (text enclosed in quotes)
+* **Lists** (ordered collections of items)
+* **Functions** (first-class values, both named and anonymous)
+
+---
+
+## 5.1 Boolean
+
+Booleans represent **truth values**: `true` or `false`.
 
 ```suny
 is_sunny = true
 is_raining = false
+
 print(is_sunny)   # true
 print(is_raining) # false
 ```
 
-**Use in conditions:**
+### Boolean in Conditions
 
 ```suny
 weather = "sunny"
+
 if weather == "sunny" do
     print("Go outside!")
 else
@@ -228,62 +609,112 @@ else
 end
 ```
 
----
-
-### 5.2 Numbers
-
-Suny supports **integers** and **floating-point numbers**:
+Booleans are especially important in **control flow** (if/else, loops, etc.).
+They can also result from **comparison operators**:
 
 ```suny
-# Integers
-a = 10
-b = -5
-
-# Floating-point numbers
-c = 3.14
-d = -0.5
+print(5 > 3)    # true
+print(5 < 3)    # false
+print(5 == 5)   # true
+print(5 != 5)   # false
 ```
 
-**Arithmetic Examples:**
+### Boolean Operators
+
+| Operator | Meaning     | Example          | Result |
+| -------- | ----------- | ---------------- | ------ |
+| `and`    | Logical AND | `true and false` | false  |
+| `or`     | Logical OR  | `true or false`  | true   |
+| `not`    | Logical NOT | `not true`       | false  |
+
+---
+
+## 5.2 Numbers
+
+Numbers are used for mathematics and calculations.
+Suny supports **integers** (whole numbers) and **floats** (decimal numbers).
+
+```suny
+a = 10       # integer
+b = -5       # integer
+c = 3.14     # float
+d = -0.5     # float
+```
+
+### Arithmetic Operators
+
+| Operator | Description         | Example  | Result |
+| -------- | ------------------- | -------- | ------ |
+| `+`      | Addition            | `5 + 3`  | `8`    |
+| `-`      | Subtraction         | `5 - 3`  | `2`    |
+| `*`      | Multiplication      | `5 * 3`  | `15`   |
+| `/`      | Division (float)    | `5 / 2`  | `2.5`  |
+| `//`     | Floor division      | `5 // 2` | `2`    |
+| `%`      | Modulus (remainder) | `5 % 2`  | `1`    |
+| `**`     | Power (exponent)    | `2 ** 3` | `8`    |
+
+### Examples
 
 ```suny
 x = 10
 y = 3
-print(x + y)  # 13
-print(x - y)  # 7
-print(x * y)  # 30
-print(x / y)  # 3.3333
+
+print(x + y)   # 13
+print(x - y)   # 7
+print(x * y)   # 30
+print(x / y)   # 3.3333...
+print(x // y)  # 3
+print(x % y)   # 1
+print(x ** y)  # 1000
+```
+
+### Precedence and Parentheses
+
+Parentheses can be used to control the order of evaluation:
+
+```suny
+print(2 + 3 * 4)     # 14
+print((2 + 3) * 4)   # 20
 ```
 
 ---
 
-### 5.3 Strings
+## 5.3 Strings
 
-Strings are sequences of characters enclosed in double quotes `" "`:
+Strings represent **text**.
+They are sequences of characters enclosed in **double quotes** `" "` or **single quotes** `' '`.
 
 ```suny
 name = "Dinh Son Hai"
-greeting = "Hello, world!"
+greeting = 'Hello, world!'
+
 print(name)     # Dinh Son Hai
 print(greeting) # Hello, world!
 ```
 
-**Operations with Strings:**
+### String Operations
 
 ```suny
 first = "Hello"
 second = "World"
 combined = first + " " + second
-print(combined) # Hello World
 
-text = "Suny"
-print(size(text)) # 4
+print(combined)      # Hello World
+print(size(combined)) # 11
 ```
 
-**Using strings in conditions:**
+Strings can be compared:
+
+```suny
+print("abc" == "abc")  # true
+print("abc" != "def")  # true
+```
+
+### Strings in Conditions
 
 ```suny
 password = "1234"
+
 if password == "1234" do
     print("Access granted")
 else
@@ -291,7 +722,7 @@ else
 end
 ```
 
-**Escape Characters:**
+### Escape Characters
 
 | Escape | Meaning      | Example             | Output         |
 | ------ | ------------ | ------------------- | -------------- |
@@ -303,9 +734,9 @@ end
 
 ---
 
-### 5.4 Lists
+## 5.4 Lists
 
-Lists store multiple items:
+Lists are **ordered collections** that can hold multiple items, even of different types.
 
 ```suny
 numbers = [1, 2, 3, 4, 5]
@@ -313,34 +744,28 @@ names = ["Alice", "Bob", "Charlie"]
 mixed = [1, "Two", true, 4.5]
 ```
 
-**Accessing items:**
+### Accessing and Modifying Items
 
 ```suny
 print(numbers[0])  # 1
-print(names[2])    # Charlie
-```
-
-**Modifying items:**
-
-```suny
 numbers[0] = 10
 print(numbers[0])  # 10
 ```
 
-**Adding and removing items:**
+### Adding and Removing Items
 
 ```suny
-push(numbers, 6)
-pop(numbers)
+push(numbers, 6)   # append
+pop(numbers)       # remove last item
 ```
 
-**Length of a list:**
+### Length of a List
 
 ```suny
-print(size(numbers))
+print(size(numbers))  # 5
 ```
 
-**Looping over lists:**
+### Looping Over Lists
 
 ```suny
 fruits = ["apple", "banana", "cherry"]
@@ -350,7 +775,7 @@ for i in range(size(fruits)) do
     print(fruits[i])
 end
 
-# Using item directly
+# Using element directly
 for fruit in fruits do
     print(fruit)
 end
@@ -358,13 +783,14 @@ end
 
 ---
 
-### 5.5 Functions
+## 5.5 Functions
 
-Functions in Suny are **first-class values**: they can be assigned to variables, passed as arguments to other functions, returned from functions, and even created anonymously.
+Functions in Suny are **first-class values**:
+They can be assigned to variables, passed as arguments, returned, and even created anonymously.
 
 ---
 
-#### Basic Function
+### 5.5.1 Basic Function
 
 ```suny
 function add(a, b) do
@@ -374,17 +800,11 @@ end
 print(add(1, 2))  # 3
 ```
 
-**Explanation:**
-
-* `function name(parameters) do ... end` defines a named function.
-* `return` specifies the value that the function gives back.
-* You can call the function using its name, passing required arguments.
-
 ---
 
-#### Higher-Order Functions
+### 5.5.2 Higher-Order Functions
 
-Functions can accept other functions as arguments, or return functions:
+Functions can take other functions as arguments:
 
 ```suny
 function apply(func, x, y) do
@@ -394,51 +814,30 @@ end
 print(apply(add, 5, 7))  # 12
 ```
 
-* `apply` takes a function `func` and two numbers, and calls `func(x, y)`.
-* This demonstrates **higher-order functions**, useful for functional programming patterns.
-
 ---
 
-#### Inner Functions
+### 5.5.3 Inner Functions
 
-Functions can be **defined inside another function**. The inner function is local to the outer function:
+Functions can be nested:
 
 ```suny
 function foo() do
     function bar() do
         print("This is bar")
     end
-
     return bar()
 end
 
 foo()  # Output: This is bar
 ```
 
-* `bar` exists only within `foo`.
-* This allows **encapsulation** and avoiding global namespace pollution.
-
 ---
 
-#### Anonymous Functions
-
-Anonymous functions are **functions without a name**. They can be used inline or stored in variables:
+### 5.5.4 Anonymous Functions
 
 ```suny
 a = 10
 
-print(function() do
-    return a
-end)()  # Output: 10
-```
-
-**Explanation:**
-
-* `function() do ... end` defines an anonymous function.
-* The function can be called immediately by adding `()` at the end.
-* You can also assign it to a variable:
-
-```suny
 getA = function() do
     return a
 end
@@ -446,50 +845,50 @@ end
 print(getA())  # 10
 ```
 
-**Use Cases:**
+You can also call them immediately:
 
-* Passing functions to other functions (callbacks).
-* Returning functions from functions.
-* Writing concise code without naming every function.
+```suny
+print(function() do
+    return 42
+end())   # 42
+```
 
-#### Lambda
+---
 
-A **lambda** is a short, anonymous function you can define quickly without using the full `function ... do ... end` syntax.
+### 5.5.5 Lambda Functions
+
+A **lambda** is a short form of anonymous function:
 
 ```suny
 let f(x) = x + 1
 print(f(2))  # 3
 ```
 
-**Notes:**
+---
 
-* `let` defines a lambda function.
-* Lambdas are useful for small, one-line functions.
-* They can be assigned to variables, passed as arguments, or returned from functions.
+### 5.5.6 Special Local Variable: `self`
 
-#### Hidden local variable: `self`
-
-In `Suny`, the special local variable `self` can only be used inside a **function**.
-`self` always refers to the current function itself. 
-With `self`, you can return or call the function directly, even if it’s an **anonymous function**.
+Inside a function, the special variable `self` always refers to that **function itself**.
 
 ```suny
 function foo() do
-    return self   # same as 'return foo'
+    return self
 end
 
-function() do
-    return self   # returns the anonymous function itself
+anon = function() do
+    return self
 end
 ```
+
+This makes recursion and self-reference easy, even without naming the function.
 
 ---
 
-**Example of what function can does**
-```
+### 5.5.7 Example: Closure
+
+```suny
 function foo() do
     count = 0
-
     return function() do
         count = count + 1
         return count
@@ -497,17 +896,14 @@ function foo() do
 end
 
 a = foo()
-n = 0
-while n < 10 do
-    n = a()
-    print(n)
+for i in range(10) do
+    print(a())
 end
 ```
 
-Output:
+**Output:**
 
 ```
-prompt> suny main.mer
 1
 2
 3
@@ -518,53 +914,55 @@ prompt> suny main.mer
 8
 9
 10
-prompt> 
-
 ```
 
 ---
 
-## 6. Logical Expressions
+## 5.5 Summary
 
-Logical operators:
+* Booleans → true/false
+* Numbers → integers & floats with `+ - * / // % **`
+* Strings → text with escape sequences
+* Lists → ordered collections with indexing and iteration
+* Functions → first-class values, support closures, anonymous functions, and lambdas
 
-* `and` → true if both values are true
-* `or` → true if at least one value is true
-* `not` → inverts the Boolean value
+# 7. Control Structures
 
-```suny
-x = true
-y = false
-print(x and y) # false
-print(x or y)  # true
-print(not x)   # false
-```
+Control structures determine the **flow of execution** in a program.
+They allow you to make decisions, repeat actions, and handle complex logic.
 
-**Using logical expressions in conditions:**
+Suny provides these main control structures:
 
-```suny
-is_sunny = true
-has_umbrella = false
-
-if is_sunny or has_umbrella do
-    print("Go outside")
-else
-    print("Stay inside")
-end
-
-if not is_sunny do
-    print("It is cloudy")
-end
-```
+* **Conditional Statements** (`if`, `elif`, `else`)
+* **Loops** (`while`, `for`)
+* **Special Controls** (`break`, `continue`)
 
 ---
 
-## 7. Control Structures
+## 7.1 Conditional Statements
 
-### Conditional Statements
+Conditional statements let your program choose between different paths.
+
+### 7.1.1 Basic `if`
 
 ```suny
 score = 75
+
+if score >= 50 do
+    print("You passed!")
+end
+```
+
+➡ If the condition is `true`, the code inside the block runs.
+➡ If it is `false`, the block is skipped.
+
+---
+
+### 7.1.2 `if ... else`
+
+```suny
+score = 40
+
 if score >= 50 do
     print("You passed!")
 else
@@ -572,43 +970,270 @@ else
 end
 ```
 
-### While Loops
+If the first condition fails, the `else` block executes.
+
+---
+
+### 7.1.3 `if ... elif ... else`
+
+You can chain multiple conditions with `elif` (short for *else if*).
 
 ```suny
-count = 1
-while count <= 5 do
-    print(count)
-    count = count + 1
+score = 85
+
+if score >= 90 do
+    print("Excellent")
+elif score >= 75 do
+    print("Good job")
+elif score >= 50 do
+    print("You passed")
+else
+    print("Failed")
 end
 ```
 
-### For Loops
+✅ Conditions are checked from top to bottom.
+✅ Only the **first matching block** is executed.
 
-**Range-based:**
+---
 
-```suny
-for i in range(0, 5) do
-    print(i)
-end
-```
+### 7.1.4 Nested Conditions
 
-**Collection-based:**
+Conditions can be placed inside each other:
 
 ```suny
-fruits = ["apple", "banana", "cherry"]
-for fruit in fruits do
-    print(fruit)
+age = 20
+has_id = true
+
+if age >= 18 do
+    if has_id do
+        print("Access granted")
+    else
+        print("ID required")
+    end
+else
+    print("Too young")
 end
 ```
 
 ---
 
-## 8. Include
+### 7.1.5 Comparison Operators Recap
 
-Suny lets you split your program into multiple files and reuse code with **include**.
-When you use `include`, the contents of the other file are inserted **directly into the current file**.
+| Operator | Meaning                  | Example  | Result |
+| -------- | ------------------------ | -------- | ------ |
+| `==`     | Equal                    | `5 == 5` | true   |
+| `!=`     | Not equal                | `5 != 3` | true   |
+| `>`      | Greater than             | `5 > 3`  | true   |
+| `<`      | Less than                | `3 < 5`  | true   |
+| `>=`     | Greater than or equal to | `5 >= 5` | true   |
+| `<=`     | Less than or equal to    | `4 <= 5` | true   |
 
-### Example
+---
+
+### 7.1.6 Boolean Logic in Conditions
+
+```suny
+temperature = 30
+sunny = true
+
+if temperature > 25 and sunny do
+    print("Perfect beach day")
+end
+
+if temperature < 10 or not sunny do
+    print("Maybe stay home")
+end
+```
+
+---
+
+## 7.2 Loops
+
+Loops let you **repeat code** multiple times.
+
+---
+
+### 7.2.1 `while` Loop
+
+Repeats while the condition is `true`.
+
+```suny
+count = 0
+
+while count < 5 do
+    print(count)
+    count = count + 1
+end
+```
+
+**Output:**
+
+```
+0
+1
+2
+3
+4
+```
+
+---
+
+### 7.2.2 Infinite `while`
+
+```suny
+while true do
+    print("Running forever...")
+end
+```
+
+➡ You usually combine this with `break` to stop.
+
+---
+
+### 7.2.3 `for ... in range()`
+
+Suny provides `range(n)` to generate numbers from `0` to `n-1`.
+
+```suny
+for i in range(5) do
+    print(i)
+end
+```
+
+**Output:**
+
+```
+0
+1
+2
+3
+4
+```
+
+You can also use `range(start, end)`:
+
+```suny
+for i in range(3, 7) do
+    print(i)
+end
+# 3, 4, 5, 6
+```
+
+---
+
+### 7.2.4 `for ... in list`
+
+Iterating over items directly:
+
+```suny
+fruits = ["apple", "banana", "cherry"]
+
+for fruit in fruits do
+    print(fruit)
+end
+```
+
+**Output:**
+
+```
+apple
+banana
+cherry
+```
+
+---
+
+### 7.2.5 Nested Loops
+
+```suny
+for i in range(3) do
+    for j in range(2) do
+        print("i =", i, ", j =", j)
+    end
+end
+```
+
+---
+
+## 7.3 Loop Control: `break` and `continue`
+
+### 7.3.1 `break`
+
+Stops the loop immediately.
+
+```suny
+for i in range(10) do
+    if i == 5 do
+        break
+    end
+    print(i)
+end
+```
+
+**Output:** `0 1 2 3 4`
+
+---
+
+### 7.3.2 `continue`
+
+Skips to the next iteration.
+
+```suny
+for i in range(5) do
+    if i == 2 do
+        continue
+    end
+    print(i)
+end
+```
+
+**Output:** `0 1 3 4`
+
+---
+
+## 7.4 Combining Control Structures
+
+Complex programs often use **if statements inside loops**:
+
+```suny
+for i in range(1, 11) do
+    if i % 2 == 0 do
+        print(i, "is even")
+    else
+        print(i, "is odd")
+    end
+end
+```
+
+---
+
+## 7.5 Summary
+
+* `if`, `elif`, `else` → decision making
+* `while` → repeat while condition is true
+* `for` → iterate over ranges or collections
+* `break` → exit loop early
+* `continue` → skip current iteration
+
+Control structures are the **backbone of logic** in Suny.
+They allow you to model real-world decisions, repeat tasks, and build dynamic programs.
+
+---
+
+# 8. Include
+
+The **`include`** statement in Suny allows you to organize your program across multiple files or folders.
+Instead of writing everything in a single file, you can split your code into smaller parts (modules, configs, helpers) and bring them together when needed.
+
+When Suny sees an `include`, it **inserts the code from that file or folder directly into the current file** before running the program.
+This makes it behave almost the same as if you had copy-pasted the contents manually, but in a more organized way.
+
+---
+
+## 8.1 Including a File
+
+If the target is a **file**, Suny copies all its contents.
 
 ```suny
 # config.suny
@@ -617,346 +1242,127 @@ pi = 3.14
 
 ```suny
 # main.suny
-include "config.suny"
+include "config"
 
-print(pi)  # 3.14
+print(pi)   # 3.14
 ```
 
-**Notes:**
-
-* `include` is like copy-pasting the file’s code into the current file.
-* All variables and functions from the included file become part of the current scope.
-* Useful for small shared files such as constants or configuration.
-* Be careful with naming conflicts (two includes defining the same variable).
+Here, the variable `pi` becomes part of `main.suny`’s scope, as if it was defined inside it.
 
 ---
 
-## 9. Import
+## 8.2 Including a Folder
 
-Unlike `include`, the `import` statement works specifically with `.dll` files. `import` locates and loads the function:
+If the target is a **folder**, Suny automatically looks for a file named `main.suny` inside that folder.
 
-```cpp
-SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler compiler) {... return frame;}
+```
+math/
+ ├── main.suny
+ └── extra.suny
 ```
 
-marked with `SUNY_API` in the `.dll` file and executes it. If the function is not found, an error will occur.
-
-**Working with Import**
-
-You can create custom datatypes using `import` or develop your own **functions** by compiling them into `.dll` files. Simply use `import your_lib` in your `suny` file, and you'll be able to access these functions directly without needing `call()` to load `.dll` functions. Your `.dll` file must contain the `Smain` function.
-
-Example: Create a `mathlib.c` file
-```c
-#include <Suny.h>
-
-// Create your own built-in function in C
-
-struct Sobj* Scos(struct Sframe* frame) {
-    struct Sobj* angle = Sframe_pop(frame); // Take the first argument
-    float result = cosf(angle->value->value);
-    return Sobj_set_int(result);
-}
-
-SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler compiler) {
-    SunyInitialize_c_api_func(frame, compiler, 33, "cos", 1, Scos);
-    //                                         ^       ^      ^         ^
-    //                                     address  function  arg    pointer to C
-    //                                              name    count    function 
-    return frame;
-}
+```suny
+# math/main.suny
+square(x) = x * x
 ```
 
-Compile it into `mathlib.dll`, then create and run a Suny file that imports it:
-```
-import "mathlib"
+```suny
+# main.suny
+include "math"
 
-print(cos(90))
+print(square(5))   # 25
+```
+
+Suny only loads `math/main.suny` by default.
+If you need extra files (`extra.suny` in this example), you must include them explicitly:
+
+```suny
+include "math/extra"
 ```
 
 ---
 
-## 10. Userdata
+## 8.3 Search Paths
 
-In `Suny`, you can create custom datatypes beyond the built-in types like lists and functions using `userdata`.
+Suny resolves includes in this order:
 
-Create your `.c` file:
+1. **Current directory** – looks for a file or folder in the same place as the current `.suny` file.
 
-```c
-#include <Suny.h>
+2. **Library directory** – if not found locally, Suny searches in the global library folder:
 
-struct Svector { // Your custom datatype
-    int x;
-    int y;
-};
+   ```
+   C:/Suny/libs
+   ```
 
-struct Sobj* Svector_new(int x, int y) {
-    struct Svector* vector = (struct Svector*)malloc(sizeof(struct Svector));
+   Example:
 
-    vector->x = x;
-    vector->y = y;
+   ```
+   C:/Suny/libs/
+     └── std/
+          └── main.suny
+   ```
 
-    struct Sobj* userdata = Sobj_make_userdata(vector);
-    return userdata;
-}
+   ```suny
+   include "std"
+   ```
 
-struct Sobj* Sobj_make_vector(struct Sframe* frame) {
-    struct Sobj* y = Sframe_pop(frame);
-    struct Sobj* x = Sframe_pop(frame);
+   This would load the standard library `std/main.suny`.
 
-    int xv = Sobj_get_value(x);
-    int yv = Sobj_get_value(y);
-
-    struct Sobj* vo = Svector_new(xv, yv);
-    return vo;
-}
-
-SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
-    SunyInitialize_c_api_func(frame, compiler, 33, "vector", 2, Sobj_make_vector);
-    return frame;
-}
-```
-
-Compile it into `vector.dll` and run it:
-```
-import "vector"
-
-a = vector(1, 2)
-b = vector(2, 3)
-print(a + b)
-```
-
-Command prompt output:
-```
-0
-prompt>
-```
-
-The output shows that the vector doesn't support the `+` operation by default. To enable this functionality, we need to implement meta methods:
-
-```c
-#include <Suny.h>
-
-#define VEC_X(v) (((struct Svector*)(v->f_type->f_userdata->data))->x)
-#define VEC_Y(v) (((struct Svector*)(v->f_type->f_userdata->data))->y)
-
-struct Svector {
-    int x;
-    int y;
-};
-
-struct Sobj* Svector_new(int x, int y) {
-    struct Svector* vector = (struct Svector*)malloc(sizeof(struct Svector));
-    vector->x = x;
-    vector->y = y;
-
-    struct Sobj* userdata = Sobj_make_userdata(vector);
-    return userdata;
-}
-
-struct Sobj* Sobj_vec_add(struct Sobj* v1, struct Sobj* v2) {
-    int tx = VEC_X(v1) + VEC_X(v2);
-    int ty = VEC_Y(v1) + VEC_Y(v2);
-
-    struct Sobj* userdata = Svector_new(tx, ty);
-    userdata->meta = v1->meta; // Assign the meta from v1
-
-    return userdata;
-}
-
-struct Sobj* Sobj_vec_print(struct Sobj* v) {
-    int x = VEC_X(v);
-    int y = VEC_Y(v);
-
-    printf("vector(%d, %d)", x, y);
-    return v;
-}
-
-struct Sobj* Sobj_make_vector(struct Sframe* frame) {
-    struct Sobj* y = Sframe_pop(frame);
-    struct Sobj* x = Sframe_pop(frame);
-
-    int xv = Sobj_get_value(x);
-    int yv = Sobj_get_value(y);
-
-    struct Sobj* vo = Svector_new(xv, yv);
-    
-    // Initialize meta methods
-    vo->meta = malloc(sizeof(struct Smeta));
-    vo->meta->mm_add = Sobj_vec_add;
-    vo->meta->mm_tostring = Sobj_vec_print;
-
-    return vo;
-}
-
-SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
-    SunyInitialize_c_api_func(frame, compiler, 33, "vector", 2, Sobj_make_vector);
-    return frame;
-}
-```
-
-Now let's run it:
-```
-import "vector"
-
-a = vector(1, 2)
-b = vector(2, 3)
-print(a + b)
-```
-
-Command prompt output:
-```
-vector(3, 5)
-prompt>
-```
-
-Using meta methods, we can now support operations like `+`, `-`, `*`, `/`, `to_string`, and more for custom datatypes.
+3. **Error** – if nothing is found, Suny throws a compilation error.
 
 ---
 
-## 8. Summary
+## 8.4 Error Cases
 
-Suny provides a **clear and easy-to-learn syntax**, making it suitable for beginners and lightweight scripting tasks. With support for:
+* **Missing file or folder**
 
-* Variables and data types
-* Functions and higher-order functions
-* Lists and loops
-* Logical expressions and conditional statements
+  ```suny
+  include "not_found"
+  ```
 
-You can quickly and efficiently build simple to moderately complex programs.
+  ```
+  Error: include target 'not_found' not found
+  ```
 
-## 9. Suny Standard library
+* **Folder without main.suny**
 
-`Suny` has one standard lib called `stdlib`, `stdlib` is the only library in `Suny`.  
-It supports multiple datatypes such as `vector`, `bigint`, `complex`, ...  
-and `stdlib` also provides a lot of math constants such as `pi`, `euler`, ...  
-and math functions like `sin`, `cos`, `tan`, ...  
+  ```
+  mylib/
+    └── helper.suny
+  ```
 
-To use `stdlib`, import it with:
+  ```suny
+  include "mylib"
+  ```
 
-```suny
-import "stdlib"
+  ```
+  Error: no main.suny in folder 'mylib'
+  ```
 
-a = vector([1, 2, 3])
-b = vector([4, 5, 6])
+* **Name conflicts**
 
-print(a + b)    # output: vector(5, 7, 9)
-```
+  ```suny
+  # a.suny
+  x = 10
 
----
+  # b.suny
+  x = 20
+  ```
 
-### 9.1 Vector
+  ```suny
+  include "a"
+  include "b"
 
-`vector` is a datatype in library `stdlib` of Suny.
-Vector works like a mathematical vector and supports element-wise operations.
+  print(x)   # which one? result depends on last include
+  ```
 
-#### Creation
-
-```suny
-a = vector([1, 2, 3])
-b = vector([4, 5, 6])
-```
-
-#### Operations
-
-```suny
-print(a + b)   # vector(5, 7, 9)
-print(a - b)   # vector(-3, -3, -3)
-print(a * b)   # vector(4, 10, 18)   (element-wise multiplication)
-print(a / b)   # vector(0.25, 0.4, 0.5)
-```
-
-#### Scalar operations
-
-```suny
-print(a * 2)   # vector(2, 4, 6)
-print(a / 2)   # vector(0.5, 1, 1.5)
-```
+  Best practice: avoid re-using the same global variable names across includes.
 
 ---
 
-### 9.2 Bigint
+## 8.5 Summary
 
-`bigint` is a datatype for working with very large integers that cannot fit in normal 64-bit integers.
-
-#### Creation
-
-```suny
-a = bigint("12345678901234567890")
-b = bigint("98765432109876543210")
-```
-
-#### Operations
-
-```suny
-print(a + b)
-print(a * b)
-print(a - b)
-print(a / b)
-print(a + 1) # also work for float
-```
-
-Bigint supports the same arithmetic operators as normal integers, but with arbitrary precision.
-
----
-
-### 9.3 Complex
-
-`complex` is a datatype for complex numbers in the form `a + bi`.
-
-#### Creation
-
-```suny
-z1 = complex(1, 2)   # 1 + 2i
-z2 = complex(3, 4)   # 3 + 4i
-```
-
-#### Operations
-
-```suny
-print(z1 + z2)   # complex(4, 6)
-print(z1 * z2)   # complex(-5, 10)
-```
-
----
-
-### 9.4 Math constants
-
-`stdlib` provides common mathematical constants:
-
-* `pi` = 3.14159...
-* `euler` = 2.71828...
-* `tau` = 6.28318...
-
-#### Example
-
-```suny
-print(pi)
-print(euler)
-```
-
----
-
-### 9.5 Math functions
-
-`stdlib` also provides common math functions:
-
-* `sin(x)`
-* `cos(x)`
-* `tan(x)`
-* `sqrt(x)`
-* `log(x)`
-
-#### Example
-
-```suny
-print(sin(pi / 2))   # 1
-print(cos(0))        # 1
-print(sqrt(16))      # 4
-```
-
----
-
-## The End
-
-Thank you for reading!
-by **dinhsonhai132**
+* Use `include` for **constants, small configs, or utility functions**.
+* Keep each folder/module self-contained with its own `main.suny`.
+* Avoid circular includes (`A` includes `B`, and `B` includes `A`).
+* Use unique variable/function names to prevent conflicts.
