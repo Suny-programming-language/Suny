@@ -452,7 +452,7 @@ print(getA())  # 10
 * Returning functions from functions.
 * Writing concise code without naming every function.
 
-### Lambda
+#### Lambda
 
 A **lambda** is a short, anonymous function you can define quickly without using the full `function ... do ... end` syntax.
 
@@ -467,6 +467,23 @@ print(f(2))  # 3
 * Lambdas are useful for small, one-line functions.
 * They can be assigned to variables, passed as arguments, or returned from functions.
 
+#### Hidden local variable: `self`
+
+In `Suny`, the special local variable `self` can only be used inside a **function**.
+`self` always refers to the current function itself. 
+With `self`, you can return or call the function directly, even if it’s an **anonymous function**.
+
+```suny
+function foo() do
+    return self   # same as 'return foo'
+end
+
+function() do
+    return self   # returns the anonymous function itself
+end
+```
+
+---
 
 **Example of what function can does**
 ```

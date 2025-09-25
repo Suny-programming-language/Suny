@@ -452,7 +452,7 @@ print(getA())  # 10
 * Returning functions from functions.
 * Writing concise code without naming every function.
 
-### Lambda
+#### Lambda
 
 A **lambda** is a short, anonymous function you can define quickly without using the full `function ... do ... end` syntax.
 
@@ -467,6 +467,23 @@ print(f(2))  # 3
 * Lambdas are useful for small, one-line functions.
 * They can be assigned to variables, passed as arguments, or returned from functions.
 
+#### Hidden local variable: `self`
+
+In `Suny`, the special local variable `self` can only be used inside a **function**.
+`self` always refers to the current function itself. 
+With `self`, you can return or call the function directly, even if it’s an **anonymous function**.
+
+```suny
+function foo() do
+    return self   # same as 'return foo'
+end
+
+function() do
+    return self   # returns the anonymous function itself
+end
+```
+
+---
 
 **Example of what function can does**
 ```
@@ -806,6 +823,136 @@ Suny provides a **clear and easy-to-learn syntax**, making it suitable for begin
 * Logical expressions and conditional statements
 
 You can quickly and efficiently build simple to moderately complex programs.
+
+## 9. Suny Standard library
+
+`Suny` has one standard lib called `stdlib`, `stdlib` is the only library in `Suny`.  
+It supports multiple datatypes such as `vector`, `bigint`, `complex`, ...  
+and `stdlib` also provides a lot of math constants such as `pi`, `euler`, ...  
+and math functions like `sin`, `cos`, `tan`, ...  
+
+To use `stdlib`, import it with:
+
+```suny
+import "stdlib"
+
+a = vector([1, 2, 3])
+b = vector([4, 5, 6])
+
+print(a + b)    # output: vector(5, 7, 9)
+```
+
+---
+
+### 9.1 Vector
+
+`vector` is a datatype in library `stdlib` of Suny.
+Vector works like a mathematical vector and supports element-wise operations.
+
+#### Creation
+
+```suny
+a = vector([1, 2, 3])
+b = vector([4, 5, 6])
+```
+
+#### Operations
+
+```suny
+print(a + b)   # vector(5, 7, 9)
+print(a - b)   # vector(-3, -3, -3)
+print(a * b)   # vector(4, 10, 18)   (element-wise multiplication)
+print(a / b)   # vector(0.25, 0.4, 0.5)
+```
+
+#### Scalar operations
+
+```suny
+print(a * 2)   # vector(2, 4, 6)
+print(a / 2)   # vector(0.5, 1, 1.5)
+```
+
+---
+
+### 9.2 Bigint
+
+`bigint` is a datatype for working with very large integers that cannot fit in normal 64-bit integers.
+
+#### Creation
+
+```suny
+a = bigint("12345678901234567890")
+b = bigint("98765432109876543210")
+```
+
+#### Operations
+
+```suny
+print(a + b)
+print(a * b)
+print(a - b)
+print(a / b)
+print(a + 1) # also work for float
+```
+
+Bigint supports the same arithmetic operators as normal integers, but with arbitrary precision.
+
+---
+
+### 9.3 Complex
+
+`complex` is a datatype for complex numbers in the form `a + bi`.
+
+#### Creation
+
+```suny
+z1 = complex(1, 2)   # 1 + 2i
+z2 = complex(3, 4)   # 3 + 4i
+```
+
+#### Operations
+
+```suny
+print(z1 + z2)   # complex(4, 6)
+print(z1 * z2)   # complex(-5, 10)
+```
+
+---
+
+### 9.4 Math constants
+
+`stdlib` provides common mathematical constants:
+
+* `pi` = 3.14159...
+* `euler` = 2.71828...
+* `tau` = 6.28318...
+
+#### Example
+
+```suny
+print(pi)
+print(euler)
+```
+
+---
+
+### 9.5 Math functions
+
+`stdlib` also provides common math functions:
+
+* `sin(x)`
+* `cos(x)`
+* `tan(x)`
+* `sqrt(x)`
+* `log(x)`
+
+#### Example
+
+```suny
+print(sin(pi / 2))   # 1
+print(cos(0))        # 1
+print(sqrt(16))      # 4
+```
 
 ---
 
