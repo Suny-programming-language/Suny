@@ -1,38 +1,37 @@
-# Code of Conduct - Suny Programming Language
+CODE OF CONDUCT - Suny Programming Language
 
-## 1. Purpose
-The **Suny** community aims to provide a **friendly, respectful, and supportive environment** where everyone can learn, improve programming skills, and create safely without fear of harassment or discrimination.
+1. Purpose
+The Suny community aims to provide a friendly, respectful, and supportive environment
+where everyone can learn, improve programming skills, and create safely without fear of
+harassment or discrimination.
 
-## 2. Expected Behavior
-- Treat others and their opinions with respect.  
-- Help each other with questions or code issues.  
-- Keep comments, issues, pull requests, and discussions **polite and professional**.  
+2. Expected Behavior
+- Treat others and their opinions with respect.
+- Help each other with questions or code issues.
+- Keep comments, issues, pull requests, and discussions polite and professional.
 - Share knowledge openly, without hiding errors or tricks to make things difficult for others.
 
-## 3. Unacceptable Behavior
-- **Harassment, discrimination, or insulting** anyone.  
-- Spam or advertisements unrelated to Suny.  
-- Threatening or sabotaging code, resources, or others’ repositories.  
+3. Unacceptable Behavior
+- Harassment, discrimination, or insulting anyone.
+- Spam or advertisements unrelated to Suny.
+- Threatening or sabotaging code, resources, or others’ repositories.
 - Using offensive language, hate speech, or showing disrespect to the community.
 
-## 4. Reporting Violations
-If you encounter inappropriate behavior, please contact the **Suny Core Team** via:
+4. Reporting Violations
+If you encounter inappropriate behavior, please contact the Suny Core Team via:
+- Email: contact@suny-lang.org
+- GitHub Issues: https://github.com/dinhsonhai132/Suny/issues
 
-- Email: `contact@suny-lang.org`  
-- GitHub Issues: [https://github.com/dinhsonhai132/Suny/issues](https://github.com/dinhsonhai132/Suny/issues)
+All reports will be handled confidentially and seriously.
 
-All reports will be handled **confidentially and seriously**.  
-
-## 5. Enforcement
+5. Enforcement
 Violators of the Code of Conduct may face:
-
-- Private warning messages.  
-- Removal of comments, issues, or PRs that violate rules.  
+- Private warning messages.
+- Removal of comments, issues, or PRs that violate rules.
 - In severe cases: suspension or ban from the Suny community.
 
-## 6. Commitment
-We are committed to creating a **safe, friendly, and creative environment** for all Suny users, from **beginners to professional developers**.
+6. Commitment
+We are committed to creating a safe, friendly, and creative environment for all Suny users,
+from beginners to professional developers.
 
----
-
-**Thank you for helping build a welcoming Suny community! 💖**
+Thank you for helping build a welcoming Suny community! 💖
