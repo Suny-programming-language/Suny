@@ -1,6 +1,6 @@
 # Programming in Suny (version 1.0)
 
-## 1. Introduction
+# 1. Introduction
 
 **Suny** is a lightweight scripting language designed to be **small but powerful**, combining the minimalism and efficiency of **Lua** with the clarity and readability of **Python**.
 
@@ -10,7 +10,7 @@ Suny is intended to be a language that is:
 * **Powerful** in expressiveness, so developers can solve real problems without feeling restricted.
 * **Beginner-friendly**, encouraging experimentation and rapid learning.
 
-### 1.1 Origins and Motivation
+## 1.1 Origins and Motivation
 
 Suny was created as an experiment: *Can one person design and build a language from scratch that is both minimal and useful?*
 
@@ -20,7 +20,7 @@ Lua inspired Suny by showing that a small, elegant core can be extremely flexibl
 
 ---
 
-### 1.2 Philosophy of Suny
+## 1.2 Philosophy of Suny
 
 The design of Suny is guided by three principles:
 
@@ -42,7 +42,7 @@ The design of Suny is guided by three principles:
 
 ---
 
-### 1.3 Typical Uses
+## 1.3 Typical Uses
 
 Suny is not meant to replace large general-purpose languages like C++ or Java. Instead, it is designed for:
 
@@ -53,7 +53,7 @@ Suny is not meant to replace large general-purpose languages like C++ or Java. I
 
 ---
 
-### 1.4 A First Taste of Suny
+## 1.4 A First Taste of Suny
 
 Here is a simple Suny program:
 
@@ -75,7 +75,7 @@ This small example demonstrates Suny’s philosophy:
 
 ---
 
-### 1.5 Implementation and Portability
+## 1.5 Implementation and Portability
 
 Suny is written in **C**, which makes it:
 
@@ -87,7 +87,7 @@ The virtual machine (VM) of Suny executes bytecode instructions, similar to Lua 
 
 ---
 
-### 1.6 Vision for Suny
+## 1.6 Vision for Suny
 
 Suny will continue to evolve, but its vision will remain the same:
 
@@ -1366,3 +1366,727 @@ Suny resolves includes in this order:
 * Keep each folder/module self-contained with its own `main.suny`.
 * Avoid circular includes (`A` includes `B`, and `B` includes `A`).
 * Use unique variable/function names to prevent conflicts.
+
+---
+
+# 9. C-API And Inside Suny
+
+In **Suny**, you can directly call C functions. However, if you follow the **Suny rules**, you can integrate C into Suny in a much more powerful way. Suny provides a special macro called `SUNY_API`. This macro allows you to "embed" C code directly into the Suny environment, making C functions callable as if they were native Suny functions.
+
+Using `SUNY_API` has several advantages:
+
+1. **Enhanced extensibility**: You can leverage the full power of C to perform system-level operations or complex algorithms that Suny does not natively support.
+2. **Seamless integration with Suny**: C functions wrapped with `SUNY_API` behave like normal Suny functions, keeping your code clean and maintainable.
+3. **Reach Lua- or Python-level capabilities**: When used correctly, you can build complex modules, manipulate memory directly, or call external libraries while still enjoying Suny’s simplicity.
+
+In short, the **Suny C-API** acts as a powerful bridge between the Suny language and the real power of C, making your language flexible and much more capable.
+
+Here’s an extended, detailed version of **9.1 – The Stack Frame**, written in English in a “Lua-style” reference manual format, with clear explanations and examples:
+
+---
+
+## 9.1 The Stack Frame
+
+The **stack frame** in Suny is the core runtime structure that manages function calls, local and global variables, constants, and the execution stack. Every function call in Suny, including calls to C-API functions, creates a new stack frame, allowing Suny to maintain execution context, variable scopes, and intermediate computation results.
+
+A stack frame is represented by the `Sframe` structure, which contains the following key components:
+
+### 9.1.1 Components of a Stack Frame
+
+1. **Execution Context**
+
+   * `f_code`: Points to the bytecode (`Scode`) associated with the current function or script.
+   * `f_code_index`: Tracks the current instruction within the bytecode sequence.
+   * `f_back`: Points to the previous stack frame, enabling call stack traversal during function returns or exceptions.
+
+2. **Local and Global Variables**
+
+   * `f_locals` and `f_globals` store pointers to `Sobj` objects representing local and global variables.
+   * `f_locals_index` and `f_globals_index` track the number of currently active variables.
+   * `f_locals_size` and `f_globals_size` track the allocated capacity of the respective arrays, allowing dynamic resizing when new variables are added.
+
+3. **Execution Stack**
+
+   * `f_stack` holds the intermediate values during computation, such as temporary results or function arguments.
+   * `f_stack_index` indicates the top of the stack.
+   * `f_stack_size` tracks the allocated capacity for dynamic resizing.
+   * Operations like `Sframe_push` and `Sframe_pop` manipulate this stack to manage runtime values.
+
+4. **Constants Pool**
+
+   * `f_const` is an array holding constants defined within the current code context (e.g., numbers, strings, booleans).
+   * `f_const_index` tracks the next available slot in the constants pool.
+
+5. **C-API Integration**
+
+   * The stack frame allows embedding C functions as Suny objects via `Sframe_load_c_api_func`.
+   * Functions registered through the C-API can be called like any Suny function, while arguments and return values are managed on the stack.
+
+6. **Garbage Collection**
+
+   * `gc_pool` points to a `Garbage_pool` structure, enabling reference counting and memory management for dynamically allocated objects.
+   * Each object pushed onto the stack or stored in a frame is reference-counted to prevent memory leaks.
+
+7. **Label Map**
+
+   * `f_label_map` stores mappings from label names to bytecode offsets, which is essential for control flow operations like `goto` or loops.
+
+---
+
+### 9.1.2 Creating a Stack Frame
+
+A stack frame is typically created using `Sframe_new()`:
+
+```c
+struct Sframe* frame = Sframe_new();
+```
+
+This function performs the following:
+
+* Allocates memory for the frame itself and initializes all internal arrays.
+* Sets all indices to zero.
+* Initializes the stack, local, global, and constant arrays with default capacity (`MAX_FRAME_SIZE`).
+* Prepares the frame to be initialized with a Suny code object using `Sframe_init()`.
+
+---
+
+### 9.1.3 Initializing a Stack Frame
+
+Once created, a stack frame must be initialized with the code to execute:
+
+```c
+Sframe_init(frame, code);
+```
+
+Here, `code` is a pointer to an `Scode` object representing the compiled Suny bytecode. Initialization includes:
+
+* Setting `f_code` to the provided code object.
+* Resetting the instruction pointer (`f_code_index`) to zero.
+* Creating a label map (`f_label_map`) for fast lookup of control flow labels.
+
+---
+
+### 9.1.4 Stack Operations
+
+The execution stack supports standard push and pop operations:
+
+```c
+Sframe_push(frame, obj); // Push an object onto the stack
+struct Sobj* top = Sframe_pop(frame); // Pop the top object
+struct Sobj* back = Sframe_back(frame); // Peek the top object without popping
+```
+
+* **Push**: Adds an object to the top of the stack. If the stack exceeds its capacity, it is automatically resized.
+* **Pop**: Removes and returns the object from the top of the stack. Proper reference counting ensures memory safety.
+* **Back**: Returns the top object without removing it, useful for peek operations in expressions and evaluations.
+
+---
+
+### 9.1.5 Local and Global Variable Management
+
+Stack frames manage variable scopes efficiently:
+
+* **Local Variables**:
+
+  ```c
+  Sframe_store_local(frame, address, obj, LOCAL_OBJ);
+  struct Sobj* value = Sframe_load_local(frame, address);
+  ```
+
+  Local variables are stored in `f_locals` and are scoped to the current frame.
+
+* **Global Variables**:
+
+  ```c
+  Sframe_store_global(frame, address, obj, GLOBAL_OBJ);
+  struct Sobj* value = Sframe_load_global(frame, address);
+  ```
+
+  Global variables persist across frames and scripts, stored in `f_globals`.
+
+* **Constants**:
+
+  ```c
+  Sframe_store_const(frame, obj);
+  struct Sobj* c = Sframe_load_const(frame, address);
+  ```
+
+  Constants are immutable and optimized for repeated use during execution.
+
+---
+
+### 9.1.6 Integration with C-API Functions
+
+Suny allows embedding C functions directly as Suny objects:
+
+```c
+struct Sobj* func_obj = Sframe_load_c_api_func(frame, my_c_function, address, "my_func", args_count);
+Sframe_call_c_api_func(frame, func_obj->c_api_func->func);
+```
+
+* Functions are registered globally and accessible as Suny objects.
+* Arguments are passed via the stack, maintaining uniformity with Suny function calls.
+* Return values are pushed onto the stack automatically.
+
+---
+
+### 9.1.7 Garbage Collection and Reference Counting
+
+Every object stored in a frame—stack, local, global, or constant—is reference-counted:
+
+* `Sgc_inc_ref(obj)` increases the reference count.
+* `Sgc_dec_ref(obj, frame->gc_pool)` decreases it and triggers garbage collection when the count reaches zero.
+* This ensures deterministic memory management while supporting dynamic object lifetimes.
+
+---
+
+This structured and modular design of the **Suny stack frame** enables:
+
+* Nested function calls with independent execution contexts.
+* Efficient variable and constant management.
+* Seamless integration with C functions.
+* Safe memory management via reference counting and garbage collection.
+
+---
+
+## 9.2 Basic Suny C Functions
+
+Suny’s **basic API functions** serve as the core building blocks for C integration. They provide direct access to the **execution stack**, **frame-local variables**, **global variables**, and **constants**, allowing C functions to interact naturally with the Suny environment.
+
+By using these functions, C code can:
+
+1. **Manipulate the stack safely** – push and pop objects while automatically managing reference counts.
+2. **Access variables consistently** – read and write local and global variables without bypassing Suny’s memory management rules.
+3. **Create objects conveniently** – construct numbers, strings, and booleans that are fully compatible with Suny’s runtime.
+4. **Call and register C functions** – make C code callable as if it were native Suny code, enabling modular and extensible scripting.
+5. **Ensure memory safety** – reference counting and garbage collection prevent memory leaks and dangling pointers.
+
+Together, these functions form a **robust bridge** between Suny and C, enabling the creation of complex modules, libraries, and system-level integrations while preserving the simplicity and elegance of Suny’s scripting model.
+
+In Suny there are ... groups, each group support its own C function to work with it, for example: `Slist` group support **push**, **pop**, **free** function to work with Suny list datatype like `Slist_add`, `Slist_pop`, `Slist_free`, `Slist_change_item`, `Slist_get`, ... Or like `Sfunc` group we have `Sfunc_ready`, `Sfunc_set`, `Sfunc_set_func`, `Sfunc_obj_new`, `Sfunc_free`
+
+### 9.2.1 `Sobj` functions
+
+Here there are ... groups and how to use its function, start with `Sobj` group
+
+`Sobj` group return `struct Sobj*` is the most important group in Suny, with `Sobj` we can creat Suny object like list object and function object...
+
+---
+
+### **Sobj_new**
+
+The function:
+```c
+struct Sobj* Sobj_new(void);
+```
+
+creat a new `Sobj` object, it can be free, `Sobj_new` set object as `NULL_OBJ` type
+
+---
+
+### **Sobj_set_int**
+
+The function:
+
+```c
+struct Sobj* Sobj_set_int(float value);
+```
+
+creates a **number object** with the specified float value. In Suny, all numeric objects are stored as floats.
+
+You can perform arithmetic operations on number objects using the **`Seval`** group functions, such as `Seval_add()`:
+
+```c
+struct Sobj* o1 = Sobj_set_int(1.0);
+struct Sobj* o2 = Sobj_set_int(2.0);
+struct Sobj* oadd = Seval_add(o1, o2);
+
+Sio_write(oadd);  // Output: 3
+
+Sobj_free(o1);
+Sobj_free(o2);
+Sobj_free(oadd);
+```
+
+* **`Sobj_free(obj)`**: Frees the memory associated with an object when it is no longer needed.
+* **`Sio_write(obj)`**: Prints the object to the screen in a human-readable format. Example:
+
+```
+prompt>
+3
+prompt>
+```
+
+---
+
+### **Sobj_get_obj**
+
+The function:
+
+```c
+void* Sobj_get_obj(struct Sobj* obj, enum Sobj_t type);
+```
+
+returns the **main value** of an object. This is useful for extracting the underlying data of complex objects, such as functions or lists.
+
+Example:
+
+```c
+struct Sfunc* func = (struct Sfunc*) Sobj_get_obj(obj, FUNC_OBJ);
+```
+
+* The `type` parameter indicates the expected type of the object (e.g., `FUNC_OBJ`).
+* This function safely retrieves the underlying value while preserving type information.
+
+---
+
+**Suny Main Object Types**
+
+Suny defines the following primary object types:
+
+| Type Flag       | Description              |
+| --------------- | ------------------------ |
+| `NUMBER_OBJ`    | Numeric object (float)   |
+| `STRING_OBJ`    | String object            |
+| `LIST_OBJ`      | List object              |
+| `FUNC_OBJ`      | Function object          |
+| `LOCAL_OBJ`     | Local variable           |
+| `GLOBAL_OBJ`    | Global variable          |
+| `BUILTIN_OBJ`   | Built-in C function      |
+| `USER_DATA_OBJ` | User-defined data object |
+| `CLASS_OBJ`     | Class object             |
+| `INSTANCE_OBJ`  | Instance of a class      |
+| `TRUE_OBJ`      | Boolean true             |
+| `FALSE_OBJ`     | Boolean false            |
+| `NULL_OBJ`      | Null object              |
+
+
+### **Sobj_make_bool**
+
+The function:
+
+```c
+struct Sobj* Sobj_make_bool(int value);
+```
+
+**This function creates a new boolean object.**
+
+* If the input value is `1`, the object’s type is set to `TRUE_OBJ`.
+* If the input value is `0`, the object’s type is set to `FALSE_OBJ`.
+
+This ensures that boolean values are consistently represented as distinct object types within the system.
+
+---
+
+### **Sobj_make_class**
+The function:
+
+```c
+struct Sobj* Sobj_make_class(struct Sclass* sclass);
+```
+
+This will creat a class object which type is `CLASS_OBJ` the number value of this object is `0`
+
+### **Sobj_set_func**
+The function:
+
+```c
+struct Sobj* Sobj_set_func(struct Sfunc *func);
+```
+
+**This function creates a new function object.**
+The object’s type is set to `FUNC_OBJ`, and its numeric field is initialized to `0`.
+
+This ensures that newly created function objects have a well-defined default state before being assigned additional properties such as parameters, bytecode, or closure information.
+
+---
+
+### **Sobj_make_str**
+The function:
+
+```c
+struct Sobj *Sobj_make_str(char* str, int size) 
+```
+
+**This function creates a new string object.**
+The string object contains two fields:
+
+* `char* string` — a pointer to the raw character array (null-terminated C string).
+* `int size` — the length of the string, excluding the null terminator.
+
+This design allows efficient access to both the raw data and the precomputed size of the string.
+
+---
+
+### **Sobj_make_str_obj** 
+
+The function:
+
+```c
+struct Sobj* Sobj_make_str_obj(struct Sstr *str) 
+```
+
+This will creat a string object if you already created `struct Sstr*` object first
+
+---
+
+### **Sobj_make_char**
+
+The function:
+
+```c
+struct Sobj* Sobj_make_char(char chr);
+```
+
+**This function creates a new character object.**
+The object’s type is set to `CHAR_OBJ`, and its internal value is initialized with the given character `chr`.
+
+This allows characters to be represented as distinct objects within the system, making them consistent with other primitive types such as integers, floats, and booleans.
+
+---
+
+### **Sobj_deep_copy**
+
+The function:
+
+```c
+struct Sobj* Sobj_deep_copy(struct Sobj* obj);
+```
+**This function creates a new object that is a deep copy of the input.**
+Unlike a shallow copy, which only duplicates the outer structure while still sharing references to nested objects, a deep copy recursively duplicates **all levels** of the object’s data.
+
+This means that:
+
+* For primitive types (e.g., integers, floats, booleans, and strings), the value is copied directly into the new object.
+* For composite types (e.g., lists, dictionaries, or other containers), each nested element is itself deep-copied, producing a fully independent structure.
+
+As a result, **any modification to the deep copy—whether to its top-level fields or to its nested elements—will not affect the original object**, and vice versa. This makes `Sobj_deep_copy` particularly useful when you need to work with independent object states without the risk of unintended side effects from shared references.
+
+---
+
+### **Sobj_shallow_copy**
+
+The function:
+
+```c
+struct Sobj* Sobj_shallow_copy(struct Sobj* obj);
+```
+
+Creates a **shallow copy** of the given object. Primitive values (int, float, bool, string) are duplicated directly. For composite types (list, dict, etc.), only the outer container is copied, while nested elements still reference the same objects as the original.
+
+**Note**
+
+* Changing the container in the copy does not affect the original.
+* Changing a shared nested element will affect both.
+
+---
+
+### **Sobj_make_list**
+
+The function:
+
+```c
+struct Sobj* Sobj_make_list(struct Slist* list);
+```
+
+**This function creates a new list object.**
+The object’s type is set to `LIST_OBJ`, and its numeric field is initialized to `0`.
+The provided `struct Slist*` is attached to the object, allowing it to manage a sequence of elements.
+
+This design makes it possible to wrap an existing list structure inside an `Sobj`, ensuring consistent handling of list values throughout the system.
+
+---
+
+### 9.2.2 `Seval` Functions
+
+The **`Seval`** group provides functions for evaluating basic expressions and operators.
+These functions implement fundamental operations across different object types, such as:
+
+* Arithmetic: `+`, `-`, `*`, `/`
+* Comparison: `<`, `>`, `<=`, `>=`, `==`, `!=`
+* Logical: `&&`, `||`, `!`
+
+By centralizing the evaluation logic, `Seval` ensures that operators behave consistently across the system, regardless of whether the operands are integers, floats, booleans, or other supported types.
+
+---
+
+### **Seval_add**
+
+```c
+struct Sobj* Seval_add(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **addition operator (`+`)**.
+
+**Rules**
+
+1. **Numbers**
+
+   * Performs floating-point addition.
+   * Both integers and floats are promoted to float internally.
+   * Example: `5 + 3.2 → 8.2`.
+
+2. **Strings**
+
+   * Performs concatenation.
+   * Example: `"foo" + "bar" → "foobar"`.
+
+3. **Lists**
+
+   * Concatenates two lists into a new list.
+   * Elements are shallow-copied references.
+   * Example: `[1,2] + [3] → [1,2,3]`.
+
+4. **User-defined objects**
+
+   * If the left-hand object defines a metamethod `mm_add`, it is invoked.
+   * Otherwise, a runtime error is raised.
+
+**Errors**
+
+* If operand types do not match any rule, raises `TypeError: unsupported operand types for +`.
+
+---
+
+### **Seval_sub**
+
+```c
+struct Sobj* Seval_sub(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **subtraction operator (`-`)**.
+
+**Rules**
+
+1. **Numbers**
+
+   * Performs floating-point subtraction.
+   * Example: `10 - 4 → 6.0`.
+
+2. **User-defined objects**
+
+   * Invokes `mm_sub` if defined on the left-hand operand.
+
+**Errors**
+
+* Other operand types are invalid.
+* Example: `"foo" - "bar"` → `TypeError`.
+
+---
+
+### **Seval_mul**
+
+```c
+struct Sobj* Seval_mul(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **multiplication operator (`*`)**.
+
+**Rules**
+
+1. **Numbers**
+
+   * Performs floating-point multiplication.
+   * Example: `6 * 7 → 42.0`.
+
+2. **String × Integer**
+
+   * Repeats the string `n` times.
+   * Example: `"ha" * 3 → "hahaha"`.
+   * If `n ≤ 0`, returns an empty string.
+
+3. **List × Integer**
+
+   * Repeats the list `n` times.
+   * Example: `[1,2] * 2 → [1,2,1,2]`.
+   * Elements are shallow-copied references.
+
+4. **User-defined objects**
+
+   * Invokes `mm_mul` if defined.
+
+**Errors**
+
+* Any other type combination results in `TypeError`.
+
+---
+
+### **Seval_div**
+
+```c
+struct Sobj* Seval_div(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **division operator (`/`)**.
+
+**Rules**
+
+1. **Numbers**
+
+   * Performs floating-point division.
+   * Example: `7 / 2 → 3.5`.
+
+2. **Division by zero**
+
+   * Triggers a runtime error:
+     `ZeroDivisionError: division by zero`.
+
+3. **User-defined objects**
+
+   * Invokes `mm_div` if defined.
+
+**Errors**
+
+* Invalid operand types raise `TypeError`.
+* Example: `"foo" / 2` → `TypeError`.
+
+---
+
+### **Seval_bigger**
+
+```c
+struct Sobj* Seval_bigger(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **greater-than operator (`>`)**.
+
+**Rules**
+
+1. **Numbers**
+
+   * Numerical comparison.
+   * Example: `5 > 3 → TRUE_OBJ`.
+
+2. **Strings**
+
+   * Lexicographical (dictionary order) comparison.
+   * Example: `"zoo" > "apple" → TRUE_OBJ`.
+
+3. **Lists**
+
+   * Lexicographical element-wise comparison.
+   * Example: `[2,1] > [2,0] → TRUE_OBJ`.
+
+4. **User-defined objects**
+
+   * Invokes `mm_gt` if defined.
+
+**Returns**
+
+* Always returns a boolean object (`TRUE_OBJ` or `FALSE_OBJ`).
+
+---
+
+### **Seval_smaller**
+
+```c
+struct Sobj* Seval_smaller(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **less-than operator (`<`)**.
+
+**Rules**
+
+* Same as `Seval_bigger`, but reversed.
+* Example: `2 < 5 → TRUE_OBJ`.
+* Example: `"ant" < "dog" → TRUE_OBJ`.
+
+**Returns**
+
+* A boolean object.
+
+---
+
+### **Seval_equal**
+
+```c
+struct Sobj* Seval_equal(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **equality operator (`==`)**.
+
+**Rules**
+
+1. **Primitive types (numbers, booleans, chars)**
+
+   * Compared directly by value.
+
+2. **Strings**
+
+   * Deep comparison of all characters.
+
+3. **Lists**
+
+   * Deep equality: length must match, and all elements must be equal.
+
+4. **User-defined objects**
+
+   * Invokes `mm_eq` if defined.
+
+**Returns**
+
+* Boolean (`TRUE_OBJ` or `FALSE_OBJ`).
+
+---
+
+### **Seval_not_equal**
+
+```c
+struct Sobj* Seval_not_equal(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **inequality operator (`!=`)**.
+
+**Rules**
+
+* Defined as the logical negation of `Seval_equal`.
+* Example: `5 != 3 → TRUE_OBJ`.
+* Example: `"foo" != "foo" → FALSE_OBJ`.
+
+---
+
+### **Seval_bigger_and_equal**
+
+```c
+struct Sobj* Seval_bigger_and_equal(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **greater-than-or-equal operator (`>=`)**.
+
+**Rules**
+
+* Returns `TRUE_OBJ` if either:
+
+  * `obj1 > obj2`, or
+  * `obj1 == obj2`.
+* Uses the same semantics as `Seval_bigger` and `Seval_equal`.
+
+---
+
+### **Seval_smaller_and_equal**
+
+```c
+struct Sobj* Seval_smaller_and_equal(struct Sobj *obj1, struct Sobj *obj2);
+```
+
+**Description**
+Implements the **less-than-or-equal operator (`<=`)**.
+
+**Rules**
+
+* Returns `TRUE_OBJ` if either:
+
+  * `obj1 < obj2`, or
+  * `obj1 == obj2`.
+* Uses the same semantics as `Seval_smaller` and `Seval_equal`.
+
+--- 
