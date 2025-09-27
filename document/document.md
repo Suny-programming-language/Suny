@@ -2090,3 +2090,919 @@ Implements the **less-than-or-equal operator (`<=`)**.
 * Uses the same semantics as `Seval_smaller` and `Seval_equal`.
 
 --- 
+
+### 9.2.2 `Serror` Functions
+
+Error handling is a **critical part of any interpreter or compiler**, since it directly affects how developers **understand and debug their programs**.
+The `Serror` module provides a **centralized mechanism** for creating, reporting, and managing errors across different stages of program execution:
+
+* **Lexical errors**: when invalid characters or tokens are encountered during scanning.
+* **Syntax errors**: when the parser detects invalid grammar or missing constructs.
+* **Compile-time errors**: when semantic issues occur before generating bytecode or machine code.
+* **Runtime errors**: when execution encounters invalid operations (e.g., division by zero).
+* **Unknown/internal errors**: for unexpected conditions or unhandled cases.
+
+By consolidating all error handling into the `Serror` API, Suny ensures that **all errors are reported in a consistent, structured format**.
+
+---
+
+### The `Serror` Structure
+
+```c
+struct Serror {
+    char* type;           // Error type string (e.g., "SyntaxError")
+    char* message;        // Human-readable explanation of the error
+    int line;             // Line number where the error occurred
+    int column;           // Column number where the error occurred
+    struct Slexer *lexer; // Optional reference to the lexer (for file context)
+};
+```
+
+* `type` distinguishes between error categories (`SyntaxError`, `RuntimeError`, etc.).
+* `message` provides a clear description for the user.
+* `line` and `column` give precise location info.
+* `lexer` provides context (such as file name) when available.
+
+Errors are **always created dynamically** and may be passed around between compiler phases.
+
+---
+
+### Function Reference
+
+### **Serror_new**
+The function:
+
+```c
+struct Serror *Serror_new(void);
+```
+
+Allocates and initializes a fresh `Serror` object with default values:
+
+* `type = NULL`
+* `message = NULL`
+* `line = 0`, `column = 0`
+* A fresh `Slexer` instance is created for context
+
+This function is typically the **first step** when building a new error.
+Callers should later release the error with `Serror_free`.
+
+---
+
+### **Serror_set**
+The function:
+
+```c
+struct Serror *Serror_set(char *type, char *message, struct Slexer *lexer);
+```
+
+Creates and initializes a new error using:
+
+* **type** → e.g. `"SyntaxError"`
+* **message** → short explanation of what went wrong
+* **lexer** → provides the current file, line, and column
+
+Example:
+
+```c
+struct Serror *err = Serror_set("SyntaxError", "Unexpected token", lexer);
+Serror_syntax_error(err);
+```
+
+---
+
+### **Serror_set_line**
+The function:
+
+```c
+struct Serror *Serror_set_line(char* type, char* message, int line, int column);
+```
+
+Creates an error when no lexer is available.
+Useful in low-level contexts, or when error location is determined manually (e.g., static analysis).
+
+---
+
+### **Serror_syntax_error**
+The function:
+
+```c
+int Serror_syntax_error(struct Serror *error);
+```
+
+Handles **syntax errors**.
+
+* Prints the error in the format:
+
+```
+SyntaxError: Unexpected token
+At file 'example.suny', line 12
+```
+
+* Execution halts immediately (via `break_loop()`).
+
+---
+
+### **Serror_runtime_error**
+The function:
+
+```c
+int Serror_runtime_error(char *message, struct Slexer *lexer);
+```
+
+Handles **runtime errors**.
+
+* Reports a problem that occurred **during execution** (e.g., division by zero).
+* Includes the current line and column.
+
+Example output:
+
+```
+RuntimeError: Division by zero
+At line 5, column 14
+```
+
+---
+
+### **Serror_compile_error**
+The function:
+
+```c
+int Serror_compile_error(char *message, struct Slexer *lexer);
+```
+
+Handles **compile-time errors**, usually during semantic analysis or code generation.
+These errors are tied to a file context rather than execution state.
+
+Example output:
+
+```
+CompileError: Undefined variable 'x'
+At file 'main.suny', line 8
+```
+
+---
+
+### **Serror_unknown_error**
+The function:
+
+```c
+int Serror_unknown_error(char *message, struct Slexer *lexer);
+```
+
+Handles **unexpected internal errors** (e.g., bugs in the compiler).
+Used as a **catch-all fallback** to avoid silent failures.
+
+---
+
+### **Serror_parser**
+The function:
+
+```c
+int Serror_parser(char *message, struct Slexer *lexer);
+```
+
+Shortcut for reporting parser-related syntax errors.
+Equivalent to calling `Serror_set` followed by `Serror_syntax_error`.
+
+---
+
+### **Serror_print**
+The function:
+
+```c
+int Serror_print(struct Serror *error);
+```
+
+Prints a generic error message without a strict category.
+Mainly useful for **debugging** or **non-critical warnings**.
+
+---
+
+### **Serror_free**
+The function:
+
+```c
+int Serror_free(struct Serror *error);
+```
+
+Releases memory associated with an error object:
+
+* Clears type, message, line, and column.
+* Frees the attached lexer (if any).
+* Finally frees the error itself.
+
+This function is essential to prevent memory leaks in long-running compilers or REPL sessions.
+
+---
+
+### `Sast_expected_expression`
+
+```c
+int Sast_expected_expression(struct Sast *sast);
+```
+
+Parser helper:
+
+* Ensures the current AST node is a valid expression.
+* If not, raises a syntax error `"Expected expression"` at the current lexer location.
+
+---
+
+### Error Handling Philosophy
+
+The `Serror` system follows these **design goals**:
+
+1. **Consistency** → All errors use a common structure and output format.
+2. **Clarity** → Messages are human-readable and point to exact locations.
+3. **Extensibility** → New error categories can be added by extending `type`.
+4. **Fail-fast behavior** → Most errors immediately halt execution (`break_loop`) to prevent cascading failures.
+5. **Integration with AST/Lexer** → Errors carry contextual information, making debugging easier.
+
+---
+
+### Example Workflow
+
+Consider the following invalid Suny code:
+
+```suny
+x = (1 + )
+```
+
+Parsing this would trigger:
+
+```c
+Sast_expected_expression(sast);
+```
+
+Which internally calls:
+
+```
+SyntaxError: Expected expression
+At file 'test.suny', line 3
+```
+
+Execution then halts, preventing further misleading errors.
+
+---
+
+### Summary
+
+The `Serror` API provides a **robust, centralized mechanism** for error handling in Suny.
+From lexing to runtime, all stages of the language pipeline use the same tools, ensuring developers always see **clear, consistent, and actionable error messages**.
+
+### 9.2.3 `Sfunc` Functions
+
+The **`Sfunc` module** is the core abstraction for **function objects** in the Suny runtime system.
+A function in Suny is not merely a piece of code: it is a structured object that encapsulates:
+
+1. **Code**: The bytecode (`Scode`) generated by the compiler for the function body.
+2. **Arguments**: The number of parameters that the function expects.
+3. **Frame (optional)**: An execution environment that contains the local variables, evaluation stack, and scope information used during execution.
+4. **Metadata**: Additional bookkeeping information such as inner functions, capacity for nested closures, and references to higher-level execution structures.
+
+By treating functions as **first-class objects**, Suny enables them to be:
+
+* Assigned to variables.
+* Passed as arguments to other functions.
+* Returned from functions.
+* Stored inside data structures (lists, maps, etc.).
+
+This flexibility mirrors the design philosophy of modern dynamic languages like Python, Lua, or JavaScript, where functions are part of the object system.
+
+The `Sfunc` API provides facilities for creating, configuring, extending, and freeing function objects. Below is a detailed breakdown.
+
+---
+
+### **Sfunc_obj_new**
+The function:
+
+```c
+struct Sfunc *Sfunc_obj_new(void);
+```
+
+Creates a new, empty function object.
+This function allocates memory for a `Sfunc`, initializes its fields to safe defaults, and prepares it for later configuration.
+
+* **Behavior**:
+
+  * `args_index` and `code_index` set to `0`.
+  * `inner_funcs` initialized as `NULL`.
+  * `params` allocated with a maximum argument size (`MAX_ARGS_SIZE`).
+  * No `code` or `frame` is attached yet.
+
+* **Returns**:
+  A pointer to a new `Sfunc` object.
+
+**Usage Example**:
+
+```c
+struct Sfunc *func = Sfunc_obj_new();
+// func is empty, must be configured before execution
+```
+
+---
+
+### **Sfunc_free**
+The function:
+
+```c
+int Sfunc_free(struct Sfunc *func);
+```
+
+Releases memory associated with a function object.
+This includes its code, argument array, and the function object itself.
+
+* **Parameters**:
+
+  * `func`: the function object to release.
+
+* **Returns**:
+  `0` on success.
+
+* **Notes**:
+
+  * Ensures that `Scode_free()` is called if function bytecode exists.
+  * Should always be called when a function is no longer referenced, to avoid memory leaks.
+
+---
+
+### **Sfunc_ready**
+The function:
+
+```c
+struct Sfunc *Sfunc_ready(struct Sfunc *func, int args_size);
+```
+
+Prepares a function to be executed by associating it with the number of arguments it expects.
+At present, this function is a minimal placeholder that simply returns the function unchanged, but it establishes a consistent API entry point for future extensions (such as argument binding or optimization passes).
+
+* **Parameters**:
+
+  * `func`: the function object.
+  * `args_size`: number of arguments expected.
+
+* **Returns**:
+  The prepared function object.
+
+---
+
+### **Sfunc_set**
+The function:
+
+```c
+struct Sfunc *Sfunc_set(struct Scode *code, int args_size, int code_size);
+```
+
+Creates a fully configured function object from bytecode and metadata.
+This is one of the main constructors used after compilation.
+
+* **Parameters**:
+
+  * `code`: compiled function bytecode.
+  * `args_size`: number of arguments.
+  * `code_size`: number of instructions in the bytecode.
+
+* **Returns**:
+  A pointer to a fully configured function object.
+
+**Example**:
+
+```c
+struct Scode *code = compile_function_ast(ast_node);
+struct Sfunc *func = Sfunc_set(code, 2, code->size);
+```
+
+---
+
+### **Sfunc_set_func**
+The function:
+
+```c
+struct Sfunc *Sfunc_set_func(
+    struct Sfunc *func,
+    struct Sframe *frame,
+    struct Scode *code,
+    int args_size
+);
+```
+
+Configures an existing function object by attaching a frame, code, and argument metadata.
+This method is used when functions are created dynamically at runtime or need to inherit execution environments.
+
+* **Parameters**:
+
+  * `func`: function object to configure.
+  * `frame`: execution frame.
+  * `code`: function bytecode.
+  * `args_size`: expected argument count.
+
+* **Returns**:
+  The updated function object.
+
+---
+
+### **Sobj_set_func**
+
+```c
+struct Sobj *Sobj_set_func(struct Sfunc *func);
+```
+
+Wraps a `Sfunc` inside a generic Suny object (`Sobj`).
+This step is crucial, because in Suny everything that can be passed around or stored in a variable must be represented as an `Sobj`.
+
+* **Parameters**:
+
+  * `func`: the function object.
+
+* **Returns**:
+  A new `Sobj` of type `FUNC_OBJ` containing the function.
+
+**Example**:
+
+```c
+struct Sfunc *f = Sfunc_set(code, 1, code->size);
+struct Sobj *obj = Sobj_set_func(f);
+// obj can now be stored in variables, pushed on stack, etc.
+```
+
+---
+
+### **Sfunc_set_code**
+The function:
+
+```c
+struct Sfunc *Sfunc_set_code(struct Sfunc *func, struct Scode *code);
+```
+
+Assigns a new bytecode object to an existing function.
+This updates both the `code` pointer and the `code_size` field.
+
+* **Parameters**:
+
+  * `func`: function object to modify.
+  * `code`: new code block.
+
+* **Returns**:
+  The updated function object.
+
+---
+
+### **Sfunc_insert_code**
+The function:
+
+```c
+struct Sfunc *Sfunc_insert_code(struct Sfunc *func, struct Scode *code);
+```
+
+Appends new bytecode to an existing function’s code segment.
+This is used for **incremental compilation** or **dynamic code injection** where the function body is constructed in multiple passes.
+
+* **Parameters**:
+
+  * `func`: target function.
+  * `code`: additional code to insert.
+
+* **Returns**:
+  The updated function object.
+
+---
+
+### Design Philosophy
+
+The `Sfunc` abstraction balances **flexibility** and **simplicity**:
+
+* Functions are **lightweight objects** with minimal mandatory fields.
+* They can be created in different ways:
+
+  * Directly (`Sfunc_obj_new`)
+  * From compiled bytecode (`Sfunc_set`)
+  * By attaching runtime context (`Sfunc_set_func`)
+* Functions are **integrated into the object system** through `Sobj_set_func`, ensuring consistent handling with other types.
+
+By isolating all function-related logic into `Sfunc`, the Suny runtime maintains a clear separation of responsibilities:
+
+* **Parsing/Compilation** produces `Scode`.
+* **Execution** uses `Sframe`.
+* **Function management** is handled entirely through `Sfunc`.
+
+This modularity makes the system easier to extend (e.g., closures, generators, async functions) without complicating other runtime components.
+
+---
+
+### Example of creating a Suny function in C
+
+```c
+struct Scompiler *compiler = Scompiler_new(); // creat a new compiler
+struct Sframe* frame = Sframe_new(); // creat a new stack frame
+
+SunyInstallLib(compiler, frame);
+
+struct Scode *code = Scompile_from_string("print(\"this is function\")", compiler);
+struct Sfunc *func = Sfunc_set(code, 0, code->size);
+struct Sobj *f_obj = Sobj_set_func(func);
+
+// call it
+
+Svm_run_func(frame, f_obj);
+```
+
+### 9.2.4 The `Slist` Functions
+
+The **`Slist` group** provides a low-level C API for working with Suny’s list type.
+A Suny list is a dynamically sized, ordered collection of Suny objects (`struct Sobj*`).
+It supports **random access**, **append**, **pop**, **concatenation**, **multiplication (repeat)**, and **range creation**.
+
+Unlike fixed-size C arrays, an `Slist` grows automatically as needed.
+Internally, each `Slist` manages:
+
+* `items` → a dynamically allocated array of `Sobj*`
+* `size` → the current number of elements in the list
+* `capacity` → allocated slots in `items`, resized when necessary
+
+To make lists usable inside the Suny runtime, you wrap them with `Sobj_make_list`.
+All operations must maintain Suny’s memory model, including reference counting and garbage collection.
+
+---
+
+### **Slist_new**
+The function:
+
+```c
+struct Slist* Slist_new(void);
+```
+
+Creates a new empty list.
+The returned list starts with `size = 0` and an initial capacity determined by the implementation.
+
+* **Returns**: a pointer to a newly allocated `Slist`.
+* **Errors**: may return `NULL` if memory allocation fails.
+* **Responsibility**: caller must eventually call `Slist_free`.
+
+**Example:**
+
+```c
+struct Slist* list = Slist_new();
+```
+
+---
+
+### **Slist_free**
+The function:
+
+```c
+int Slist_free(struct Slist* list);
+```
+
+Frees the memory used by the list and its elements (if owned).
+After this call, the list pointer must not be used.
+
+* **Returns**: `0` on success, nonzero on error.
+* **Note**: If objects in the list are referenced elsewhere, you must ensure reference counts are decremented correctly before freeing.
+
+**Example:**
+
+```c
+Slist_free(list);
+```
+
+---
+
+### **Slist_add**
+The function:
+
+```c
+struct Slist* Slist_add(struct Slist* list, struct Sobj* obj);
+```
+
+Appends `obj` to the end of the list.
+If the list is full, its capacity will grow (typically doubling).
+
+* **Returns**: the same list pointer for chaining.
+* **Side effects**: increments reference count of `obj` if GC-managed.
+
+**Example:**
+
+```c
+Slist_add(list, Sobj_set_int(42));
+```
+
+---
+
+### **Slist_get**
+The function:
+
+```c
+struct Sobj* Slist_get(struct Slist* list, int index);
+```
+
+Fetches the object stored at position `index`.
+
+* **Indexing**: zero-based (C-style).
+* **Returns**: the `Sobj*` at `index`, or `NULL` if out of range.
+* **Ownership**: caller should not free the returned object directly unless it increases the refcount.
+
+**Example:**
+
+```c
+struct Sobj* val = Slist_get(list, 0);
+Sio_write(val); // prints 42
+```
+
+---
+
+### **Sobj_make_list**
+The function:
+
+```c
+struct Sobj* Sobj_make_list(struct Slist* list);
+```
+
+Wraps a raw `Slist` inside an `Sobj` of type `LIST_OBJ`.
+This makes the list a Suny value that can be passed around in the interpreter.
+
+* **Returns**: a new `Sobj*` referencing the list.
+* **Note**: Suny takes ownership of the list through the wrapper.
+
+**Example:**
+
+```c
+struct Sobj* obj = Sobj_make_list(list);
+Sio_write(obj); // prints [42]
+```
+
+---
+
+### **Slist_change_item**
+The function:
+
+```c
+struct Slist* Slist_change_item(struct Slist* list, int index, struct Sobj* obj);
+```
+
+Replaces the object at `index` with a new `obj`.
+
+* **Returns**: the same list pointer.
+* **Ownership**: caller is responsible for freeing/releasing the old element if it is no longer needed.
+* **Errors**: no change if `index` is out of bounds.
+
+**Example:**
+
+```c
+Slist_change_item(list, 0, Sobj_set_int(99));
+```
+
+---
+
+### **Slist_pop**
+The function:
+
+```c
+struct Slist* Slist_pop(struct Slist* list);
+```
+
+Removes the last element from the list.
+
+* **Returns**: the modified list.
+* **Note**: use `Slist_get(list, list->size - 1)` first if you need the removed element.
+* **Errors**: if the list is empty, does nothing.
+
+**Example:**
+
+```c
+Slist_pop(list);
+```
+
+---
+
+### **Slist_append**
+The function:
+
+```c
+struct Slist* Slist_append(struct Slist* list1, struct Slist* list2);
+```
+
+Concatenates all elements of `list2` to the end of `list1`.
+
+* **Returns**: `list1` with new elements added.
+* **Behavior**: copies references, does not duplicate objects.
+* **Errors**: may fail if memory allocation fails.
+
+**Example:**
+
+```c
+Slist_append(list1, list2);
+```
+
+---
+
+### **Slist_mul**
+The function:
+
+```c
+struct Slist* Slist_mul(struct Slist* list1, int num);
+```
+
+Creates a new list containing `num` repetitions of the elements in `list1`.
+
+* **Returns**: a new list (not the same as `list1`).
+* **Example**: `[1, 2] * 3` → `[1, 2, 1, 2, 1, 2]`.
+
+**Example:**
+
+```c
+struct Slist* repeated = Slist_mul(list, 3);
+Sio_write(Sobj_make_list(repeated));
+```
+
+---
+
+### **Slist_range**
+The function:
+
+```c
+struct Slist* Slist_range(int start, int end);
+```
+
+Creates a new list containing the sequence of integers from `start` up to but not including `end`.
+
+* **Returns**: a new list of number objects.
+* **Example**: `Slist_range(0, 5)` → `[0, 1, 2, 3, 4]`.
+
+**Example:**
+
+```c
+struct Slist* r = Slist_range(0, 10);
+Sio_write(Sobj_make_list(r));
+```
+
+---
+
+## **Summary of `Slist` API**
+
+| Function            | Purpose                             |
+| ------------------- | ----------------------------------- |
+| `Slist_new`         | Create a new empty list             |
+| `Slist_free`        | Free a list and its elements        |
+| `Slist_add`         | Append an object to the list        |
+| `Slist_get`         | Retrieve an element by index        |
+| `Sobj_make_list`    | Wrap a list inside an `Sobj`        |
+| `Slist_change_item` | Replace an element at a given index |
+| `Slist_pop`         | Remove the last element             |
+| `Slist_append`      | Concatenate two lists               |
+| `Slist_mul`         | Repeat a list N times               |
+| `Slist_range`       | Create a numeric range list         |
+
+---
+
+### 9.2.5 The `Sstr` Functions
+
+The **`Sstr` group** provides a low-level C API for working with Suny’s string type.
+A Suny string (`struct Sstr`) is an immutable sequence of characters, similar to strings in high-level languages.
+It supports **creation**, **concatenation**, **repetition (multiplication)**, and **deallocation**.
+
+Unlike raw C strings (`char*`), an `Sstr`:
+
+* Stores its **length** explicitly (no need for `strlen`).
+* Can hold any byte sequence (not required to be null-terminated).
+* Is **heap-allocated** and must be freed explicitly with `Sstr_free`.
+
+Internally, each `Sstr` manages:
+
+* `data` → a dynamically allocated buffer of characters
+* `size` → number of characters stored (can include `'\0'`)
+
+---
+
+### **Sstr_new**
+
+The function:
+
+```c
+struct Sstr* Sstr_new(void);
+```
+
+Creates a new empty string (`""`).
+
+* **Returns**: a pointer to a newly allocated `Sstr`.
+* **Errors**: may return `NULL` if memory allocation fails.
+* **Responsibility**: caller must eventually call `Sstr_free`.
+
+**Example:**
+
+```c
+struct Sstr* str = Sstr_new();
+```
+
+---
+
+### **Sstr_new_from_char**
+
+The function:
+
+```c
+struct Sstr* Sstr_new_from_char(char* chr, int size);
+```
+
+Creates a new string from a raw character buffer.
+
+* **Parameters**:
+
+  * `chr`: pointer to character array (not necessarily null-terminated).
+  * `size`: number of characters to copy.
+* **Returns**: a new `Sstr*` containing the copied data.
+* **Errors**: returns `NULL` if memory allocation fails.
+
+**Example:**
+
+```c
+struct Sstr* hello = Sstr_new_from_char("Hello", 5);
+```
+
+---
+
+### **Sstr_free**
+
+The function:
+
+```c
+void Sstr_free(struct Sstr* str);
+```
+
+Frees the memory used by a string.
+
+* **Parameters**:
+
+  * `str`: string to free.
+* **Effect**: releases both the buffer and struct itself.
+* **Note**: After this call, `str` must not be used again.
+
+**Example:**
+
+```c
+Sstr_free(hello);
+```
+
+---
+
+### **Sstr_add**
+
+The function:
+
+```c
+struct Sstr* Sstr_add(struct Sstr* str1, struct Sstr* str2);
+```
+
+Concatenates two strings into a new one.
+
+* **Parameters**:
+
+  * `str1`: first string
+  * `str2`: second string
+* **Returns**: new string `str1 + str2`.
+* **Errors**: returns `NULL` if allocation fails.
+
+**Example:**
+
+```c
+struct Sstr* a = Sstr_new_from_char("foo", 3);
+struct Sstr* b = Sstr_new_from_char("bar", 3);
+struct Sstr* c = Sstr_add(a, b); // "foobar"
+```
+
+---
+
+### **Sstr_mul**
+
+The function:
+
+```c
+struct Sstr* Sstr_mul(struct Sstr* str, int n);
+```
+
+Creates a new string consisting of `n` repetitions of `str`.
+
+* **Parameters**:
+
+  * `str`: input string
+  * `n`: number of repetitions
+* **Returns**: a new repeated string
+* **Errors**: if `n <= 0`, may return empty string
+
+**Example:**
+
+```c
+struct Sstr* x = Sstr_new_from_char("ha", 2);
+struct Sstr* y = Sstr_mul(x, 3); // "hahaha"
+```
+
+# 10. Garbage collector
+
+# 11. Userdata
+
+# 12. Using Suny C-API to make library
+
+# 13. Virtual machine
+
+# 14. Standard Libraries
+
+# 15. SGL (Suny Game Library)
