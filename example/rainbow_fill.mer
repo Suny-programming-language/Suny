@@ -1,0 +1,39 @@
+include "SGL"
+
+width = 700
+height = 700
+cube_size = 1
+cube_x = 0
+cube_y = 0
+
+init("Rainbow Fill", width, height)
+running = true
+filled = false
+
+SGL_cube = SGL_rect(cube_x, cube_y, cube_size, cube_size)
+
+while running do
+    if not filled then
+        t = (cube_x + cube_y) / (width + height)
+        hue = t * 360
+        c = hue_to_rgb(hue)
+        draw_square(cube_x, cube_y, cube_size, c[0], c[1], c[2])
+        cube_x = cube_x + cube_size
+        if cube_x >= width then
+            cube_x = 0
+            cube_y = cube_y + cube_size
+        end
+        if cube_y >= height then
+            filled = true
+        end
+    end
+
+    key = get_key()
+    if key == "x" then
+        running = false
+    end
+
+    flip()
+end
+
+close()

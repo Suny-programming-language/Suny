@@ -1,0 +1,27 @@
+include "SGL"
+
+width = 700
+height = 700
+
+init("Rainbow fade", width, height)
+running = true
+hue = 0
+
+while running do
+    c = hue_to_rgb(hue)
+    screen_fill(c[0], c[1], c[2])
+
+    hue = hue + 0.01
+    if hue >= 360 then
+        hue = 0
+    end
+
+    key = get_key()
+    if key == "x" then
+        running = false
+    end
+
+    flip()
+end
+
+close()

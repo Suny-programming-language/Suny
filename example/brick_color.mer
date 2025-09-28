@@ -1,0 +1,51 @@
+include "random"
+include "SGL"
+
+width = 700
+height = 700
+
+screen_color = [255, 255, 255]
+
+cube_x = 0
+cube_y = 0
+cube_size = 5
+
+cube_vel = 20
+
+init("Brick Color", width, height)
+
+function rand_color() do
+    return [randint(0, 255), randint(0, 255), randint(0, 255)]
+end
+
+cube_color = rand_color()
+
+running = true
+
+while running do
+    draw_square(cube_x, cube_y, cube_size, cube_color[0], cube_color[1], cube_color[2])
+    
+    key = get_key()
+
+    if key == "x" then
+        running = false
+    end
+    
+    cube_x = cube_x + cube_size
+
+    if cube_x >= width and cube_y < height then
+        cube_x = 0
+        cube_y = cube_y + cube_size
+    end
+
+    if cube_y >= height then
+        cube_y = height
+        cube_x = width
+    end
+
+    cube_color = rand_color()
+
+    flip()
+end
+
+close()
