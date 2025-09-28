@@ -26,13 +26,6 @@ struct Suserdata* Suserdata_set_type(struct Suserdata* userdata, struct Stype* t
     return userdata;
 }
 
-struct Sframe* Sframe_register_userdata(struct Sframe* frame, struct Scompiler* compiler, void* data, int address, char* name, char* doc) {
-    struct Sobj* obj = Sobj_make_userdata(data);
-    Sframe_store_global(frame, address, obj, USER_DATA_OBJ);
-    add_scope(compiler, name, address, 0);
-    return frame;
-}
-
 int Suserdata_free(struct Suserdata* userdata) {
     free(userdata);
     return 0;

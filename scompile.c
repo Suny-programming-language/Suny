@@ -1087,3 +1087,33 @@ Scompile_store_attribute
 
     return code;
 }
+
+struct Scode*
+Scompile_program_from_string
+(char *str, struct Scompiler *compiler) {
+    struct Slexer *lexer = Slexer_init(str);
+    struct Sparser *parser = Sparser_init(lexer);
+    struct Sast *ast = Sparser_parse_program(parser);
+    return Scompile_program(ast, compiler);    
+}
+
+struct Scode*
+Scompile_from_string
+(char *str, struct Scompiler *compiler) {
+    struct Slexer *lexer = Slexer_init(str);
+    struct Sparser *parser = Sparser_init(lexer);
+    struct Sast *ast = Sparser_parse(parser);
+
+    struct Scode *code = Scode_new();
+
+    for (int i = 0; i < ast->child_count; i++) {
+        struct Scode *child = Scompile(ast->children[i], compiler);
+        INSERT(code, child);
+
+        if (is_expr(ast->children[i])) {
+            PUSH(code, POP_TOP);
+        }
+    }   
+
+    return code;
+}

@@ -111,3 +111,9 @@ Sclass_store_local_obj
     
     return NULL;
 }
+
+struct Sobj*
+Sobj_creat_a_copy_version_of_class(struct Sclass* sclass) {
+    struct Sclass* new_sclass = Sclass_copy(sclass);
+    return Sobj_make_class(new_sclass);
+}

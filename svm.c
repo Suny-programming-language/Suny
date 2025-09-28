@@ -62,25 +62,16 @@ get_next_code
 
 byte_t
 jump_to(struct Sframe *frame, int address) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *jump_to(struct Sframe *frame, int address) (building...)\n");
-#endif
     struct Spos pos = Slabel_map_get(frame->f_label_map, address);
     int index = pos.indexof;
     frame->f_code_index = index - 1;
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *jump_to(struct Sframe *frame, int address) (done)\n");
-#endif
 
     return frame->f_code->code[frame->f_code_index];
 }
 
 struct Sframe *
 Svm_run_program(struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (building...)\n");
-#endif
     struct Scode *code = frame->f_code;
 
     frame->gc_pool = Sgc_new_pool();
@@ -171,14 +162,8 @@ Svm_run_program(struct Sframe *frame) {
             }
 
             else if (op == POP_TOP) {
-                #ifdef DEBUG
-                    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (POP_TOP)\n");
-                #endif
                 struct Sobj *obj = Sframe_pop(frame);
                 Sgc_dec_ref(obj, frame->gc_pool);
-                #ifdef DEBUG
-                    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (done)\n");
-                #endif
             }
 
             else if (op == LOAD_ITEM) {
@@ -216,18 +201,12 @@ Svm_run_program(struct Sframe *frame) {
 
     Sgc_deactivate(frame);   
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_run_program(struct Sframe *frame) (done...)\n");
-#endif
 
     return frame;
 }
 
 struct Sframe *
 Svm_run_call_context(struct Scall_context *context) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_run_call_context(struct Scall_context *context) (building...)\n");
-#endif
     struct Sframe *f_frame = context->frame;
 
     byte_t op = get_next_code(f_frame);
@@ -246,14 +225,8 @@ Svm_run_call_context(struct Scall_context *context) {
         }
 
         else if (op == POP_TOP) {
-            #ifdef DEBUG
-                printf("[svm.c] struct Sframe *Svm_run_call_context(struct Scall_context *context) (POP_TOP)\n");
-            #endif
             struct Sobj *obj = Sframe_pop(f_frame);
             Sgc_dec_ref(obj, f_frame->gc_pool);
-            #ifdef DEBUG
-                printf("[svm.c] struct Sframe *Svm_run_call_context(struct Scall_context *context) (done)\n");
-            #endif
         }
 
         else if (op == AND_LOG) {
@@ -357,9 +330,6 @@ Svm_run_call_context(struct Scall_context *context) {
 
     Sframe_push(context->main_frame, context->ret_obj);
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_run_call_context(struct Scall_context *context) (done)\n");
-#endif
 
     return context->main_frame;
 }
@@ -367,9 +337,6 @@ Svm_run_call_context(struct Scall_context *context) {
 struct Sframe*
 Scall_context_make_inner_function
 (struct Scall_context *context) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Scall_context_make_inner_function(struct Scall_context *context) (building...)\n");
-#endif
 
     struct Sframe *f_frame = context->frame;
 
@@ -407,8 +374,6 @@ Scall_context_make_inner_function
 
     struct Sfunc *func = Sfunc_set(code, fargs_count, code_size);
 
-    func->args_size = fargs_count;
-
     func->frame = f_frame;
 
     struct Sobj *f_obj = Sobj_set_func(func);
@@ -417,9 +382,6 @@ Scall_context_make_inner_function
 
     Sframe_push(f_frame, f_obj);
     
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Scall_context_make_inner_function(struct Scall_context *context) (done)\n");
-#endif
 
     return f_frame;
 }
@@ -427,9 +389,6 @@ Scall_context_make_inner_function
 struct Sframe *
 Svm_evaluate_MAKE_FUNCTION
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_MAKE_FUNCTION(struct Sframe *frame) (building...)\n");
-#endif
     byte_t args_count = get_next_code(frame);
 
     int code_size = 0;
@@ -463,16 +422,8 @@ Svm_evaluate_MAKE_FUNCTION
     PUSH(code, END_FUNCTION);
 
     struct Sfunc *func = Sfunc_set(code, args_count, code_size);
-
-    func->args_size = args_count;
-
     struct Sobj *f_obj = Sobj_set_func(func);
-
     Sframe_push(frame, f_obj);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_MAKE_FUNCTION(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -480,65 +431,27 @@ Svm_evaluate_MAKE_FUNCTION
 struct Sframe *
 Svm_evaluate_FUNCTION_CALL
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (building...)\n");
-#endif
 
     struct Sobj *f_obj = Sframe_pop(frame);
 
     if (f_obj->type == BUILTIN_OBJ) {
-        struct Sobj* (*func)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
-
-        struct Sobj* result = func(frame);
-
-        Sframe_push(frame, result);
-
+        Sframe_call_c_api_func(frame, load_c_api_func(f_obj));
         return frame;
     }
 
     if (f_obj->type == CLASS_OBJ) {
-        struct Sclass *sclass = Sclass_copy(f_obj->f_type->f_class);
-
-        struct Sobj* obj = Sobj_new();
-        obj->type = CLASS_OBJ;
-        obj->f_type = Stype_new();
-        obj->f_type->f_class = sclass;
-        
+        struct Sobj *obj = Sobj_creat_a_copy_version_of_class(f_obj->f_type->f_class);
         Sframe_push(frame, obj);
 
         return frame;
     }
 
     struct Scall_context *context = Scall_context_new();
-    context->main_frame = frame;
 
-    struct Sframe *f_frame = context->frame;
-    struct Scode *f_code = f_obj->f_type->f_func->code;
-
-    f_frame->f_globals = frame->f_globals;
-    f_frame->f_globals_size = frame->f_globals_size;
-    f_frame->f_globals_index = frame->f_globals_index;
-    f_frame->gc_pool = frame->gc_pool;
-    f_frame->f_code = f_code;
-    f_frame->f_code_index = 0;
-    f_frame->f_label_map = Slabel_map_set_program(f_code);
-
-    Sframe_store_local(f_frame, SELF_ADDRESS, f_obj, LOCAL_OBJ);
-
-    int address = 0;
-
-    for (int i = 0; i < f_obj->f_type->f_func->args_size; ++i) {
-        struct Sobj* value = Sframe_pop(frame);
-        Sframe_store_local(f_frame, address++, value, LOCAL_OBJ);
-    }
-
+    Scall_context_set_frame(context, frame, f_obj);
     Svm_run_call_context(context);
-
     Scall_context_free(context);
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
-#endif
 
     Sgc_dec_ref(f_obj, frame->gc_pool);
 
@@ -548,9 +461,6 @@ Svm_evaluate_FUNCTION_CALL
 struct Sframe *
 Svm_evalutate_PUSH_FLOAT
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_PUSH_FLOAT(struct Sframe *frame) (building...)\n");
-#endif
 
     byte_t b1 = get_next_code(frame);
     byte_t b2 = get_next_code(frame);
@@ -565,13 +475,8 @@ Svm_evalutate_PUSH_FLOAT
     float value;
     memcpy(&value, &i, sizeof(value));
 
-    struct Sobj *obj = Sobj_set_int(value);
+    Sframe_push_number(frame, value);
 
-    PUSH_OBJ(obj);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_PUSH_FLOAT(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -579,43 +484,28 @@ Svm_evalutate_PUSH_FLOAT
 struct Sframe *
 Svm_evalutate_LOAD_GLOBAL
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_LOAD_GLOBAL(struct Sframe *frame) (building...)\n");
-#endif
     int address = get_next_code(frame);
     struct Sobj *obj = Sframe_load_global(frame, address);
 
     Sframe_push(frame, obj->f_value);
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_LOAD_GLOBAL(struct Sframe *frame) (done)\n");
-#endif
     return frame;
 }
 
 struct Sframe *
 Svm_evalutate_STORE_GLOBAL
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_STORE_GLOBAL(struct Sframe *frame) (building...)\n");
-#endif
 
     struct Sobj *obj = Sframe_pop(frame);
     
     int address = get_next_code(frame);
     Sframe_store_global(frame, address, obj, GLOBAL_OBJ);
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_STORE_GLOBAL(struct Sframe *frame) (done)\n");
-#endif
     return frame;
 }
 
 struct Sframe *
 Svm_evalutate_BINARY_OPER
 (struct Sframe *frame, byte_t op) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_BINARY_OPER(struct Sframe *frame, byte_t op) (building...)\n");
-#endif
     struct Sobj *obj2 = Sframe_pop(frame);
     struct Sobj *obj1 = Sframe_pop(frame);
 
@@ -664,9 +554,6 @@ Svm_evalutate_BINARY_OPER
     Sgc_dec_ref(obj2, frame->gc_pool);
 
     Sframe_push(frame, obj);
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evalutate_BINARY_OPER(struct Sframe *frame, byte_t op) (done)\n");
-#endif
     return frame;
 }
 
@@ -682,10 +569,6 @@ Svm_evaluate_PRINT
 struct Sframe *
 Svm_evaluate_PUSH_STRING
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_PUSH_STRING(struct Sframe *frame) (building...)\n");
-#endif
-
     int size = get_next_code(frame);
 
     char* buff = malloc(size + 1);
@@ -696,13 +579,8 @@ Svm_evaluate_PUSH_STRING
 
     buff[size] = '\0';
 
-    struct Sobj *obj = Sobj_make_str(buff, size);
+    Sframe_push_string(frame, buff, size);
 
-    PUSH_OBJ(obj);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_PUSH_STRING(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -710,9 +588,6 @@ Svm_evaluate_PUSH_STRING
 struct Sframe *
 Svm_evaluate_POP_JUMP_IF_FALSE
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_POP_JUMP_IF_FALSE(struct Sframe *frame) (building...)\n");
-#endif
     int address = get_next_code(frame);
 
     struct Sobj *obj = Sframe_pop(frame);
@@ -724,9 +599,6 @@ Svm_evaluate_POP_JUMP_IF_FALSE
         return frame;
     }
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_POP_JUMP_IF_FALSE(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -734,16 +606,8 @@ Svm_evaluate_POP_JUMP_IF_FALSE
 struct Sframe *
 Svm_evaluate_JUMP_TO
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_POP_JUMP_IF_FALSE(struct Sframe *frame) (building...)\n");
-#endif
-
     int address = get_next_code(frame);
     jump_to(frame, address);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_POP_JUMP_IF_FALSE(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -751,9 +615,6 @@ Svm_evaluate_JUMP_TO
 struct Sframe *
 Svm_evaluate_BUILD_LIST
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_BUILD_LIST(struct Sframe *frame) (building...)\n");
-#endif
 
     int size = get_next_code(frame);
 
@@ -769,9 +630,6 @@ Svm_evaluate_BUILD_LIST
 
     Sframe_push(frame, obj);
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_BUILD_LIST(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -779,9 +637,6 @@ Svm_evaluate_BUILD_LIST
 struct Sframe *
 Svm_evaluate_LOAD_ITEM
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ITEM(struct Sframe *frame) (building...)\n");
-#endif
 
     struct Sobj *index = Sframe_pop(frame);
     struct Sobj *list = Sframe_pop(frame);
@@ -830,9 +685,6 @@ Svm_evaluate_LOAD_ITEM
     } else {
         Sframe_push(frame, Sobj_set_int(0));
     }
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ITEM(struct Sframe *frame) (done)\n");
-#endif
 
     Sgc_dec_ref(list, frame->gc_pool);
     Sgc_dec_ref(index, frame->gc_pool);
@@ -867,9 +719,6 @@ Svm_evaluate_STORE_ITEM
 struct Sframe *
 Svm_evaluate_LEN_OF
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (building...)\n");
-#endif
     struct Sobj *list = Sframe_pop(frame);
 
     Sgc_dec_ref(list, frame->gc_pool);
@@ -881,10 +730,6 @@ Svm_evaluate_LEN_OF
         struct Sobj *obj = Sobj_set_int(list->f_type->f_str->size);
         Sframe_push(frame, obj);
     }
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LEN_OF(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -910,18 +755,10 @@ Svm_evaluate_LOAD_FALSE
 struct Sframe *
 Svm_evaluate_LOAD_LOCAL
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_LOCAL(struct Sframe *frame) (building...)\n");
-#endif
-
     int address = get_next_code(frame);
     struct Sobj *obj = Sframe_load_local(frame, address);
 
     PUSH_OBJ(obj->f_value);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_LOCAL(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -929,18 +766,11 @@ Svm_evaluate_LOAD_LOCAL
 struct Sframe *
 Svm_evaluate_STORE_LOCAL
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_LOCAL(struct Sframe *frame) (building...)\n");
-#endif
     
     struct Sobj *obj = Sframe_pop(frame);
     int address = get_next_code(frame);
 
     Sframe_store_local(frame, address, obj, LOCAL_OBJ);
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_LOCAL(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -948,9 +778,6 @@ Svm_evaluate_STORE_LOCAL
 struct Sframe *
 Svm_evaluate_CLASS_BEGIN
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_CLASS_BEGIN(struct Sframe *frame) (building...)\n");
-#endif
 
     byte_t op = get_next_code(frame);
 
@@ -982,15 +809,9 @@ Svm_evaluate_CLASS_BEGIN
         }
 
         else if (op == STORE_GLOBAL) {
-#ifdef DEBUG
-            printf("[svm.c] struct Sframe *Svm_evaluate_STORE_GLOBAL(struct Sframe *frame) (building...)\n");
-#endif
             int address = get_next_code(frame);
             sclass = Sclass_store_object(sclass, frame, address);
         
-#ifdef DEBUG
-            printf("[svm.c] struct Sframe *Svm_evaluate_STORE_GLOBAL(struct Sframe *frame) (done)\n");
-#endif
         }
 
         else if (op == CLASS_BEGIN) {
@@ -1061,34 +882,19 @@ Svm_evaluate_CLASS_BEGIN
 
     Sframe_push(frame, obj);
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_CLASS_BEGIN(struct Sframe *frame) (done)\n");
-#endif
-
     return frame;
 }
 
 struct Sframe*
 Svm_evaluate_NOT_LOG
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_NOT_LOG(struct Sframe *frame) (building...)\n");
-#endif    
     struct Sobj *obj = Sframe_pop(frame);
 
     Sgc_dec_ref(obj, frame->gc_pool);
 
     int value = !obj->value->value;
 
-    if (value) {
-        Sframe_push(frame, Sobj_make_true());
-    } else {
-        Sframe_push(frame, Sobj_make_false());
-    }
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_NOT_LOG(struct Sframe *frame) (done)\n");
-#endif
+    Sframe_push(frame, Sobj_make_bool(value));
 
     return frame;
 }
@@ -1096,9 +902,6 @@ Svm_evaluate_NOT_LOG
 struct Sframe*
 Svm_evaluate_AND_LOG
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_AND_LOG(struct Sframe *frame) (building...)\n");
-#endif
 
     struct Sobj *obj1 = Sframe_pop(frame);
     struct Sobj *obj2 = Sframe_pop(frame);
@@ -1108,15 +911,7 @@ Svm_evaluate_AND_LOG
 
     int value = obj1->value->value && obj2->value->value;
 
-    if (value) {
-        Sframe_push(frame, Sobj_make_true());
-    } else {
-        Sframe_push(frame, Sobj_make_false());
-    }
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_AND_LOG(struct Sframe *frame) (done)\n");
-#endif
+    Sframe_push(frame, Sobj_make_bool(value));
 
     return frame;
 }
@@ -1124,9 +919,6 @@ Svm_evaluate_AND_LOG
 struct Sframe*
 Svm_evaluate_OR_LOG
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_OR_LOG(struct Sframe *frame) (building...)\n");
-#endif
     struct Sobj *obj1 = Sframe_pop(frame);
     struct Sobj *obj2 = Sframe_pop(frame);
 
@@ -1135,15 +927,7 @@ Svm_evaluate_OR_LOG
 
     int value = obj1->value->value || obj2->value->value;
 
-    if (value) {
-        Sframe_push(frame, Sobj_make_true());
-    } else {
-        Sframe_push(frame, Sobj_make_false());
-    }
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_OR_LOG(struct Sframe *frame) (done)\n");
-#endif
+    Sframe_push(frame, Sobj_make_bool(value));
 
     return frame;
 }
@@ -1151,9 +935,6 @@ Svm_evaluate_OR_LOG
 struct Sframe*
 Svm_evaluate_LOAD_ATTR
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ATTR(struct Sframe *frame) (building...)\n");
-#endif
 
     int address = get_next_code(frame);
 
@@ -1171,9 +952,6 @@ Svm_evaluate_LOAD_ATTR
         }
     }
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_LOAD_ATTR(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -1181,9 +959,6 @@ Svm_evaluate_LOAD_ATTR
 struct Sframe*
 Svm_evaluate_STORE_ATTR
 (struct Sframe *frame) {
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_ATTR(struct Sframe *frame) (building...)\n");
-#endif
 
     struct Sobj* class = Sframe_pop(frame);
     struct Sobj* value = Sframe_pop(frame);
@@ -1195,9 +970,6 @@ Svm_evaluate_STORE_ATTR
         Sclass_store_local_obj(sclass, frame, value, address);
     }
 
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_STORE_ATTR(struct Sframe *frame) (done)\n");
-#endif
 
     return frame;
 }
@@ -1205,91 +977,22 @@ Svm_evaluate_STORE_ATTR
 struct Sframe*
 Svm_run_func(struct Sframe *frame, struct Sobj *f_obj) {
     if (f_obj->type == BUILTIN_OBJ) {
-#ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (builtin)\n");
-#endif
-        struct Sobj* (*func)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) load_c_api_func(f_obj);
-
-        struct Sobj* result = func(frame);
-
-        Sframe_push(frame, result);
-
-#ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
-#endif
+        Sframe_call_c_api_func(frame, f_obj->c_api_func->func);
         return frame;
     }
 
     if (f_obj->type == CLASS_OBJ) {
-#ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (class)\n");
-#endif
-        struct Sclass *sclass = Sclass_copy(f_obj->f_type->f_class);
-
-        struct Sobj* obj = Sobj_new();
-        obj->type = CLASS_OBJ;
-        obj->f_type = Stype_new();
-        obj->f_type->f_class = sclass;
-
+        struct Sobj *obj = Sobj_creat_a_copy_version_of_class(f_obj->f_type->f_class);
         Sframe_push(frame, obj);
-
-#ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (class)\n");
-#endif
-
         return frame;
     }
 
-    #ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (func)\n");
-    #endif
 
     struct Scall_context *context = Scall_context_new();
-    struct Sframe *f_frame = context->frame;
 
-    f_frame->f_label_map = Slabel_map_set_program(f_obj->f_type->f_func->code);
-
-    f_frame->f_globals = frame->f_globals;
-    f_frame->f_globals_size = frame->f_globals_size;
-
-    f_frame->f_locals = f_obj->f_type->f_func->frame->f_locals;
-    f_frame->f_locals_size = f_obj->f_type->f_func->frame->f_locals_size;
-
-    context->main_frame = frame;
-
-    #ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (context)\n");
-    #endif
-
-    Scall_context_set_func(context, f_obj->f_type->f_func);
-
-    #ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (args)\n");
-    #endif
-
-    int address = 0;
-
-    for (int i = 0; i < f_obj->f_type->f_func->args_size; ++i) {
-    #ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (arg start %d)\n", i);
-    #endif
-        struct Sobj* value = Sframe_pop(frame);
-
-        Sframe_store_local(f_frame, address++, value, LOCAL_OBJ);
-    #ifdef DEBUG
-        printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (arg end %d)\n", i);
-    #endif
-    }
-
+    Scall_context_set_frame(context, frame, f_obj);
     Svm_run_call_context(context);
-
     Scall_context_free(context);
-
-    f_obj->f_type->f_func->call_context = context;
-
-#ifdef DEBUG
-    printf("[svm.c] struct Sframe *Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) (done)\n");
-#endif
-
+    
     return frame;
 }

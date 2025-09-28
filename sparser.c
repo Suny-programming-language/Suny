@@ -422,10 +422,6 @@ Sparser_parse_logic_expression
         }
     }
 
-    if (parser->token->type == IF) {
-        return Sparser_parse_second_if(parser, left);
-    }
-
     return left;
 }
 
@@ -1326,38 +1322,11 @@ Sparser_parse_store_attribute
     return node;
 }
 
-struct Sast *
-Sparser_parse_second_if
-(struct Sparser *parser, struct Sast *expr) {
-    struct Sast *node = AST(AST_IF, 0, NULL);
-
+struct Sast*
+Sast_parse_from_string(char *str) {
+    struct Slexer *lexer = Slexer_init(str);
+    struct Sparser *parser = Sparser_init(lexer);
     parser->token = Slexer_get_next_token(parser->lexer);
-
-    struct Sast *conditon = Sparser_parse(parser);
-
-    struct Sast *if_block = AST(AST_BLOCK, 0, NULL);
-
-    if_block->block[0] = expr;
-    if_block->block_size = 1;
-
-    node->if_body = if_block->block;
-    node->if_body_size = if_block->block_size;
-
-    Sast_set_line(parser->lexer, conditon);
-    Sast_expected_expression(conditon);
-
-    node->condition = conditon;
-
-    if (parser->token->type == ELSE) {
-        struct Sast *else_block = Sparser_parse_else_block(parser);
-
-        node->else_body = else_block->block;
-        node->else_body_size = else_block->block_size; 
-    }
-
-    parser->token = Slexer_get_next_token(parser->lexer);
-
-    Sast_set_line(parser->lexer, node);
-
-    return node;
+    struct Sast *ast = Sparser_parse(parser);
+    return ast;
 }

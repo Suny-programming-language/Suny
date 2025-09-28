@@ -3,6 +3,7 @@
 
 #include "sbuiltin.h"
 #include "slabel.h"
+#include "sbool.h"
 #include "sgc.h"
 
 #define POP_OBJ() Sframe_pop(frame)
@@ -121,5 +122,26 @@ Sframe_load_c_api_func
 void*
 Sframe_find_c_api_func
 (struct Sframe *frame, int address);
+
+struct Sframe*
+Sframe_push_number(struct Sframe* frame, float number);
+
+struct Sframe*
+Sframe_push_string(struct Sframe* frame, char* string, int size);
+
+struct Sframe*
+Sframe_push_bool(struct Sframe* frame, int b);
+
+struct Sobj*
+Sframe_get_top(struct Sframe* frame);
+
+struct Sobj*
+Sframe_true_pop(struct Sframe* frame);
+
+struct Sframe*
+Sframe_call_c_api_func(struct Sframe* frame, void* func);
+
+struct Sframe*
+Sframe_call_func_from_dll(struct Sframe* frame, char* dll_name, char* func_name, struct Sobj* args);
 
 #endif // SFRAME_H

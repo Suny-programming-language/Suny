@@ -16,12 +16,22 @@ struct Sfunc *
 Sfunc_ready
 (struct Sfunc *func, int args_size);
 
+struct Sfunc*
+Sfunc_set_code(struct Sfunc *func, struct Scode *code);
+
+struct Sfunc*
+Sfunc_insert_code(struct Sfunc *func, struct Scode *code);
+
 struct Scall_context *
 Scall_context_new(void);
 
 struct Scall_context*
 Scall_context_set_func
 (struct Scall_context *context, struct Sfunc *func);
+
+struct Scall_context*
+Scall_context_set_frame
+(struct Scall_context *context, struct Sframe *frame, struct Sobj* f_obj);
 
 struct Sfunc*
 Sfunc_set_func

@@ -24,12 +24,9 @@ typedef int address_t;
 
 #define null_obj Sobj_new()
 
-#define Sobj_get_value(obj) ((obj)->value->value)
-
+#define ValueOf(obj) ((obj)->value->value)
 #define Addressof(obj) ((obj)->address)
-
 #define Sizeof(obj) ((obj)->size)
-
 #define Typeof(obj) ((obj)->type)
 
 enum Sobj_t {
@@ -91,6 +88,10 @@ Sobj_free
 int
 Sobj_free_objs
 (struct Sobj** objs, int size);
+
+void*
+Sobj_get_obj
+(struct Sobj* obj, enum Sobj_t type);
 
 struct Sobj*
 Sobj_set_int

@@ -7,9 +7,6 @@ Scode_new(void) {
     code->size = 0;
     code->capacity = MAX_CODE_SIZE;
 
-    code->size_line = 0;
-    code->capacity_line = MAX_CODE_SIZE;
-    
     return code;
 }
 

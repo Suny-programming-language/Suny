@@ -110,8 +110,6 @@ Sobj_set_func
     return obj;
 }
 
-// "i have no idea what am i doing" (8:30 9/9/2025)
-
 int Scall_context_free_frame(struct Scall_context *context) {
     struct Sframe *frame = context->frame;
 
@@ -140,4 +138,50 @@ Scall_context_free
     printf("[sfunc.c] int Scall_context_free(struct Scall_context *context) (done)\n");
 #endif
     return 0;
+}
+
+
+struct Scall_context*
+Scall_context_set_frame
+(struct Scall_context *context, struct Sframe *frame, struct Sobj* f_obj) {
+    context->main_frame = frame;
+
+    struct Sframe *f_frame = context->frame;
+    struct Scode *f_code = f_obj->f_type->f_func->code;
+
+    f_frame->f_globals = frame->f_globals;
+    f_frame->f_globals_size = frame->f_globals_size;
+    f_frame->f_globals_index = frame->f_globals_index;
+    f_frame->gc_pool = frame->gc_pool;
+    f_frame->f_code = f_code;
+    f_frame->f_code_index = 0;
+    f_frame->f_label_map = Slabel_map_set_program(f_code);
+
+    Sframe_store_local(f_frame, SELF_ADDRESS, f_obj, LOCAL_OBJ);
+
+    int address = 0;
+
+    for (int i = 0; i < f_obj->f_type->f_func->args_size; ++i) {
+        struct Sobj* value = Sframe_pop(frame);
+        Sframe_store_local(f_frame, address++, value, LOCAL_OBJ);
+    }
+}
+
+struct Sfunc*
+Sfunc_set_code(struct Sfunc *func, struct Scode *code) {
+    func->code = code;
+    func->code_size = code->size;
+    return func;   
+}
+
+struct Sfunc*
+Sfunc_insert_code(struct Sfunc *func, struct Scode *code) {
+    struct Scode *old_code = func->code;
+    
+    Scode_push(old_code, code);
+    
+    func->code = old_code;
+    func->code_size = old_code->size;
+    
+    return func;
 }

@@ -375,3 +375,73 @@ Sframe_load_const
     SUNY_BREAK_POINT;
     return NULL;
 }
+
+struct Sframe*
+Sframe_push_number(struct Sframe* frame, float number) {
+    struct Sobj* obj = Sobj_set_int(number);
+    Sframe_push(frame, obj);
+    return frame;
+}
+
+struct Sframe*
+Sframe_push_string(struct Sframe* frame, char* string, int size) {
+    struct Sobj* obj = Sobj_make_str(string, size);
+    Sframe_push(frame, obj);
+    return frame;
+}
+
+struct Sframe*
+Sframe_push_bool(struct Sframe* frame, int b) {
+    struct Sobj* obj = Sobj_make_bool(b);
+    Sframe_push(frame, obj);
+    return frame;
+}
+
+struct Sobj*
+Sframe_get_top(struct Sframe* frame) {
+    if (frame->f_stack_index <= 0) {
+        printf("Error frame.c: stack underflow\n");
+        SUNY_BREAK_POINT;
+        return NULL;
+    }
+
+    struct Sobj* obj = frame->f_stack[frame->f_stack_index - 1];
+
+    if (obj) {
+        return obj;
+    } else {
+        printf("Error frame.c: stack underflow\n");
+        SUNY_BREAK_POINT;
+        return NULL;
+    }
+}
+
+struct Sframe*
+Sframe_call_c_api_func(struct Sframe* frame, void* func) {
+    struct Sobj* (*f)(struct Sframe*) = (struct Sobj* (*)(struct Sframe*)) func;
+    struct Sobj* obj = f(frame);
+    Sframe_push(frame, obj);
+    return frame;
+}
+
+struct Sobj*
+Sframe_true_pop(struct Sframe* frame) {
+    struct Sobj* obj = Sframe_pop(frame);
+    Sgc_dec_ref(obj, frame->gc_pool);
+    return obj;
+}
+
+struct Sframe*
+Sframe_call_func_from_dll(struct Sframe* frame, char* dll_name, char* func_name, struct Sobj* args) {
+    Sdll_func dll_func = dll_get_func(func_name, dll_name);
+
+    builtin_func f = (builtin_func) dll_func;
+
+    for (int i = 0; i < args->f_type->f_list->count; i++) {
+        struct Sobj *arg = Slist_get(args->f_type->f_list, i);
+        Sframe_push(frame, arg);
+    }
+
+    struct Sobj *result = f(frame);
+    return frame;
+}

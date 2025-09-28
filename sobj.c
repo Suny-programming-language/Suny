@@ -123,3 +123,25 @@ Sobj_free_objs
 #endif
     return 0;
 }
+
+void*
+Sobj_get_obj
+(struct Sobj* obj, enum Sobj_t type) {
+    if (obj->type == FUNC_OBJ) {
+        return obj->f_type->f_func;
+    } else if (obj->type == USER_DATA_OBJ) {
+        return obj->f_type->f_userdata;
+    } else if (obj->type == LIST_OBJ) {
+        return obj->f_type->f_list;
+    } else if (obj->type == STRING_OBJ) {
+        return obj->f_type->f_str;
+    } else if (obj->type == CLASS_OBJ) {
+        return obj->f_type->f_class;
+    } else if (obj->type == GLOBAL_OBJ || obj->type == LOCAL_OBJ) {
+        return obj->f_value;
+    } else {
+        return obj->value;
+    }
+
+    return NULL;
+}

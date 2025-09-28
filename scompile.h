@@ -9,6 +9,14 @@
 #include "sscope.h"
 
 struct Scode*
+Scompile_program_from_string
+(char *str, struct Scompiler *compiler);
+
+struct Scode*
+Scompile_from_string
+(char *str, struct Scompiler *compiler);
+
+struct Scode*
 Scompile
 (struct Sast *ast, struct Scompiler *compiler);
 

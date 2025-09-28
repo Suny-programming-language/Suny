@@ -3,6 +3,7 @@
 
 #include "stype.h"
 #include "score.h"
+#include "scopy.h"
 #include "sframe.h"
 
 struct Sclass*
@@ -31,5 +32,8 @@ Sclass_push_obj
 
 struct Sobj*
 Sobj_make_class(struct Sclass* sclass);
+
+struct Sobj*
+Sobj_creat_a_copy_version_of_class(struct Sclass* sclass);
 
 #endif // SCLASS_H
