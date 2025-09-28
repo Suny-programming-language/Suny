@@ -1,4 +1,4 @@
-#include "C:/Suny/src/Suny.h"
+#include "C:/Suny/Suny.h"
 
 #include <time.h>
 #include <stdlib.h>

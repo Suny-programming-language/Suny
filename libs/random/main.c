@@ -1,4 +1,5 @@
-#include "C:/Suny/src/Suny.h"
+#include "C:/Suny/Suny.h"
+
 #include <stdint.h>
 #include <time.h>
 #include <windows.h>

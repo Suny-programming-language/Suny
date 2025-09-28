@@ -2,50 +2,235 @@
 #include "SGL.h"
 
 struct Sobj* Sobj_plus_square(struct Sobj* obj1, struct Sobj* obj2) {
-    SDL_Rect *rect1 = get_userdata(obj1);
-    SDL_Rect *rect2 = get_userdata(obj2);
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+        SDL_Rect *rect2 = get_userdata(obj2);
 
-    SDL_Rect *rect3 = Screat_rect(rect1->x + rect2->x, rect1->y + rect2->y, rect1->w + rect2->w, rect1->h + rect2->h);
+        SDL_Rect *rect3 = Screat_rect(rect1->x + rect2->x, rect1->y + rect2->y, rect1->w + rect2->w, rect1->h + rect2->h);
 
-    struct Sobj* userdata = Sobj_make_userdata(rect3);
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
 
-    return userdata;
+        return userdata;
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == LIST_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj2, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj1;
+        }
+
+        struct Sobj* obj2_1 = list->array[0];
+        struct Sobj* obj2_2 = list->array[1];
+
+        float x = obj2_1->value->value;
+        float y = obj2_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(rect1->x + x, rect1->y + y, rect1->w, rect1->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
+
+        return userdata;
+    } else if (obj1->type == LIST_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect2 = get_userdata(obj2);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj1, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj2;
+        }
+
+        struct Sobj* obj1_1 = list->array[0];
+        struct Sobj* obj1_2 = list->array[1];
+
+        float x = obj1_1->value->value;
+        float y = obj1_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(x + rect2->x, y + rect2->y, rect2->w, rect2->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj2->meta;
+
+        return userdata;
+    } 
+
+    return obj1;
 }
 
 struct Sobj* Sobj_minus_square(struct Sobj* obj1, struct Sobj* obj2) {
-    SDL_Rect *rect1 = get_userdata(obj1);
-    SDL_Rect *rect2 = get_userdata(obj2);
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+        SDL_Rect *rect2 = get_userdata(obj2);
 
-    SDL_Rect *rect3 = Screat_rect(rect1->x - rect2->x, rect1->y - rect2->y, rect1->w - rect2->w, rect1->h - rect2->h);
+        SDL_Rect *rect3 = Screat_rect(rect1->x - rect2->x, rect1->y - rect2->y, rect1->w - rect2->w, rect1->h - rect2->h);
 
-    struct Sobj* userdata = Sobj_make_userdata(rect3);
-    userdata->meta = obj1->meta;
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
 
-    return userdata;
+        return userdata;
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == LIST_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj2, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj1;
+        }
+
+        struct Sobj* obj2_1 = list->array[0];
+        struct Sobj* obj2_2 = list->array[1];
+
+        float x = obj2_1->value->value;
+        float y = obj2_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(rect1->x - x, rect1->y - y, rect1->w, rect1->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
+
+        return userdata;
+    } else if (obj1->type == LIST_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect2 = get_userdata(obj2);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj1, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj2;
+        }
+
+        struct Sobj* obj1_1 = list->array[0];
+        struct Sobj* obj1_2 = list->array[1];
+
+        float x = obj1_1->value->value;
+        float y = obj1_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(x - rect2->x, y - rect2->y, rect2->w, rect2->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj2->meta;
+
+        return userdata;
+    }
+
+    return obj1;
 }
 
 struct Sobj* Sobj_mul_square(struct Sobj* obj1, struct Sobj* obj2) {
-    SDL_Rect *rect1 = get_userdata(obj1);
-    SDL_Rect *rect2 = get_userdata(obj2);
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+        SDL_Rect *rect2 = get_userdata(obj2);
 
-    SDL_Rect *rect3 = Screat_rect(rect1->x * rect2->x, rect1->y * rect2->y, rect1->w * rect2->w, rect1->h * rect2->h);
+        SDL_Rect *rect3 = Screat_rect(rect1->x * rect2->x, rect1->y * rect2->y, rect1->w * rect2->w, rect1->h * rect2->h);
 
-    struct Sobj* userdata = Sobj_make_userdata(rect3);
-    userdata->meta = obj1->meta;
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
 
-    return userdata;
+        return userdata;
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == LIST_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj2, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj1;
+        }
+
+        struct Sobj* obj2_1 = list->array[0];
+        struct Sobj* obj2_2 = list->array[1];
+
+        float x = obj2_1->value->value;
+        float y = obj2_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(rect1->x * x, rect1->y * y, rect1->w, rect1->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
+
+        return userdata;
+    } else if (obj1->type == LIST_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect2 = get_userdata(obj2);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj1, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj2;
+        }
+
+        struct Sobj* obj1_1 = list->array[0];
+        struct Sobj* obj1_2 = list->array[1];
+
+        float x = obj1_1->value->value;
+        float y = obj1_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(x * rect2->x, y * rect2->y, rect2->w, rect2->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj2->meta;
+
+        return userdata;
+    }
+
+    return obj1;
 }
 
 struct Sobj* Sobj_div_square(struct Sobj* obj1, struct Sobj* obj2) {
-    SDL_Rect *rect1 = get_userdata(obj1);
-    SDL_Rect *rect2 = get_userdata(obj2);
+    if (obj1->type == USER_DATA_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+        SDL_Rect *rect2 = get_userdata(obj2);
 
-    SDL_Rect *rect3 = Screat_rect(rect1->x / rect2->x, rect1->y / rect2->y, rect1->w / rect2->w, rect1->h / rect2->h);
+        SDL_Rect *rect3 = Screat_rect(rect1->x / rect2->x, rect1->y / rect2->y, rect1->w / rect2->w, rect1->h / rect2->h);
 
-    struct Sobj* userdata = Sobj_make_userdata(rect3);
-    userdata->meta = obj1->meta;
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
 
-    return userdata;
+        return userdata;
+    } else if (obj1->type == USER_DATA_OBJ && obj2->type == LIST_OBJ) {
+        SDL_Rect *rect1 = get_userdata(obj1);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj2, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj1;
+        }
+
+        struct Sobj* obj2_1 = list->array[0];
+        struct Sobj* obj2_2 = list->array[1];
+
+        float x = obj2_1->value->value;
+        float y = obj2_2->value->value;
+
+        SDL_Rect *rect3 = Screat_rect(rect1->x / x, rect1->y / y, rect1->w, rect1->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj1->meta;
+
+        return userdata;
+    } else if (obj1->type == LIST_OBJ && obj2->type == USER_DATA_OBJ) {
+        SDL_Rect *rect2 = get_userdata(obj2);
+
+        struct Slist* list = (struct Slist*) Sobj_get_obj(obj1, LIST_OBJ);
+        if (list->count != 2) {
+            printf("The size of list must be 2\n");
+            return obj2;
+        }
+
+        struct Sobj* obj1_1 = list->array[0];
+        struct Sobj* obj1_2 = list->array[1];
+
+        float x = obj1_1->value->value;
+        float y = obj1_2->value->value;    
+
+        SDL_Rect *rect3 = Screat_rect(x / rect2->x, y / rect2->y, rect2->w, rect2->h);
+
+        struct Sobj* userdata = Sobj_make_userdata(rect3);
+        userdata->meta = obj2->meta;
+
+        return userdata;
+    }
+
+    return obj1;
 }
 
 struct Sobj* Sobj_equal_square(struct Sobj* obj1, struct Sobj* obj2) {
@@ -57,6 +242,12 @@ struct Sobj* Sobj_equal_square(struct Sobj* obj1, struct Sobj* obj2) {
     } else {
         return Sobj_make_bool(0);
     }
+}
+
+struct Sobj* Sio_print_rect(struct Sobj* obj) {
+    SDL_Rect *rect = get_userdata(obj);
+    printf("rect: x: %d, y: %d, w: %d, h: %d", rect->x, rect->y, rect->w, rect->h);
+    return null_obj;
 }
 
 struct Sobj* Sobj_make_rect(struct Sframe* frame) {
@@ -79,8 +270,9 @@ struct Sobj* Sobj_make_rect(struct Sframe* frame) {
     userdata->meta->mm_sub = Sobj_minus_square;
     userdata->meta->mm_mul = Sobj_mul_square;
     userdata->meta->mm_div = Sobj_div_square;
-
     userdata->meta->mm_eq = Sobj_equal_square;
+
+    userdata->meta->mm_tostring = Sio_print_rect;
 
     Sgc_dec_ref(Sx, frame->gc_pool);
     Sgc_dec_ref(Sy, frame->gc_pool);
@@ -132,6 +324,28 @@ struct Sobj* Sflip(struct Sframe* frame) {
 
 struct Sobj* Sclose(struct Sframe* frame) {
     Gclose();
+    return null_obj;
+}
+
+struct Sobj* Sdraw_rect_api_with_SGL_rect(struct Sframe* frame) {
+    struct Sobj* Srect = Sframe_pop(frame);
+    struct Sobj* Sr = Sframe_pop(frame);
+    struct Sobj* Sg = Sframe_pop(frame);
+    struct Sobj* Sb = Sframe_pop(frame);
+
+    SDL_Rect *rect = get_userdata(Srect);
+    float r = (float)Sr->value->value / 255.0f;
+    float g = (float)Sg->value->value / 255.0f;
+    float b = (float)Sb->value->value / 255.0f;
+
+    Sdraw_rect(rect->x, rect->y, rect->w, rect->h, r, g, b);
+
+    Sgc_dec_ref(Srect, frame->gc_pool);
+
+    Sgc_dec_ref(Sr, frame->gc_pool);
+    Sgc_dec_ref(Sg, frame->gc_pool);
+    Sgc_dec_ref(Sb, frame->gc_pool);
+
     return null_obj;
 }
 
@@ -236,6 +450,9 @@ SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) 
     SunyInitialize_c_api_func(frame, compiler, 56, "draw_rect", 7, Sdraw_rect_api);
     SunyInitialize_c_api_func(frame, compiler, 57, "draw_line", 7, Sdraw_line_api);
     SunyInitialize_c_api_func(frame, compiler, 58, "get_key", 0, Sget_key_api);
+
+    SunyInitialize_c_api_func(frame, compiler, 59, "SGL_rect", 0, Sobj_make_rect);
+    SunyInitialize_c_api_func(frame, compiler, 60, "SGL_draw_rect", 0, Sdraw_rect_api_with_SGL_rect);
 
     return frame;
 }

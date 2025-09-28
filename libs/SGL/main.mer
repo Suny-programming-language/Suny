@@ -1,1 +1,44 @@
 import "C:\\Suny\\libs\\SGL\\SGL"
+
+function hue_to_rgb(h) do
+    while h >= 360 do
+        h = h - 360
+    end
+
+    r = 0
+    g = 0
+    b = 0
+
+    if h < 60 then
+        r = 255
+        g = h * 255 / 60
+        b = 0
+    end
+    if h >= 60 and h < 120 then
+        r = (120 - h) * 255 / 60
+        g = 255
+        b = 0
+    end
+    if h >= 120 and h < 180 then
+        r = 0
+        g = 255
+        b = (h - 120) * 255 / 60
+    end
+    if h >= 180 and h < 240 then
+        r = 0
+        g = (240 - h) * 255 / 60
+        b = 255
+    end
+    if h >= 240 and h < 300 then
+        r = (h - 240) * 255 / 60
+        g = 0
+        b = 255
+    end
+    if h >= 300 then
+        r = 255
+        g = 0
+        b = (360 - h) * 255 / 60
+    end
+
+    return [r, g, b]
+end
