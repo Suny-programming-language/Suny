@@ -1,6 +1,8 @@
 # Suny Programming Language
 
-<img src="assets/logo.png" alt="logo" width="300" style="display: block; margin: 0 auto;"/>
+<div style="text-align: center;">
+    <img src="assets/logo.png" alt="logo" width="300"/>
+</div>
 
 👉 [Watch document (PDF)](./document/document.pdf)
 
