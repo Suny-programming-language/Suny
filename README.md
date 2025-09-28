@@ -1,5 +1,7 @@
 # Suny Programming Language
 
+<img src="assets/logo.png" alt="logo" width="300" style="display: block; margin: 0 auto;"/>
+
 👉 [Watch document (PDF)](./document/document.pdf)
 
 My youtube: https://www.youtube.com/@haidinhson
