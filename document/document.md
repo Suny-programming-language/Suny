@@ -1,5 +1,5 @@
 # Programming in Suny (version 1.0)
-
+          
 # 1. Introduction
 
 **Suny** is a lightweight scripting language designed to be **small but powerful**, combining the minimalism and efficiency of **Lua** with the clarity and readability of **Python**.
@@ -2995,9 +2995,388 @@ struct Sstr* x = Sstr_new_from_char("ha", 2);
 struct Sstr* y = Sstr_mul(x, 3); // "hahaha"
 ```
 
+So these are some basics group in Suny, here are some examples of making a `Suny` program but in `C`
+
+---
+
 # 10. Garbage collector
 
+## 1. Introduction
+
+Memory is one of the most important resources in any computer system. Every program, regardless of its complexity, relies on memory to store variables, objects, and runtime data structures. However, memory is also finite, and careless use of it can lead to severe problems such as **memory leaks**, **dangling pointers**, or even program crashes.
+
+Traditionally, low-level languages such as **C** or **C++** require programmers to manage memory manually. This involves explicitly allocating memory (e.g., with `malloc` or `new`) and freeing it (with `free`) when the memory is no longer needed. While this approach gives developers full control, it also introduces significant risks. A single missing `free()` can cause a program’s memory usage to grow endlessly, while an accidental double `free()` can corrupt memory and lead to undefined behavior.
+
+To avoid these pitfalls, modern languages often implement **automatic memory management**, commonly known as **Garbage Collection (GC)**. Garbage Collection is a runtime system that automatically determines which objects are no longer accessible by the program and reclaims the memory they occupy. With GC, programmers are free from the burden of manually managing memory, and programs become more robust and secure by default.
+
+### Garbage Collection in Suny
+
+Suny, as a high-level and beginner-friendly programming language, adopts automatic memory management from the ground up. The design philosophy of Suny emphasizes **safety**, **simplicity**, and **ease of learning**, making garbage collection a natural choice. By integrating GC directly into the runtime, Suny ensures that developers can focus on problem-solving instead of worrying about memory allocation details.
+
+The specific strategy used by Suny is **Reference Counting Garbage Collection**. This method assigns each object a counter that tracks how many active references point to it. When the counter reaches zero, the object is destroyed immediately, freeing the associated memory. This model provides a predictable, deterministic approach to object lifetimes, which aligns well with Suny’s goal of being transparent and intuitive for programmers.
+
+### Why Suny Needs GC
+
+There are several key reasons why Suny integrates garbage collection as a core runtime feature:
+
+1. **Preventing memory leaks**
+    Without GC, programmers must remember to release memory manually. Even a small oversight can cause memory to accumulate indefinitely. GC ensures that memory is reclaimed as soon as objects are no longer used.
+
+2. **Improved safety**
+    Manual memory management often leads to dangling pointers—references to memory that has already been freed. Accessing such memory causes crashes or unpredictable results. GC eliminates this class of error entirely.
+
+3. **Beginner-friendly programming model**
+    One of Suny’s design goals is to be approachable for newcomers. By handling memory automatically, Suny lowers the entry barrier to programming, letting learners focus on logic, algorithms, and creativity instead of low-level details.
+
+4. **Cleaner, more expressive code**
+    Programs written in Suny do not require explicit `free()` or memory-release calls. This reduces boilerplate code and avoids clutter, making programs easier to read and maintain.
+
+5. **Consistency across platforms**
+    Since Suny abstracts away memory management, programs behave consistently regardless of the underlying operating system or architecture.
+
+---
+
+## 2. Fundamentals of Reference Counting
+
+### 2.1 What is Reference Counting?
+
+At the heart of Suny’s garbage collector lies a simple yet powerful idea: **Reference Counting**. This technique assigns every object in the runtime a special integer field known as the **reference count** (often abbreviated as *refcount*). The reference count is a measure of how many “owners” or “handles” currently point to that object.
+
+#### The Core Concept
+
+Whenever a variable, data structure, or another object points to a given object, the runtime **increments** its reference count. Whenever one of those references is removed or goes out of scope, the runtime **decrements** the count. When the count reaches **zero**, it means no part of the program can access the object anymore. At that exact moment, the object is destroyed, and its memory is reclaimed.
+
+This ensures that memory usage stays tight: as soon as an object is no longer needed, Suny frees it without requiring any action from the programmer.
+
+---
+
+#### Analogy: Borrowed Books in a Library
+
+A helpful way to imagine reference counting is to think about a library that tracks how many people currently have borrowed copies of a particular book:
+
+* When someone borrows a copy → the counter goes up.
+* When someone returns it → the counter goes down.
+* If the counter drops to zero → it means no one is reading that book anymore, and the library can safely put it back into storage.
+
+In Suny, objects behave exactly like those books: if nobody “holds” an object, it is no longer needed and can be removed.
+
+---
+
+#### Object Lifecycle in Suny
+
+Each object in Suny passes through a simple lifecycle managed by its reference counter:
+
+1. **Creation**
+   When an object is first created (e.g., a list `[1, 2, 3]`), it starts with a reference count of `1`, because the variable holding it is considered the first reference.
+
+2. **Sharing**
+   If the object is assigned to another variable, passed to a function, or stored in a container, the reference count increases.
+
+3. **Releasing**
+   When variables go out of scope, or an object is removed from a container, the reference count decreases.
+
+4. **Destruction**
+   When the reference count hits `0`, the object is destroyed immediately. Its memory is reclaimed, and if the object holds external resources (e.g., files or sockets), they are closed as well.
+
+---
+
+#### Why Reference Counting Works Well in Suny
+
+* **Immediate cleanup**: Memory is freed exactly when objects are no longer needed, without waiting for a background GC cycle.
+* **Predictable behavior**: Programmers can reason about when objects will be destroyed, which is especially useful for managing resources like files or sockets.
+* **Simplicity**: The model is easy to explain and understand, making Suny approachable for both beginners and advanced developers.
+
+---
+
+#### Comparison with Other Techniques
+
+While other garbage collection methods (such as **mark-and-sweep** or **generational GC**) operate by scanning the memory heap at certain intervals, reference counting works **incrementally** during program execution. Every assignment or deletion updates counters on the fly. This means Suny does not need to “pause the world” to collect garbage, keeping the runtime responsive and lightweight.
+
+The trade-off is that reference counting cannot handle **circular references** (covered later in Section 5), but its benefits of **simplicity and determinism** make it an excellent first choice for Suny’s design philosophy.
+
+---
+
+## 2.3 Operations on Reference Count
+
+Reference counting in Suny is governed by two fundamental operations: **incrementing** and **decrementing** the reference counter. Although the operations themselves are conceptually simple, their implementation details and runtime implications are crucial for both performance and correctness. This section explores how Suny performs these operations, the circumstances in which they occur, and the subtleties that arise in real-world programs.
+
+---
+
+### 2.3.1 Incrementing a Reference Count (INCREF)
+
+The **increment operation** increases the reference count of an object by one whenever a new reference is created. It is the most common memory-management operation in Suny, triggered by simple actions such as assigning variables, passing arguments, or inserting objects into containers.
+
+#### When Does INCREF Occur?
+
+1. **Variable Assignment**
+
+   ```suny
+   a = [10, 20, 30]   # refcount = 1
+   b = a              # refcount = 2
+   ```
+
+   Here, `b` now points to the same list as `a`, so the runtime increments the object’s refcount.
+
+2. **Function Calls**
+
+   ```suny
+   function foo(x) do
+       print(x)
+
+   arr = [1, 2, 3]    # refcount = 1
+   foo(arr)           # refcount = 2 while inside foo()
+   ```
+
+   Passing `arr` to `foo` creates another reference through the parameter `x`. When the function returns, `x` goes out of scope, and the refcount decreases again.
+
+#### Implementation Notes
+
+* INCREF is typically just a single machine instruction (`obj->refcount++`).
+* Despite its simplicity, it must be **inlined and optimized**, as INCREF may be executed billions of times in long-running programs.
+* In a multi-threaded runtime, INCREF must use atomic operations to avoid race conditions.
+
+---
+
+### 2.3.2 Decrementing a Reference Count (DECREF)
+
+The **decrement operation** decreases the reference count of an object by one whenever a reference is discarded. This is equally common and even more important than INCREF, since it determines when an object can be destroyed.
+
+#### When Does DECREF Occur?
+
+1. **Variable Reassignment**
+
+   ```suny
+   a = [42]        # refcount = 1
+   b = a           # refcount = 2
+   a = null        # refcount = 1
+   b = null        # refcount = 0 → object freed
+   ```
+
+   Once both variables are cleared, the list is immediately destroyed.
+
+2. **Scope Exit**
+
+   ```suny
+   function foo() do
+       x = [1, 2, 3]   # refcount = 1
+       return 42
+   foo()  # after function ends, x goes out of scope → refcount = 0
+   ```
+
+   When the function exits, the local variable `x` is discarded, reducing the reference count of the list. Since no references remain, the object is destroyed.
+
+3. **Container Removal**
+
+   ```suny
+   arr = [1, 2, 3]
+   lst = [arr]       # refcount = 2
+   pop(lst)
+   arr = null        # refcount = 0 → freed
+   ```
+
+   Removing `arr` from `lst` triggers a DECREF, and setting `arr` to `null` finishes the process.
+
+#### Immediate Destruction
+
+If DECREF reduces the counter to zero, the runtime immediately:
+
+1. Calls the object’s destructor, if defined.
+2. Recursively decrements the counts of any objects it references.
+3. Returns the object’s memory back to the allocator.
+
+This **deterministic destruction** is one of the strongest advantages of reference counting. Unlike tracing garbage collectors, Suny does not delay cleanup until a background cycle.
+
+---
+
+### 2.3.3 Ownership Transfer and Optimization
+
+Although INCREF and DECREF are conceptually simple, they can introduce performance overhead if applied too often. Suny’s runtime is designed with the following optimizations in mind:
+
+* **Borrowed References**
+  In some cases, a function can use an object without taking full ownership of it. For example, reading an element from a list might not need an INCREF if the reference is short-lived.
+
+* **Move Semantics**
+  If an object is created in one place and then “moved” to another owner, Suny may avoid extra increments/decrements by transferring ownership directly.
+
+* **Deferred Decrement**
+  For certain temporary values, the runtime may defer DECREF until a safe checkpoint, reducing the number of increments and decrements in tight loops.
+
+These techniques reduce redundant operations while preserving correctness.
+
+---
+
+### 2.3.4 Subtleties and Pitfalls
+
+Although INCREF and DECREF are conceptually clear, real implementations face subtle challenges:
+
+* **Thread Safety**
+  Without atomic operations, simultaneous INCREF/DECREF calls from multiple threads can corrupt reference counts.
+
+* **Cascading Destruction**
+  When a complex object (e.g., a list of dictionaries of lists) is freed, DECREF must recursively cascade through its children. This process must be carefully ordered to avoid freeing objects still in use.
+
+* **Performance Bottlenecks**
+  In performance-critical programs, the sheer volume of INCREF/DECREF calls can dominate runtime cost. Any inefficiency here multiplies rapidly.
+
+* **Bugs from Miscounts**
+  A missing INCREF leads to premature destruction (dangling references), while a missing DECREF causes memory leaks. Both can be subtle and difficult to debug.
+
+---
+
+### 2.3.5 Summary
+
+The operations of **incrementing and decrementing reference counts** form the core mechanism of memory management in Suny. Despite being represented by simple integer adjustments, these operations have far-reaching implications:
+
+* They must be executed with high efficiency, since they occur constantly in every program.
+* They provide predictable and immediate cleanup, making resource management reliable.
+* They enable Suny’s philosophy of simplicity and determinism in garbage collection.
+
+The elegance of reference counting lies in its balance: an extremely simple abstraction that, when implemented carefully, yields a powerful and robust memory management model.
+
+---
+
 # 11. Userdata
+
+In Suny, **userdata** is a specialized type of object that allows developers to store **arbitrary external or custom data** directly within the runtime while still being fully managed by Suny’s garbage collector. Unlike typical Suny objects such as strings, lists, or dictionaries, userdata is designed as a **flexible container** that can hold raw memory, C structures, file handles, sockets, or any other resource that needs to coexist with Suny’s memory-managed environment.
+
+The primary purpose of userdata is to provide a **bridge between low-level resources and high-level managed code**. This allows developers to interact with external systems, libraries, or custom data types while leveraging Suny’s memory safety, reference counting, and deterministic destruction mechanisms.
+
+Userdata in Suny has several important characteristics that make it both powerful and safe:
+
+1. **Generic Storage Capability**
+   A single userdata object can hold any kind of external data. This could be:
+
+   * A pointer to a C struct or a C++ object.
+   * A handle to a system resource such as a file or network socket.
+   * Arbitrary binary data managed outside of Suny’s normal object types.
+
+2. **Integration with Garbage Collection**
+   Although userdata may store raw pointers, it is fully compatible with Suny’s **reference counting** garbage collector. When the last reference to a userdata object is released, Suny automatically triggers its destruction routine and frees the memory or resources it encapsulates.
+
+3. **Optional Type Information**
+   Each userdata object can optionally be associated with a **type descriptor**, which provides metadata about the data it holds. This descriptor can define:
+
+   * Custom destructors or finalizers to safely release external resources.
+   * Type-specific operations that allow Suny scripts to interact with the userdata safely.
+
+4. **Deterministic Resource Management**
+   Because Suny uses reference counting, any resources wrapped in userdata are released **immediately when the object becomes unreachable**. This ensures timely cleanup of critical resources, avoiding resource leaks and making Suny suitable for systems programming tasks.
+
+Userdata is particularly useful in scenarios where Suny scripts need to interact with:
+
+* **External Libraries**
+  Wrapping C libraries or other native code so that they can be safely used from Suny scripts.
+
+* **System Resources**
+  Managing open files, network sockets, or other handles without leaking them, as the reference counting ensures deterministic destruction.
+
+* **Custom Data Structures**
+  Allowing the creation of specialized structures that are not natively supported in Suny, but can still participate in the garbage-collected environment.
+
+* **Interfacing with Hardware or Low-Level APIs**
+  Userdata can encapsulate memory buffers, device contexts, or other hardware resources, providing safe high-level access while maintaining proper cleanup.
+
+## 11.1 Defining a Custom Userdata Struct
+
+In Suny, a **custom userdata struct** allows developers to define their own object types in C that can be safely managed by the garbage collector. The main idea is to **wrap external data** (such as C structs, file handles, or other resources) inside a struct that Suny can track and manage automatically.
+
+**Basic structure of a userdata object in C:**
+
+```c
+struct Suserdata {
+    void* data;        // Pointer to external or custom data
+    struct Stype* type; // Type descriptor for metadata and behaviors
+};
+```
+
+* `data` stores the actual content or resource that the userdata encapsulates.
+* `type` points to an **Stype struct**, which defines the userdata’s type information, such as its behavior, associated metamethods, and destructor.
+
+`Suserdata` is typically defined in `Stype.h`, which is the core structure used by Suny to represent **all datatypes**, including strings, lists, numbers, and custom userdata.
+
+We can creat own custom datatype with `Suserdata` using C-API. You can see the tutorial of how to use C-API to make Suny function and libs in `# 12. Using Suny C-API to make library`, these are step by step to make your own datatype
+
+## 11.1.1 Steps to Create a Custom Data Type
+
+1. **Define your custom C struct**
+Lets creat a vector struct, this struct contains the data you want your Suny object to hold.
+
+```c
+#include <Suny/Suny.h>
+
+struct Svector {
+    float x;
+    float y;
+};
+```
+
+2. **Allocate an Suserdata object**
+Next we creat a Suny function that return the userdata object
+
+```c
+struct Svector* Svector_new(float x, float y) {
+    struct Svector* vector = (struct Svector*) malloc(sizeof(struct Svector));
+    vector->x = x;
+    vector->y = y;
+    return vector;
+}
+
+struct Sobj* Sobj_make_vector(struct Sframe* frame) {
+    struct Sobj* Sx = Sframe_pop(frame);
+    struct Sobj* Sy = Sframe_pop(frame);
+
+    float x = ValueOf(Sx);
+    float y = ValueOf(Sy);
+
+    struct Svector* vector = Svector_new(x, y);
+    struct Sobj* obj = Sobj_make_userdata(vector);
+
+    return obj;
+}
+
+SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
+    SunyInitialize_c_api_func(frame, compiler, 20, "vector", 2, Sobj_make_vector);
+    return frame;
+}
+```
+
+Now we **compile it into .dll and import the library**:
+
+```suny
+import "vector.dll"
+
+let vec = vector(1, 2)
+print(vec)
+```
+
+```
+C:\> suny main.suny
+0
+C:\>
+```
+
+As you can see the print function don't work because we don't set **Metamethod** to my own datatype yet.
+It's work on `+` and more too.
+
+```suny
+let vec1 = vector(1, 2)
+let vec2 = vector(3, 2)
+let vec3 = vec1 + vec2
+```
+
+```
+C:\> suny main.suny
+0
+C:\>
+```
+
+3. **Using Metamethod**
+
+## 11.2
+
+## 11.3 Sumarry
+
+---
 
 # 12. Using Suny C-API to make library
 
@@ -3006,3 +3385,9 @@ struct Sstr* y = Sstr_mul(x, 3); // "hahaha"
 # 14. Standard Libraries
 
 # 15. SGL (Suny Game Library)
+
+# 16. End
+
+Have **fun** enjoying the language
+
+Document write by **dinhsonhai132**
