@@ -3345,7 +3345,7 @@ SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) 
 Now we **compile it into .dll and import the library**:
 
 ```suny
-import "vector.dll"
+import "vector"
 
 let vec = vector(1, 2)
 print(vec)
@@ -3358,7 +3358,6 @@ C:\>
 ```
 
 As you can see the print function don't work because we don't set **Metamethod** to my own datatype yet.
-It's work on `+` and more too.
 
 ```suny
 let vec1 = vector(1, 2)
@@ -3743,6 +3742,197 @@ This demonstrates how **metamethods act as the bridge** between low-level C code
 ---
 
 # 12. Using Suny C-API to make library
+
+### In Suny, you can make your own libraries in two different ways:
+
+#### 1. **Pure Suny Library**
+
+A **Pure Suny Library** is simply a collection of `.suny` files that contain functions, classes, or modules written directly in the Suny language.
+These libraries can be imported into other Suny programs without any additional setup.
+
+**Advantages:**
+
+* **Simplicity** – You only need to know Suny, no extra tools or languages required.
+* **Portability** – Since it is written in Suny, it works on every system where the Suny runtime is available.
+* **Rapid Development** – Perfect for sharing common functions, utilities, or algorithms.
+
+**Example:**
+
+```suny
+# math.suny
+
+function add(a, b) do
+    return a + b
+end
+```
+
+Now you can import it anywhere:
+
+```suny
+include "math.suny"
+
+print(add(1, 2))
+```
+
+---
+
+#### 2. **C Library via Suny C-API**
+
+For more advanced use cases, Suny provides a **C-API** that lets you extend the language with functions written in C.
+This is useful when you need:
+
+* **High performance** – heavy calculations can be written in optimized C code.
+* **System access** – interact with operating system APIs or hardware.
+* **Integration** – connect Suny with existing C libraries, networking, graphics, or databases.
+
+With the C-API, you can expose C functions as if they were native Suny functions.
+When compiled into a shared library (`.dll` on Windows, `.so` on Linux), Suny can `import` them just like normal Suny modules.
+
+**Example in C (a simple add function):**
+
+```c
+#include <Suny.h>
+
+struct Sobj* Sadd(struct Sframe* frame) {
+    struct Sobj* a = Sframe_pop(frame);
+    struct Sobj* b = Sframe_pop(frame);
+
+    float value = ValueOf(a) + ValueOf(b);
+    return Sobj_set_int(value);
+}
+
+SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
+    SunyInitialize_c_api_func(frame, compiler, 20, "add", 2, Sadd);
+    return frame;
+}
+```
+
+Compile it into `math.dll` and import it to `.suny` program
+
+```
+import "math" # Suny will automatic understand that this file is "math.dll"
+
+print(add(1, 2)) # 3
+```
+
+---
+
+**Explain and how to make C Suny library**
+
+When you want to extend Suny with custom `C` code, you must follow the Suny C-API function structure.
+This allows your `C` functions to behave like built-in Suny functions, making them callable from Suny scripts without extra glue code.
+
+A Suny function written in C always has this form:
+
+```c
+SUNY_API struct Sobj* function_name(struct Sframe* frame) {
+    // Get arguments (from right to left)
+    struct Sobj* arg1 = Sframe_pop(frame); // first argument
+    struct Sobj* arg2 = Sframe_pop(frame); // second argument
+    struct Sobj* arg3 = Sframe_pop(frame); // third argument
+    // ...
+
+    // Do your calculation
+    float result = ValueOf(arg1) + ValueOf(arg2) + ValueOf(arg3);
+
+    // Wrap result into Suny object
+    struct Sobj* value = Sobj_set_int(result);
+
+    // Return it (Suny will push this onto the stack)
+    return value;
+}
+```
+
+### Explanation:
+
+* **`struct Sframe* frame`** → gives access to the Suny stack for this call.
+* **`Sframe_pop(frame)`** → retrieves arguments passed from Suny.
+* **`ValueOf(obj)`** → converts `Sobj` into a raw C value (like `int` or `float`).
+* **`Sobj_set_int(result)`** → wraps a C integer back into a Suny object.
+* **`return value`** → the value is returned to Suny and pushed onto the stack.
+
+Every library must have an **entry point** called `Smain` where you register your functions:
+
+```c
+SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
+    // Register function "sum3" that takes 3 arguments
+    SunyInitialize_c_api_func(frame, compiler, 20, 			"sum3", 		3, 			function_name);
+	//										   ^     		  ^     		^				  ^
+	//									    address  		name		args count		point to C function
+    return frame;
+}
+```
+
+* `20` → Address of the function
+* `"sum3"` → the name used inside Suny code.
+* `3` → number of arguments expected.
+* `function_name` → the C function you defined.
+* `SunyInitialize_c_api_func` using this function to register the function
+
+**Compile Into a Library**
+
+Suny provides **`libSuny.a`**, which is the **static library** containing all the **core runtime functions** of the Suny language.
+When you create your own C extension or Suny library, you must **link against this file**, because it includes:
+
+* The **Suny Virtual Machine runtime**
+* Core object system (`Sobj`, `Sframe`, etc.)
+* Memory management and garbage collection hooks
+* Stack operations (`Sframe_pop`, `Sframe_push`, etc.)
+* Utility helpers (`Sobj_set_int`, `Sobj_make_bool`, `Sobj_make_str`, etc.)
+* Function registration and metadata system
+
+Without linking `libSuny.a`, your C functions cannot communicate with the Suny runtime.
+
+Compile it into a **shared library** (`.dll` on Windows)
+
+```bash
+gcc -shared my_math.c -o my_math.dll -I C:\Suny -L C:\Suny -lSuny
+```
+
+Then import it:
+```suny
+import "my_math"
+
+print(sum3(1, 2, 3)) # 6
+```
+
+### 📌 Summary
+
+Creating a **C library for Suny** allows you to extend the language with **high-performance algorithms**, **system-level functionality**, and **third-party integrations** that would otherwise be difficult or slow in pure Suny code.
+
+The process can be broken down into these key steps:
+
+1. **Understand the Suny C-API**
+
+   * Every Suny C function follows the standard structure: it receives a `struct Sframe*` (argument stack) and returns a `struct Sobj*` (result).
+   * Use Suny helpers like `Sframe_pop`, `Sframe_push`, `Sobj_set_int`,... etc. to work safely with Suny objects.
+
+2. **Link with `libSuny.a`**
+
+   * This core library provides access to the Suny runtime, garbage collection, stack operations, and object system.
+   * Without linking against it, your extension cannot interact with the Suny VM.
+
+3. **Compile to a Shared Library**
+
+   * Use `gcc` or another C compiler to produce a `.dll` (Windows)
+   * Always include the Suny headers (`-I`) and link against the core library (`-lSuny`).
+
+4. **Register Functions with `SunyInitialize_c_api_func`**
+
+   * Inside your entry point function (e.g., `Smain`), register each custom function with Suny.
+   * This step tells the runtime the function’s **name**, **argument count**, and **pointer to the C implementation**.
+
+5. **Import and Use in Suny Code**
+
+   * Load your compiled library in a `.suny` script with `import "your_lib"`.
+   * Call the registered C functions just like built-in Suny functions.
+
+---
+
+✅ With this workflow, you can design powerful Suny modules that **combine the efficiency of C** with the **ease of scripting in Suny**.
+This makes Suny an extensible and flexible platform for **scientific computing, system programming, graphics, networking**, and more.
+
+---
 
 # 13. Virtual machine
 
