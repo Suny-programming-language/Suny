@@ -3298,7 +3298,7 @@ We can creat own custom datatype with `Suserdata` using C-API. You can see the t
 
 ## 11.1.1 Steps to Create a Custom Data Type
 
-1. **Define your custom C struct**
+### 1. **Define your custom C struct**
 Lets creat a vector struct, this struct contains the data you want your Suny object to hold.
 
 ```c
@@ -3310,7 +3310,9 @@ struct Svector {
 };
 ```
 
-2. **Allocate an Suserdata object**
+---
+
+### 2. **Allocate an Suserdata object**
 Next we creat a Suny function that return the userdata object
 
 ```c
@@ -3370,11 +3372,373 @@ C:\> suny main.suny
 C:\>
 ```
 
-3. **Using Metamethod**
+---
 
-## 11.2
+### 3. **Using Metamethod**
 
-## 11.3 Sumarry
+In Suny, **metamethods** are special functions that allow you to **customize the behavior of your userdata objects**. They define how a userdata object responds to standard operations, making it possible to integrate low-level C structures into high-level Suny scripts naturally and safely.
+
+Without metamethods, a custom userdata object in Suny is essentially **opaque**: it stores raw data but the runtime does not know how to interpret it for operations like addition, printing, comparisons, or function calls. Metamethods give you a way to define this behavior explicitly.
+
+Metamethods in Suny can serve several purposes:
+
+1. **Operator Overloading**
+   You can define how your userdata reacts to arithmetic or comparison operators such as `+`, `-`, `*`, `/`, `==`, `<`, and `>`.
+
+   * Example: a `vector` userdata can define `+` to perform element-wise addition instead of returning an integer.
+
+2. **Custom String Representation**
+   The `__tostring__` metamethod controls what happens when your userdata is printed using the `print()` function.
+
+   * Without it, printing a userdata object will typically display a memory address or a meaningless default value.
+
+3. **Function-like Behavior**
+   Using the `__call__` metamethod, a userdata object can behave like a function.
+
+   * This allows the object to be executed with arguments, enabling flexible APIs where userdata can store data and perform actions.
+
+4. **Custom Destructors / Finalizers**
+   Metamethods can define actions to take when a userdata object is destroyed.
+
+   * This is especially important for releasing external resources like file handles, sockets, or memory buffers, complementing Suny’s **reference-counted garbage collection**.
+
+5. **Extendable Behavior**
+   By combining different metamethods, you can make your userdata support multiple operations naturally, making the object feel like a first-class Suny type despite being implemented in C.
+
+By defining metamethods, developers can **integrate low-level C data seamlessly into Suny scripts**, giving userdata meaningful behavior while maintaining full memory safety, deterministic destruction, and predictable execution.
+
+---
+
+In Suny, **metamethods** are essentially **function pointers attached to userdata or Sobj objects** that define custom behavior for operations such as arithmetic, comparison, printing, function calls, and destruction. This allows userdata objects to act like **first-class Suny types** while still being implemented in low-level C.
+
+Suny defines a `struct Smeta` that contains **all possible metamethods** defined in `smeta.h`:
+
+```c
+struct Smeta {
+    struct Sobj* (*mm_add)(struct Sobj*, struct Sobj*);     // +
+    struct Sobj* (*mm_sub)(struct Sobj*, struct Sobj*);     // -
+    struct Sobj* (*mm_mul)(struct Sobj*, struct Sobj*);     // *
+    struct Sobj* (*mm_div)(struct Sobj*, struct Sobj*);     // /
+
+    struct Sobj* (*mm_eq)(struct Sobj*, struct Sobj*);      // ==
+    struct Sobj* (*mm_ne)(struct Sobj*, struct Sobj*);      // !=
+    struct Sobj* (*mm_gt)(struct Sobj*, struct Sobj*);      // >
+    struct Sobj* (*mm_ge)(struct Sobj*, struct Sobj*);      // >=
+    struct Sobj* (*mm_lt)(struct Sobj*, struct Sobj*);      // <
+    struct Sobj* (*mm_le)(struct Sobj*, struct Sobj*);      // <=
+
+    struct Sobj* (*mm_call)(struct Sobj*, struct Sobj*);    // ()
+    struct Sobj* (*mm_index)(struct Sobj*, struct Sobj*);   // []
+
+    struct Sobj* (*mm_tostring)(struct Sobj*);             // print / string representation
+    struct Sobj* (*mm_type)(struct Sobj*);                 // type info
+
+    int (*mm_free)(struct Sobj*);                          // free / destructor
+};
+```
+
+**Key Points About Suny Metamethods**
+
+1. **Customizable Behavior for Operators**
+
+   * Arithmetic (`+`, `-`, `*`, `/`) and comparisons (`==`, `!=`, `<`, `<=`, `>`, `>=`) are mapped to function pointers in `Smeta`.
+   * By assigning your own functions to these fields, you can define **how your userdata reacts to each operator**.
+
+2. **Printing and Type Representation**
+
+   * `mm_tostring` defines what happens when `print()` is called on the object.
+   * `mm_type` allows your userdata to provide a **human-readable type name**.
+
+3. **Function Calls and Indexing**
+
+   * `mm_call` allows the object to be callable like a function.
+   * `mm_index` provides optional indexing behavior if your userdata needs it (even though Suny doesn’t have tables/dicts by default, this can support custom behaviors).
+
+4. **Deterministic Cleanup**
+
+   * `mm_free` is invoked when the userdata is about to be destroyed by **reference-counted GC**.
+   * This is where you release memory, file handles, or other external resources safely.
+
+5. **Dynamic Assignment of Metamethods**
+
+   * `Smeta_set(obj, name, fn)` allows you to assign functions dynamically using string names like `"__add__"` or `"__tostring__"`.
+   * `Sobj_get_metamethod(obj, name)` lets the runtime retrieve the assigned function to perform the operation.
+
+6. **Automatic Initialization**
+
+   * `Smeta_new()` allocates a new `Smeta` structure and initializes all metamethod pointers to `NULL`.
+   * Metamethods are assigned only when needed, ensuring minimal overhead for objects that don’t use them.
+
+---
+
+After creating a custom userdata type in Suny, the next essential step is to **register metamethods**. This process links your low-level C functions to high-level operations in Suny scripts, giving your userdata meaningful behavior.
+
+In Suny, metamethods are **function pointers** stored inside a `struct Smeta` associated with your userdata (`Sobj`). Each pointer corresponds to a specific operation, such as addition, subtraction, printing, or destruction.
+
+---
+
+#### Step 1. **Create a Metamethod Function in C**
+
+To make your custom userdata support operations like addition, you need to **write a C function that implements the desired behavior**. This function will be called automatically by Suny whenever the corresponding operation is used on your userdata objects.
+
+Let's continue the program we did before, now we creat a function `Svector_add`:
+
+```c
+...
+
+struct Sobj* Svector_add(struct Sobj* a, struct Sobj* b) {
+    struct Svector* va = get_userdata(a)
+    struct Svector* vb = get_userdata(b)
+
+    int x1 = va->x
+    int y1 = va->y
+    int x2 = vb->x
+    int y2 = vb->y
+
+    struct Svector* vector = Svector_new(x1 + x2, y1 + y2);
+    struct Sobj* value = Sobj_make_userdata(vector);
+
+    value->meta = a->meta;
+
+    return value;
+}
+```
+
+**Explanation:**
+
+1. **Purpose**
+
+   * `Svector_add` defines **how two vector userdata objects behave when the `+` operator is used** in Suny.
+   * Without this function, performing `vec1 + vec2` would fail or produce meaningless output because Suny doesn’t know how to interpret raw userdata.
+
+2. **Retrieve the internal C structs**
+
+   ```c
+   struct Svector* va = get_userdata(a);
+   struct Svector* vb = get_userdata(b);
+   ```
+
+   * Each userdata object wraps a pointer to a C struct (`Svector`).
+   * `get_userdata()` extracts that pointer so the function can access `x` and `y` values.
+
+3. **Extract vector components**
+
+   ```c
+   int x1 = va->x;
+   int y1 = va->y;
+   int x2 = vb->x;
+   int y2 = vb->y;
+   ```
+
+   * These integers represent the actual coordinates stored in each vector.
+   * We read them separately so we can perform arithmetic operations.
+
+4. **Create a new vector with the sum**
+
+   ```c
+   struct Svector* vector = Svector_new(x1 + x2, y1 + y2);
+   ```
+
+   * This creates a new `Svector` struct holding the summed coordinates.
+   * `Svector_new` handles memory allocation and initializes the struct properly.
+
+5. **Wrap the new vector in Suny userdata**
+
+   ```c
+   struct Sobj* value = Sobj_make_userdata(vector);
+   ```
+
+   * The new `Svector` is wrapped into a Suny `Sobj` so that it **participates in garbage collection** and can interact with Suny scripts.
+   * This ensures memory safety and reference counting.
+
+6. **Copy metamethods**
+
+   ```c
+   value->meta = a->meta;
+   ```
+
+   * We assign the same `meta` from `a` to the new object.
+   * This allows the new vector to inherit the **operator behaviors, printing rules, and other metamethods** from the original vector.
+
+7. **Return the new Suny object**
+
+   * Finally, the new userdata object is returned, ready for use in the script:
+
+     ```suny
+     let vec3 = vec1 + vec2
+     ```
+   * The runtime will call this function automatically to compute the result of the `+` operator.
+
+
+Lets make more function, why not?
+
+```c
+...
+
+struct Sobj* Svector_sub(struct Sobj* a, struct Sobj* b) {
+    struct Svector* va = get_userdata(a)
+    struct Svector* vb = get_userdata(b)
+
+    int x1 = va->x
+    int y1 = va->y
+    int x2 = vb->x
+    int y2 = vb->y
+
+    struct Svector* vector = Svector_new(x1 - x2, y1 - y2);
+    struct Sobj* value = Sobj_make_userdata(vector);
+
+    value->meta = a->meta;
+
+    return value;
+}
+
+struct Sobj* Svector_print(struct Sobj* obj) {
+    struct Svector* vector = get_userdata(obj)
+    printf("vector(%d, %d)", vector->x, vector->y);
+    return null_obj;
+}
+
+struct Sobj* Svector_free(struct Sobj* obj) {
+    struct Svector* vector = get_userdata(obj)
+    free(vector)
+    return null_obj;
+}
+```
+
+---
+
+#### Step 2: **Register the Metamethod**
+
+Defining the metamethod function in C is only the **first half of the process**. To make Suny actually use your `Svector_add` function when `+` is called, you need to **register it** with the vector’s metadata (`Smeta`).
+
+Every userdata type in Suny can have a `meta` field that points to an `Smeta` structure. This `Smeta` holds function pointers for all available metamethods. By assigning your custom function (`Svector_add`) to the `mm_add` field, you tell the runtime exactly how to handle the `+` operator for this userdata type.
+
+---
+
+### Example: Registering the `+` Operator
+
+```c
+// Allocate and configure a new meta object for vectors
+struct Smeta* vector_meta = Smeta_new();
+
+// Register the addition metamethod
+vector_meta->mm_add = Svector_add;
+
+// Optionally register a string representation for debugging/printing
+vector_meta->mm_tostring = Svector_tostring;
+
+// Create a vector userdata object and attach the meta
+struct Svector* v1 = Svector_new(1, 2);
+struct Sobj* obj1 = Sobj_make_userdata(v1);
+obj1->meta = vector_meta;
+
+struct Svector* v2 = Svector_new(3, 4);
+struct Sobj* obj2 = Sobj_make_userdata(v2);
+obj2->meta = vector_meta;
+
+// Now Suny can evaluate obj1 + obj2 by calling Seval_add()
+```
+---
+
+### Explanation
+
+1. **Create a new meta structure**
+
+   ```c
+   struct Smeta* vector_meta = Smeta_new();
+   ```
+
+   * `Smeta_new()` initializes a fresh meta object with all metamethod pointers set to `NULL`.
+   * This ensures unused operations fall back to defaults (usually an error).
+
+2. **Assign the addition metamethod**
+
+   ```c
+   vector_meta->mm_add = Svector_add;
+   ```
+
+   * Here we explicitly register our custom `Svector_add` function.
+   * Now, whenever two vector objects are added, Suny’s runtime will call this function automatically.
+
+3. **(Optional) Add more metamethods**
+
+   ```c
+   vector_meta->mm_tostring = Svector_tostring;
+   ```
+
+   * For usability, it’s common to also register `__tostring__` so that printing vectors is human-readable.
+   * Example: `print(vec1)` → `(1, 2)` instead of showing a raw pointer.
+
+4. **Attach meta to objects**
+
+   ```c
+   obj1->meta = vector_meta;
+   obj2->meta = vector_meta;
+   ```
+
+   * This step links the C userdata with the metamethods we defined.
+   * Multiple objects can share the same `meta`, so you don’t have to duplicate metamethods for every instance.
+
+### Register metamethod to my own datatype
+
+Now we know how **Metamethods** work. We will using **Metamethods** to register to my own datatype
+Back to the previous code, at `struct Sobj* Sobj_make_vector(struct Sframe* frame) {...}` we add
+
+```c
+struct Sobj* Sobj_make_vector(struct Sframe* frame) {
+    struct Sobj* Sx = Sframe_pop(frame);
+    struct Sobj* Sy = Sframe_pop(frame);
+
+    float x = ValueOf(Sx);
+    float y = ValueOf(Sy);
+
+    struct Svector* vector = Svector_new(x, y);
+    struct Sobj* obj = Sobj_make_userdata(vector);
+
+    Smeta_set(obj, "__add__", Svector_add);
+    Smeta_set(obj, "__add__", Svector_add); 
+    Smeta_set(obj, "__tostring__", Svector_print);
+    Smeta_set(obj, "__free__", Svector_free);
+
+    return obj;
+}
+
+SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
+    SunyInitialize_c_api_func(frame, compiler, 20, "vector", 2, Sobj_make_vector);
+    return frame;
+}
+```
+
+Now we compile it and run
+```suny
+import "vector"
+
+let vec1 = vector(2, 2)
+let vec2 = vector(3, 3)
+print(vec1 + vec2)
+```
+
+```
+C:/> suny main.suny
+vector(5, 5)
+C:/>
+```
+
+### ✅ Summary
+
+In this step, we learned how to **register metamethods** for custom userdata types in Suny.
+
+* First, we created a **metamethod function in C** (e.g., `Svector_add`) that implements the desired behavior.
+* Then, we **registered** it in the `Smeta` structure using either direct assignment (`vector_meta->mm_add = Svector_add;`) or the helper function `Smeta_set(obj, "__add__", Svector_add);`.
+* Finally, we **attached the meta** to our userdata objects so that Suny’s runtime knows how to handle operations on them.
+
+Once registered, our `vector` userdata behaves like a **first-class Suny type**:
+
+* It can be added with `+` (`vec1 + vec2`)
+* It can be printed with a human-readable format (`print(vec1)`)
+* It can be safely destroyed with `__free__`
+
+This demonstrates how **metamethods act as the bridge** between low-level C code and high-level Suny scripts, giving custom types natural and safe behavior.
 
 ---
 
@@ -3387,7 +3751,3 @@ C:\>
 # 15. SGL (Suny Game Library)
 
 # 16. End
-
-Have **fun** enjoying the language
-
-Document write by **dinhsonhai132**
