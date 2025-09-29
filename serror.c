@@ -142,3 +142,15 @@ Serror_parser
     Serror_syntax_error(error);
     return 0;
 }
+
+
+int
+Serror_fatal_error  
+(char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    vprintf(message, args);
+    va_end(args);
+    abort();
+    return 0;
+}

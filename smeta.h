@@ -28,4 +28,8 @@ struct Smeta* Smeta_new(void);
 
 void Smeta_set(struct Sobj* obj, const char* name, void* fn);
 
+struct Smeta* Sobj_set_meta(struct Sobj* obj, struct Smeta* meta);
+
+void* Sobj_get_metamethod(struct Sobj* obj, const char* name);
+
 #endif // SMETA_H

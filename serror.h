@@ -2,6 +2,7 @@
 #define SERROR_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "slexer.h"
 #include "sast.h"
@@ -60,5 +61,9 @@ Sast_expected_expression
 int 
 Serror_parser
 (char *message, struct Slexer *lexer);
+
+int
+Serror_fatal_error  
+(char *message, ...);
 
 #endif
