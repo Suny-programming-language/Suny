@@ -2371,6 +2371,32 @@ This flexibility mirrors the design philosophy of modern dynamic languages like 
 
 The `Sfunc` API provides facilities for creating, configuring, extending, and freeing function objects. Below is a detailed breakdown.
 
+`Sfunc` struct usually defined in `Stype.h`:
+
+```c
+struct Sfunc {
+    struct Sfunc *inner;              // for the inner function
+    
+    struct Sobj** inner_funcs;        // store multi inner functions
+    int inner_funcs_size;             // size of inner_funcs, 
+    int inner_funcs_capacity;         // capacity of inner_funcs,
+
+    struct Sframe *frame;             // stack frame of the function
+    struct Scode *code;               // function store code
+
+    int args_index;                   // arguments index
+    int code_index;                   // code index
+
+    int args_size;                    // arguments size
+    int code_size;                    // code size
+
+    struct Sobj *obj;                 
+    struct Sobj **params;             // store the arguments
+
+    struct Scall_context *call_context;
+};
+```
+
 ---
 
 ### **Sfunc_obj_new**
@@ -3936,8 +3962,1432 @@ This makes Suny an extensible and flexible platform for **scientific computing, 
 
 # 13. Virtual machine
 
+## 1. Overview
+
+The **Suny Virtual Machine (VM)** is the **core execution engine** of the language. It is responsible for taking the compiled **Suny bytecode** and running it step by step, ensuring that programs behave as intended. Suny’s VM follows the **stack-based model**, which means that most operations are performed by **pushing values onto a stack** and then manipulating them with instructions.
+
+Instead of executing high-level Suny code directly, the source code is first parsed and compiled into **bytecode instructions**. These instructions are compact, low-level operations such as:
+
+* **PUSH_FLOAT** (push a number, string, or object onto the stack)
+* **BINARY_ADD, BINARY_SUB, BINARY_MUL, BINARY_DIV** (perform arithmetic using the top elements of the stack)
+* **FUNCTION_CALL** (invoke a function)
+* **JUMP_TO, POP_JUMP_IF_FALSE** (control flow for loops and conditionals)
+* **LOAD_GLOBAL / STORE_GLOBAL** (access variables and memory)
+
+The VM then runs in a **fetch–decode–execute loop**, where it:
+
+1. **Fetches** the next instruction from the bytecode.
+2. **Decodes** the instruction to determine what operation to perform.
+3. **Executes** the instruction by manipulating the stack, memory, or control flow.
+
+Because Suny uses a stack-based VM, it is **simpler to implement** compared to register-based VMs, while still being flexible enough to support advanced features like:
+
+* Functions and recursion
+* Object management
+* Garbage collection
+* User-defined libraries
+* Game rendering and input handling (via SGL – Suny Game Library)
+
+This design makes Suny similar in architecture to other stack-based languages like **Python, Lua, and Java’s JVM**, but tailored to remain lightweight, educational, and extensible.
+
+In short, the Suny VM is what makes the language **portable and consistent**: the same Suny program can run on any system that provides the VM, without modification.
+
+---
+
+## 2. Execution Model
+
+The **execution model** of the Suny Virtual Machine describes how bytecode instructions are processed at runtime. Like most stack-based interpreters, Suny relies on a **continuous loop** that drives program execution, often referred to as the **fetch–decode–execute cycle**.
+
+### 1. **Program Startup**
+
+When a Suny program is compiled, it produces a sequence of **bytecode instructions**. These instructions are loaded into a structure called a **frame** (representing the execution context). The VM then initializes:
+
+* A **program counter (PC)** to track the current instruction.
+* A **value stack** to hold operands and intermediate results.
+* A **global scope** for variables and functions.
+* A **call stack** for function invocation and return management.
+
+---
+
+### 2. **The Execution Loop**
+
+At the heart of the VM is the main loop:
+
+1. **Fetch** – The VM reads the next instruction from the bytecode using the PC.
+2. **Decode** – The instruction is matched to its operation (e.g., `BINARY_ADD`, `PUSH_STRING`, `JUMP_IF_FALSE`).
+3. **Execute** – The corresponding operation is performed:
+
+   * **Stack operations** push or pop values.
+   * **Arithmetic operations** consume operands and push results.
+   * **Control flow operations** change the PC to implement conditionals and loops.
+   * **Function operations** create new frames on the call stack.
+
+After each execution, the PC is advanced (unless changed by a jump), and the cycle repeats until either:
+
+* A `RETURN` instruction is reached, or
+* The program ends with `PROGRAM_END`.
+
+---
+
+### 3. **Stack-Oriented Evaluation**
+
+Since Suny is **stack-based**, nearly all instructions operate on the value stack:
+
+* Example: To compute `3 + 5`, the compiler generates:
+
+  * `PUSH_FLOAT 3`
+  * `PUSH_FLOAT 5`
+  * `BINARY_ADD`
+* At runtime, `BINARY_ADD` pops the top two values, computes the sum, and pushes the result back.
+
+This approach keeps the VM **compact** and reduces the need for complex register management.
+
+---
+
+### 4. **Function and Scope Management**
+
+When a function is called:
+
+* A new **frame** is created with its own local variables and stack.
+* The current PC and execution state are saved on the **call stack**.
+* After the function returns, control is passed back to the previous frame.
+
+This enables **recursion**, **nested functions**, and structured scope handling.
+
+---
+
+### 5. **Error and Halt Conditions**
+
+The VM halts execution when:
+
+* It reaches a `PROGRAM_END` instruction.
+* A runtime error occurs (e.g., invalid operation, undefined variable).
+* A fatal error in memory allocation or garbage collection prevents further execution.
+
+Error handling ensures the VM can report issues gracefully, without corrupting program state.
+
+## 3. Instruction Set (Opcodes)
+
+### 3.1 Opcode review
+
+Below is the **official opcode set** for the Suny Virtual Machine. Each instruction is defined as a **1-byte code** (e.g., `\x01`, `\x02`), with optional arguments following it in the bytecode stream.
+
+---
+
+#### 1. **Stack & Data Push**
+
+| Opcode | Mnemonic      | Description                  | Stack Effect |
+| ------ | ------------- | ---------------------------- | ------------ |
+| `\x01` | `PUSH_FLOAT`  | Push a floating-point number | `– → value`  |
+| `\x22` | `PUSH_STRING` | Push a string object         | `– → string` |
+| `\x38` | `LOAD_TRUE`   | Load constant `true`         | `– → true`   |
+| `\x39` | `LOAD_FALSE`  | Load constant `false`        | `– → false`  |
+
+---
+
+#### 2. **Arithmetic Operations**
+
+| Opcode | Mnemonic     | Description             | Stack Effect   |
+| ------ | ------------ | ----------------------- | -------------- |
+| `\x02` | `BINARY_ADD` | Add two top values      | `a, b → (a+b)` |
+| `\x03` | `BINARY_SUB` | Subtract (second – top) | `a, b → (a-b)` |
+| `\x04` | `BINARY_MUL` | Multiply two values     | `a, b → (a*b)` |
+| `\x05` | `BINARY_DIV` | Divide (second ÷ top)   | `a, b → (a/b)` |
+
+---
+
+#### 3. **Comparison Operations**
+
+| Opcode | Mnemonic               | Description                | Stack Effect    |
+| ------ | ---------------------- | -------------------------- | --------------- |
+| `\x12` | `BINARY_BIGGER`        | Compare greater than (`>`) | `a, b → (a>b)`  |
+| `\x13` | `BINARY_SMALLER`       | Compare less than (`<`)    | `a, b → (a<b)`  |
+| `\x14` | `BINARY_EQUAL`         | Equality (`==`)            | `a, b → (a==b)` |
+| `\x15` | `BINARY_BIGGER_EQUAL`  | Greater or equal (`>=`)    | `a, b → (a>=b)` |
+| `\x16` | `BINARY_SMALLER_EQUAL` | Less or equal (`<=`)       | `a, b → (a<=b)` |
+| `\x17` | `BINARY_NOT_EQUAL`     | Not equal (`!=`)           | `a, b → (a!=b)` |
+
+---
+
+#### 4. **Logic Operations**
+
+| Opcode | Mnemonic  | Description | Stack Effect  |   |    |
+| ------ | --------- | ----------- | ------------- | - | -- |
+| `\x42` | `AND_LOG` | Logical AND | `a, b → a&&b` |   |    |
+| `\x43` | `OR_LOG`  | Logical OR  | `a, b → a     |   | b` |
+| `\x44` | `NOT_LOG` | Logical NOT | `a → !a`      |   |    |
+
+---
+
+#### 5. **Program Control**
+
+| Opcode | Mnemonic        | Description                     |
+| ------ | --------------- | ------------------------------- |
+| `\x10` | `PROGRAM_START` | Entry point marker              |
+| `\x11` | `PROGRAM_END`   | End of program                  |
+| `\x32` | `EXIT_PROGRAM`  | Exit immediately                |
+| `\x33` | `STOP_PROGRAM`  | Stop execution (can be resumed) |
+| `\x45` | `SKIP`          | Skip this instruction           |
+
+---
+
+#### 6. **Jump & Flow Control**
+
+| Opcode | Mnemonic               | Description                            |
+| ------ | ---------------------- | -------------------------------------- |
+| `\x25` | `POP_JUMP_IF_TRUE`     | Pop stack; jump if true                |
+| `\x26` | `POP_JUMP_IF_FALSE`    | Pop stack; jump if false               |
+| `\x27` | `JUMP_IF_TOP_IS_TRUE`  | Jump if top is true (without popping)  |
+| `\x28` | `JUMP_IF_TOP_IS_FALSE` | Jump if top is false (without popping) |
+| `\x29` | `JUMP_FORWARD`         | Jump forward N instructions            |
+| `\x30` | `JUMP_BACKWARD`        | Jump backward N instructions           |
+| `\x31` | `SKIP_TO_INDEX`        | Skip to a specific instruction index   |
+| `\x27` | `JUMP_TO`              | Jump to absolute index                 |
+| `\x28` | `ADD_LABEL`            | Add a label for future jumps           |
+
+---
+
+#### 7. **Functions**
+
+| Opcode | Mnemonic        | Description                   |
+| ------ | --------------- | ----------------------------- |
+| `\x18` | `MAKE_FUNCTION` | Define a function object      |
+| `\x19` | `END_FUNCTION`  | End function definition       |
+| `\x20` | `FUNCTION_CALL` | Call function with N args     |
+| `\x21` | `RETURN_TOP`    | Return top of stack to caller |
+
+---
+
+#### 8. **Variables**
+
+| Opcode | Mnemonic       | Description                |
+| ------ | -------------- | -------------------------- |
+| `\x08` | `LOAD_GLOBAL`  | Load global variable       |
+| `\x09` | `STORE_GLOBAL` | Store into global variable |
+
+---
+
+#### 9. **Data Structures**
+
+| Opcode | Mnemonic     | Description                    |
+| ------ | ------------ | ------------------------------ |
+| `\x34` | `LOAD_ITEM`  | Load element from list/string  |
+| `\x35` | `STORE_ITEM` | Store element in list/string   |
+| `\x36` | `BUILD_LIST` | Build list from N stack values |
+| `\x37` | `LEN_OF`     | Get length of list/string      |
+
+---
+
+#### 10. **Objects & Classes**
+
+| Opcode | Mnemonic      | Description                             |
+| ------ | ------------- | --------------------------------------- |
+| `\x40` | `CLASS_BEGIN` | Start class definition                  |
+| `\x41` | `CLASS_END`   | End class definition                    |
+| `\x46` | `LOAD_ATTR`   | Load attribute from object              |
+| `\x47` | `STORE_ATTR`  | Store attribute into object             |
+| `\x48` | `LOAD_METHOD` | Load method reference from object/class |
+
+---
+
+#### 11. **I/O**
+
+| Opcode | Mnemonic  | Description             |
+| ------ | --------- | ----------------------- |
+| `\x06` | `PRINT`   | Print top stack value   |
+| `\x07` | `POP_TOP` | Discard top stack value |
+
+---
+
+### 3.2 How each opcode work?
+
+Here is how each opcode in the Suny Virtual Machine (SVM) works.
+In order to keep the system well-organized, all available opcodes are divided into 11 functional groups. Each group corresponds to a different category of behavior inside the VM, such as stack manipulation, arithmetic operations, control flow, function handling, or class/object management.
+
+By grouping the opcodes, the documentation makes it easier for developers to quickly understand not only what each instruction does, but also how they cooperate to execute a Suny program step by step. For example, stack operations provide the foundation, arithmetic and logical operators extend computational power, and control-flow instructions enable conditional execution and looping. Together, these groups form the complete instruction set of SVM and define the execution model of the language.
+
+### 1. **Stack & Data Push**
+
+This group contains the most fundamental opcodes in the Suny Virtual Machine. Their main responsibility is to push values onto the stack, which acts as the core working area of the VM. Every calculation, comparison, or function call in Suny begins with having the right values placed on the stack. Without these push operations, higher-level instructions (like arithmetic or control flow) would not have the data they need to operate.
+
+#### 1.1. **`PUSH_FLOAT`**
+
+When the Suny Virtual Machine executes the PUSH_FLOAT opcode, it must read a floating-point constant from the bytecode stream and place it on the stack. The implementation looks like this:
+
+```c
+struct Sframe *
+Svm_evalutate_PUSH_FLOAT(struct Sframe *frame) {
+
+    // Read 4 bytes (little-endian order) from bytecode
+    byte_t b1 = get_next_code(frame);
+    byte_t b2 = get_next_code(frame);
+    byte_t b3 = get_next_code(frame);
+    byte_t b4 = get_next_code(frame);
+
+    // Combine the 4 bytes into a 32-bit unsigned integer
+    uint32_t i = (uint32_t)b1 |
+                ((uint32_t)b2 << 8) |
+                ((uint32_t)b3 << 16) |
+                ((uint32_t)b4 << 24);
+
+    // Interpret those 4 bytes as a float
+    float value;
+    memcpy(&value, &i, sizeof(value));
+
+    // Push the float value onto the stack
+    Sframe_push_number(frame, value);
+
+    return frame;
+}
+```
+
+#### Step-by-Step Explanation:
+
+1. **Fetch the Bytes**
+
+   * The VM calls `get_next_code(frame)` 4 times, each retrieving one byte from the bytecode stream.
+   * Since Suny encodes floats as 4-byte IEEE 754 binary format, these 4 bytes represent one float value.
+
+2. **Reconstruct 32-bit Integer**
+
+   * The 4 bytes are combined using bit shifting and OR operations to form a `uint32_t`.
+   * This handles the correct **little-endian** byte order.
+
+3. **Convert Integer to Float**
+
+   * The raw 32-bit integer is reinterpreted as a `float` using `memcpy`.
+   * This ensures no type-punning issues and works portably across compilers.
+
+4. **Push onto the Stack**
+
+   * Finally, the `Sframe_push_number(frame, value)` function pushes the decoded float onto the VM’s runtime stack.
+   * This value now becomes available for subsequent operations (`BINARY_ADD`, `STORE_GLOBAL`, etc.).
+
+#### Effect on the VM:
+
+* **Before Execution**: Stack is `[ ... ]`
+* **Bytecode**: `PUSH_FLOAT 3.14` (encoded as 4 bytes)
+* **After Execution**: Stack is `[ ..., 3.14 ]`
+
+---
+
+#### 1.2. **`PUSH_STRING`**
+
+The `PUSH_STRING` instruction is used to load a string constant from the bytecode and place it onto the VM stack.
+
+#### **Execution Steps**
+
+1. **Read the string length**
+
+   * The instruction first reads the string size (in bytes) from the bytecode stream.
+   * Depending on the implementation, this can be a single byte (0–255) or multiple bytes (for longer strings).
+
+2. **Allocate memory**
+
+   * A buffer of `size + 1` is allocated to hold the string characters plus the null terminator (`'\0'`).
+
+3. **Copy characters**
+
+   * Each character is read from the bytecode and copied into the buffer.
+
+4. **Null-terminate**
+
+   * The buffer is terminated with `'\0'` so it can safely function as a C-style string.
+
+5. **Push onto the stack**
+
+   * The resulting string object is pushed onto the current frame’s stack.
+   * Memory ownership is transferred to the VM, which must eventually free or garbage-collect the string.
+
+---
+
+#### **C Implementation**
+
+```c
+struct Sframe *
+Svm_evaluate_PUSH_STRING(struct Sframe *frame) {
+    // 1. Read size (1 byte; upgrade to 4 bytes if needed)
+    int size = get_next_code(frame);
+
+    // 2. Allocate buffer (+1 for null terminator)
+    char* buff = malloc(size + 1);
+    if (!buff) {
+        // Handle allocation failure
+        fprintf(stderr, "Memory allocation failed in PUSH_STRING\n");
+        exit(1);
+    }
+
+    // 3. Copy string characters
+    for (int i = 0; i < size; ++i) {
+        buff[i] = get_next_code(frame);
+    }
+
+    // 4. Null-terminate
+    buff[size] = '\0';
+
+    // 5. Push to stack (VM owns 'buff')
+    Sframe_push_string(frame, buff, size);
+
+    return frame;
+}
+```
+
+---
+
+#### **Example Bytecode Encoding**
+
+Suppose we want to push the string `"hi"`:
+
+```
+PUSH_STRING  2  'h'  'i'
+```
+
+* `2` = length of the string
+* `'h'`, `'i'` = characters
+* The VM reads this and pushes `"hi"` onto the stack.
+
+---
+
+#### 1.3. `LOAD_TRUE` and `LOAD_FALSE`
+
+This two opcodes push **boolen** value into the stack
+
+```c
+struct Sframe *
+Svm_evaluate_LOAD_TRUE
+(struct Sframe *frame) {
+    Sframe_push_bool(frame, 1);
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_LOAD_FALSE
+(struct Sframe *frame) {
+    Sframe_push_bool(frame, 0);
+    return frame;
+}
+```
+
+---
+
+### 2. **Arithmetic Operations**
+
+#### 2.1. `BINARY_ADD`, `BINARY_DIV`, `BINARY_MUL`, `BINARY_SUB`
+
+1. Pop **two values** from the stack (let’s call them `rhs` and `lhs` where `rhs` is the top of stack).
+2. Depending on the opcode, evaluate:
+
+   * `BINARY_ADD` → call `Seval_add(lhs, rhs)` (`lhs + rhs`)
+   * `BINARY_DIV` → call `Seval_div(lhs, rhs)` (`lhs / rhs`)
+   * `BINARY_MUL` → call `Seval_mul(lhs, rhs)` (`lhs * rhs`)
+   * `BINARY_SUB` → call `Seval_sub(lhs, rhs)` (`lhs - rhs`)
+3. Push the result back onto the stack.
+
+---
+
+### 3. **Comparison Operations**
+
+#### 3.1. `BINARY_BIGGER`, `BINARY_SMALLER`, `BINARY_EQUAL`, `BINARY_BIGGER_EQUAL`, `BINARY_SMALLER_EQUAL`, `BINARY_NOT_EQUAL`
+
+1. Pop **two values** from the stack (`rhs`, `lhs`).
+2. Depending on the opcode, evaluate:
+
+   * `BINARY_BIGGER` → call `Seval_bigger(lhs, rhs)` (`lhs > rhs`)
+   * `BINARY_SMALLER` → call `Seval_smaller(lhs, rhs)` (`lhs < rhs`)
+   * `BINARY_EQUAL` → call `Seval_equal(lhs, rhs)` (`lhs == rhs`)
+   * `BINARY_BIGGER_EQUAL` → call `Seval_bigger_and_equal(lhs, rhs)` (`lhs >= rhs`)
+   * `BINARY_SMALLER_EQUAL` → call `Seval_smaller_and_equal(lhs, rhs)` (`lhs <= rhs`)
+   * `BINARY_NOT_EQUAL` → call `Seval_not_equal(lhs, rhs)` (`lhs != rhs`)
+3. Push the result (boolean) back onto the stack.
+
+This function is a part of SVM evaluate opcodes `BINARY_SMALLER`, `BINARY_BIGGER`, ... `BINARY_NOT_EQUAL` and `BINARY_ADD`, ... `BINARY_DIV`
+
+```c
+struct Sframe *
+Svm_evalutate_BINARY_OPER
+(struct Sframe *frame, byte_t op) {
+    struct Sobj *obj2 = Sframe_pop(frame);
+    struct Sobj *obj1 = Sframe_pop(frame);
+
+    float value1 = obj1->value->value;
+    float value2 = obj2->value->value;
+
+    struct Sobj *obj = NULL;
+
+    switch (op) {
+        case BINARY_ADD: {
+            obj = Seval_add(obj1, obj2);
+            break;
+        } case BINARY_SUB: {
+            obj = Seval_sub(obj1, obj2);
+            break;
+        } case BINARY_MUL: {
+            obj = Seval_mul(obj1, obj2);
+            break;
+        } case BINARY_DIV: {
+            obj = Seval_div(obj1, obj2);
+            break;
+        } case BINARY_BIGGER : {
+            obj = Seval_bigger(obj1, obj2);
+            break;
+        } case BINARY_SMALLER : {
+            obj = Seval_smaller(obj1, obj2);
+            break;
+        } case BINARY_EQUAL : {
+            obj = Seval_equal(obj1, obj2);
+            break;
+        } case BINARY_NOT_EQUAL : {
+            obj = Seval_not_equal(obj1, obj2);
+            break;
+        } case BINARY_BIGGER_EQUAL : {
+            obj = Seval_bigger_and_equal(obj1, obj2);
+            break;
+        } case BINARY_SMALLER_EQUAL : {
+            obj = Seval_smaller_and_equal(obj1, obj2);
+            break;
+        } default: {
+            break;
+        }
+    }
+
+    Sgc_dec_ref(obj1, frame->gc_pool);
+    Sgc_dec_ref(obj2, frame->gc_pool);
+
+    Sframe_push(frame, obj);
+    return frame;
+}
+```
+
+---
+
+### 4. **Logic Operations**
+
+#### 4.1. `AND_LOG`, `OR_LOG`, `NOT_LOG`
+
+* `AND_LOG`
+
+  1. Pop **two values** from the stack (`rhs`, `lhs`).
+  2. If both `lhs` and `rhs` evaluate to **true**, push `true`. Otherwise, push `false`.
+
+* `OR_LOG`
+
+  1. Pop **two values** from the stack (`rhs`, `lhs`).
+  2. If **at least one** of `lhs` or `rhs` is true, push `true`. Otherwise, push `false`.
+
+* `NOT_LOG`
+
+  1. Pop **one value** from the stack (`val`).
+  2. If `val` is true, push `false`. If `val` is false, push `true`.
+
+---
+
+### 5. **Program Control**
+
+#### 5.1. `PROGRAM_START`
+
+* Marks the **entry point** of the program.
+* Tells the VM where the **main program execution** begins.
+* At this point the VM:
+
+  1. Resets and initializes the **stack**, **globals**, and runtime state.
+  2. Sets the **instruction pointer (IP)** to the start of the program code.
+
+---
+
+#### 5.2. `PROGRAM_END`
+
+* Marks the **end of execution** for the program.
+* When the VM encounters this opcode:
+
+  1. Stop executing bytecode.
+  2. Free or clean up resources (stack frames, heap allocations if needed).
+  3. Return control back to the host environment (e.g., exit status).
+
+---
+
+#### 5.3. `EXIT_PROGRAM`
+
+* Forces the VM to **immediately terminate execution**, no matter where it is in the program.
+* Unlike `PROGRAM_END` (which is the natural end of a program), `EXIT_PROGRAM` can appear **anywhere** in the bytecode.
+* When executed:
+
+  1. Clear the stack and free resources.
+  2. Stop execution instantly.
+  3. Optionally return an **exit status** (e.g., success/failure code) to the host environment.
+
+---
+
+#### 5.4. `STOP_PROGRAM`
+
+* Suspends the program’s execution at the current point.
+* Unlike `EXIT_PROGRAM` (which terminates completely), `STOP_PROGRAM` **halts the VM loop** but keeps the runtime state (stack, globals, memory) intact.
+* This allows:
+
+  1. Debuggers or external tools to inspect the VM state.
+  2. The program to be **resumed later** from the same point if supported.
+* When executed:
+
+  * The instruction pointer (IP) stops advancing.
+  * Control is handed back to the host without destroying runtime data.
+
+---
+
+### 6. **Jump & Flow Control**
+
+#### 6.1 `ADD_LABEL`
+
+The `ADD_LABEL` opcode is a **special instruction**.
+Before the Virtual Machine begins executing the main program, it performs a preprocessing pass over all opcodes.
+
+Whenever the VM encounters an `ADD_LABEL 0x..`, it associates the given label address `0x..` with the **current instruction index** and stores this mapping inside the `Slabel_map`.
+
+The `Slabel_map` is a member of the `Sframe` structure.
+It must be initialized before execution starts using:
+
+```c
+frame->f_label_map = Slabel_map_set_program(code);
+```
+
+This ensures that all labels are registered and accessible during execution.
+
+---
+
+#### 6.2 `POP_JUMP_IF_TRUE`, `POP_JUMP_IF_FALSE`
+
+* **`POP_JUMP_IF_TRUE 0x..`**
+  Pops the top value from the stack.
+  If the value is `true` (`1`), the instruction pointer jumps to the given address `0x..`.
+
+* **`POP_JUMP_IF_FALSE 0x..`**
+  Pops the top value from the stack.
+  If the value is `false` (`0`), the instruction pointer jumps to the given address `0x..`.
+
+These opcodes are commonly used for conditional branching in the program flow.
+
+---
+
+#### 6.3 `JUMP_IF_TOP_IS_TRUE`, `JUMP_IF_TOP_IS_FALSE`
+
+* **`JUMP_IF_TOP_IS_TRUE 0x..`**
+  Checks the value at the top of the stack **without popping it**.
+  If the value is `true` (`1`), the instruction pointer jumps to the given address `0x..`.
+
+* **`JUMP_IF_TOP_IS_FALSE 0x..`**
+  Checks the value at the top of the stack **without popping it**.
+  If the value is `false` (`0`), the instruction pointer jumps to the given address `0x..`.
+
+Unlike `POP_JUMP_IF_TRUE` / `POP_JUMP_IF_FALSE`, these instructions **do not remove** the top stack value, making them useful when the condition needs to be reused later.
+
+---
+
+#### 6.4 `JUMP_FORWARD`, `JUMP_BACKWARD`
+
+* **`JUMP_FORWARD n`**
+  Moves the instruction pointer forward by `n` steps (relative jump).
+
+* **`JUMP_BACKWARD n`**
+  Moves the instruction pointer backward by `n` steps (relative jump).
+
+These opcodes are often used for implementing **loops** or skipping over code sections.
+
+---
+
+#### 6.5 `SKIP_TO_INDEX`
+
+* **`SKIP_TO_INDEX idx`**
+  Moves the instruction pointer directly to the instruction at index `idx`.
+  This is useful for quickly skipping over blocks of code during preprocessing or execution.
+
+---
+
+#### 6.6 `JUMP_TO`
+
+* **`JUMP_TO 0x..`**
+  Performs an **absolute jump** to the address `0x..`.
+  The address must correspond to a valid entry in the `Slabel_map` (created with `ADD_LABEL`).
+
+This instruction is commonly used for **unconditional branching**, such as function calls, exits, or goto-style jumps.
+
+---
+
+### 7. **Functions**
+
+#### 7.1 `MAKE_FUNCTION`
+
+`MAKE_FUNCTION <args_count>`
+
+Creates a new **function object**.
+This opcode expects the function’s **code block** (usually pushed earlier onto the stack) and the number of arguments it takes.
+
+* **`<args_count>`** specifies how many arguments the function requires.
+* The function object is then **pushed onto the stack**, so it can be stored in a variable or passed around like any other value.
+
+This is the fundamental step for defining functions in the VM.
+
+Here is source code and how its work:
+
+```c
+
+struct Sframe *
+Svm_evaluate_MAKE_FUNCTION
+(struct Sframe *frame) {
+    byte_t args_count = get_next_code(frame); // get the arguments count
+
+    int code_size = 0;
+
+    struct Scode *code = Scode_new(); // creat a new code object
+
+    int func_level = 1; // function level for inner fucntion
+
+    byte_t op = get_next_code(frame);
+
+    while (1) {
+        if (op == MAKE_FUNCTION) {
+            func_level++;
+        }
+        
+        if (op == END_FUNCTION) {
+            func_level--;
+        } else if (op == MAKE_FUNCTION) {
+            func_level++;
+        }
+
+        if (op == END_FUNCTION && func_level == 0) break;
+
+        PUSH(code, op);
+
+        ++code_size;
+
+        op = get_next_code(frame);
+    }
+
+    PUSH(code, END_FUNCTION);
+
+    struct Sfunc *func = Sfunc_set(code, args_count, code_size); // set function with code size and argument count
+    struct Sobj *f_obj = Sobj_set_func(func);
+
+    Sframe_push(frame, f_obj);
+
+    return frame;
+}
+```
+
+---
+
+#### 7.3 `FUNCTION_CALL`
+
+The `FUNCTION_CALL` opcode is used to invoke a function.
+
+* It **pops** the top object from the stack.
+* If the object is a **user-defined function object**, the VM creates a new frame and begins executing the function’s bytecode.
+* If the object is a **builtin object** (native function provided by the VM), the VM directly executes the corresponding C/C++ implementation and pushes the return value onto the stack.
+* If the object is **not callable**, the VM either returns to the current frame or raises an error (depending on how strictly invalid calls are handled).
+
+This instruction is central to enabling function execution, recursion, and integration with builtin/native functions.
+
+When the VM encounters a `FUNCTION_CALL`, it does **not** directly read and execute the raw bytecode of the function object.
+Instead, it creates a **call context object** in Suny, named `Scall_context`.
+
+The `Scall_context` acts as a container that holds all the necessary state for the function call, including:
+
+* **Reference to the function object** – the bytecode, metadata, and argument count.
+* **Caller frame** – a pointer to the current `Sframe` that initiated the call.
+* **Callee frame** – a new execution frame created for the function, which has its own local variables, stack, and label map.
+* **Arguments** – values popped from the caller’s stack that match the function’s `<args_count>`.
+* **Return address** – the instruction index in the caller frame where execution will continue once the function finishes.
+
+Once the `Scall_context` is prepared, the VM transfers control to the new frame.
+When the function completes (via `RETURN_VALUE`), the VM destroys the `Scall_context` and resumes execution in the caller frame at the stored return address.
+
+---
+
+**The `Scall_context` Structure**
+
+Defined in `Stype.h`, the `Scall_context` holds all the metadata and runtime state required to manage a single function call:
+
+```c
+struct Scall_context {
+    struct Sfunc *func;               // Pointer to the function object being executed
+
+    struct Sframe *frame;             // The current stack frame of this call
+    struct Sframe *main_frame;        // Reference to the main program's frame (caller)
+
+    struct Sobj **local_t;            // Array of local variables or arguments
+
+    struct Scode *code;               // Pointer to the function's compiled bytecode
+
+    int args_index;                   // Index into the argument list
+    int code_index;                   // Current instruction pointer within the function
+    int stack_index;                  // Stack pointer for this call
+    int local_index;                  // Local variable index
+
+    struct Sobj *obj;                 // Generic object reference used during execution
+    struct Sobj *ret_obj;             // Return value, to be pushed back to the caller's stack
+};
+```
+
+The `Scall_context` essentially works as a **bridge** between the **caller frame** and the **callee frame**, providing the runtime with enough information to:
+
+* Initialize and run a function in its own isolated execution space.
+* Track arguments, locals, and return values.
+* Handle recursion (each call gets its own `Scall_context`).
+* Switch safely back to the caller once the callee completes.
+
+---
+
+**Executing a Function Call**
+
+When the VM encounters a `FUNCTION_CALL` opcode, it transfers execution to the function:
+
+```c
+struct Sframe *
+Svm_evaluate_FUNCTION_CALL(struct Sframe *frame) {
+    // Step 1: Pop the top object from the stack
+    struct Sobj *f_obj = Sframe_pop(frame);
+
+    // Step 2: Check if the object is a builtin function
+    if (f_obj->type == BUILTIN_OBJ) {
+        // Call the native C API function directly
+        Sframe_call_c_api_func(frame, load_c_api_func(f_obj));
+        return frame;
+    }
+
+    // Step 3: Check if the object is a class
+    if (f_obj->type == CLASS_OBJ) {
+        // Instantiate a new object by copying the class definition
+        struct Sobj *obj = Sobj_creat_a_copy_version_of_class(f_obj->f_type->f_class);
+        // Push the new object instance onto the stack
+        Sframe_push(frame, obj);
+        return frame;
+    }
+
+    // Step 4: Otherwise, treat the object as a user-defined function
+    struct Scall_context *context = Scall_context_new();
+
+    // Initialize the call context (link caller frame and callee function)
+    Scall_context_set_frame(context, frame, f_obj);
+
+    // Execute the function in its own call context
+    Svm_run_call_context(context);
+
+    // Clean up the call context after execution
+    Scall_context_free(context);
+
+    // Decrement reference count for garbage collection
+    Sgc_dec_ref(f_obj, frame->gc_pool);
+
+    // Return control to the caller's frame
+    return frame;
+}
+```
+
+---
+
+**Execution Flow Breakdown**
+
+1. **Pop target object** – The VM pops the top of the stack to determine what is being called.
+2. **Builtin function** – If it’s a builtin, the VM resolves the associated C/C++ implementation and executes it directly.
+3. **Class object** – If it’s a class, the VM creates a new object instance and pushes it back to the stack.
+4. **User-defined function** – For normal functions, the VM allocates a new `Scall_context`, sets up the call environment, and executes the bytecode of the function in a fresh frame.
+5. **Return & cleanup** – Once the function finishes, the `Scall_context` is freed, the return object is pushed back to the caller’s stack, and execution resumes from the saved return address.
+
+---
+
+### 8. **Variables**
+
+Variables in the VM are divided into **global variables** and **local variables**.
+This section describes how the VM loads and stores values from these variable spaces.
+
+Global variables live in a shared global scope accessible across functions and modules.
+Local variables are private to a specific function call (inside a stack frame).
+
+---
+
+#### 8.1 `LOAD_GLOBAL`
+
+**Description:**
+`LOAD_GLOBAL` loads a global variable from the global symbol table using its address/index.
+The value is then pushed onto the **operand stack**, making it available for further operations (arithmetic, function calls, comparisons, etc.).
+
+**Execution Steps:**
+
+1. Read the global variable address (`int`) from bytecode.
+2. Retrieve the object stored at that address in the global scope.
+3. Push the object’s value onto the current stack.
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evalutate_LOAD_GLOBAL(struct Sframe *frame) {
+    int address = get_next_code(frame);                 // read global variable index
+    struct Sobj *obj = Sframe_load_global(frame, address);
+
+    Sframe_push(frame, obj->f_value);                   // push value to stack
+    return frame;
+}
+```
+
+**Stack Behavior:**
+
+```
+Before: [... ]  
+After:  [... , global[address]]  
+```
+
+**Example in Pseudo-Suny Code:**
+
+```suny
+x = 10
+print(x)
+```
+
+**Generated Bytecode (simplified):**
+
+```
+PUSH_FLOAT 10
+STORE_GLOBAL 0
+LOAD_GLOBAL 0
+CALL_FUNCTION print
+```
+
+Execution:
+
+* `STORE_GLOBAL 0` → saves `10` into global variable `x`.
+* `LOAD_GLOBAL 0` → retrieves `10` from globals and pushes it onto the stack.
+* `CALL_FUNCTION print` → consumes `10` from the stack and prints it.
+
+---
+
+#### 8.2 `STORE_GLOBAL`
+
+**Description:**
+`STORE_GLOBAL` pops a value from the stack and stores it into the global scope at the specified address.
+This opcode is responsible for assigning values to global variables.
+
+**Execution Steps:**
+
+1. Pop the top value from the operand stack.
+2. Read the target global variable address from bytecode.
+3. Store the value into the global variable table at that address.
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evalutate_STORE_GLOBAL(struct Sframe *frame) {
+    struct Sobj *obj = Sframe_pop(frame);               // pop value from stack
+    
+    int address = get_next_code(frame);                 // read global variable index
+    Sframe_store_global(frame, address, obj, GLOBAL_OBJ);
+
+    return frame;
+}
+```
+
+**Stack Behavior:**
+
+```
+Before: [... , value]  
+After:  [...]  
+```
+
+**Example in Pseudo-Suny Code:**
+
+```suny
+x = 42
+y = x + 8
+```
+
+**Generated Bytecode (simplified):**
+
+```
+PUSH_FLOAT 42
+STORE_GLOBAL 0         ; x = 42
+LOAD_GLOBAL 0
+PUSH_FLOAT 8
+BINARY_ADD
+STORE_GLOBAL 1         ; y = x + 8
+```
+
+Execution:
+
+1. Push `42` and store it at global `x`.
+2. Load `x`, push `8`, then add → result `50`.
+3. Store `50` into global `y`.
+
+---
+
+### 9. **Data Structures**
+
+The VM provides support for working with **lists**, **strings**, and **user-defined data objects**. These data structures can be manipulated using dedicated opcodes that allow **loading, storing, creating, and querying** their contents.
+
+| Opcode | Mnemonic     | Description                                            |
+| ------ | ------------ | ------------------------------------------------------ |
+| `\x34` | `LOAD_ITEM`  | Load an element from a list/string or user data object |
+| `\x35` | `STORE_ITEM` | Store a value into a list/string                       |
+| `\x36` | `BUILD_LIST` | Build a new list from N stack values                   |
+| `\x37` | `LEN_OF`     | Get the length of a list/string                        |
+
+---
+
+#### 9.1 `LOAD_ITEM`
+
+**Description:**
+Retrieves an element at a given index from a **list**, **string**, or **user-defined object** and pushes it onto the stack.
+
+**Behavior:**
+
+* **List (`LIST_OBJ`)**: Returns the element at `index`.
+* **String (`STRING_OBJ`)**: Returns the character at `index` as a new `CHAR_OBJ`.
+* **User-defined object (`USER_DATA_OBJ`)**: Calls a custom indexing method if available.
+* If the object type is unsupported, pushes `0` as a default value.
+
+**Stack Behavior:**
+
+```
+Before: [... , target, index]  
+After:  [... , target[index]]  
+```
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evaluate_LOAD_ITEM(struct Sframe *frame) {
+    struct Sobj *index = Sframe_pop(frame);
+    struct Sobj *list = Sframe_pop(frame);
+
+    if (list->type == LIST_OBJ) {
+        if (index->value->value >= list->f_type->f_list->count) {
+            printf("Error: index out of range\n");
+            SUNY_BREAK_POINT;
+            return frame;
+        }
+        struct Sobj *item = Slist_get(list->f_type->f_list, index->value->value);
+        Sframe_push(frame, item);
+    } else if (list->type == STRING_OBJ) {
+        if (index->value->value >= list->f_type->f_str->size) {
+            printf("Error: index out of range\n");
+            SUNY_BREAK_POINT;
+            return frame;
+        }
+        char c = list->f_type->f_str->string[index->value->value];
+        struct Sobj *obj = Sobj_make_char(c);
+        Sframe_push(frame, obj);
+    } else if (list->type == USER_DATA_OBJ && list->meta && list->meta->mm_index) {
+        struct Sobj *ret = list->meta->mm_index(list, index);
+        Sframe_push(frame, ret);
+    } else {
+        Sframe_push(frame, Sobj_set_int(0));
+    }
+
+    Sgc_dec_ref(list, frame->gc_pool);
+    Sgc_dec_ref(index, frame->gc_pool);
+    return frame;
+}
+```
+
+---
+
+#### 9.2 `STORE_ITEM`
+
+**Description:**
+Stores a value into a list at a specified index.
+
+**Stack Behavior:**
+
+```
+Before: [... , list, index, value]  
+After:  [...]  
+```
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evaluate_STORE_ITEM(struct Sframe *frame) {
+    struct Sobj *value = Sframe_pop(frame);
+    struct Sobj *index = Sframe_pop(frame);
+    struct Sobj *list = Sframe_pop(frame);
+
+    int index_value = index->value->value;
+    struct Sobj *pre_item = list->f_type->f_list->array[index_value];
+
+    list->f_type->f_list->array[index_value] = value;
+
+    dec_ref(pre_item);
+    dec_ref(index);
+    inc_ref(value);
+
+    Sgc_dec_ref(pre_item, frame->gc_pool);
+    Sgc_dec_ref(index, frame->gc_pool);
+
+    return frame;
+}
+```
+
+---
+
+#### 9.3 `LEN_OF`
+
+**Description:**
+Pushes the length of a **list** or **string** onto the stack.
+
+**Stack Behavior:**
+
+```
+Before: [... , list/string]  
+After:  [... , length]  
+```
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evaluate_LEN_OF(struct Sframe *frame) {
+    struct Sobj *list = Sframe_pop(frame);
+
+    if (list->type == LIST_OBJ) {
+        Sframe_push(frame, Sobj_set_int(list->f_type->f_list->count));
+    } else if (list->type == STRING_OBJ) {
+        Sframe_push(frame, Sobj_set_int(list->f_type->f_str->size));
+    }
+
+    Sgc_dec_ref(list, frame->gc_pool);
+    return frame;
+}
+```
+
+---
+
+#### 9.4 `BUILD_LIST`
+
+**Description:**
+Creates a new list from **N values** popped from the stack and pushes the new list onto the stack.
+
+**Stack Behavior:**
+
+```
+Before: [... , val1, val2, ..., valN]  
+After:  [... , [val1, val2, ..., valN]]  
+```
+
+**C Implementation:**
+
+```c
+struct Sframe *
+Svm_evaluate_BUILD_LIST(struct Sframe *frame) {
+    int size = get_next_code(frame);
+    struct Slist *list = Slist_new();
+
+    for (int i = 0; i < size; ++i) {
+        struct Sobj *item = Sframe_pop(frame);
+        inc_ref(item);
+        Slist_add(list, item);
+    }
+
+    struct Sobj *obj = Sobj_make_list(list);
+    Sframe_push(frame, obj);
+
+    return frame;
+}
+```
+
+---
+
+#### Example in Pseudo-Suny Code
+
+```suny
+a = 10
+b = 20
+c = 30
+lst = [a, b, c]    # BUILD_LIST 3
+
+x = lst[1]          # LOAD_ITEM
+lst[2] = 42         # STORE_ITEM
+
+n = size(lst)       # LEN_OF
+```
+
+**Simplified Bytecode:**
+
+```
+PUSH_FLOAT 10
+PUSH_FLOAT 20
+PUSH_FLOAT 30
+BUILD_LIST 3
+STORE_GLOBAL 0       ; lst
+
+LOAD_GLOBAL 0
+PUSH_FLOAT 1
+LOAD_ITEM
+STORE_GLOBAL 1       ; x = lst[1]
+
+LOAD_GLOBAL 0
+PUSH_FLOAT 2
+PUSH_FLOAT 42
+STORE_ITEM           ; lst[2] = 42
+
+LOAD_GLOBAL 0
+LEN_OF
+STORE_GLOBAL 2       ; n = size(lst)
+```
+
+---
+
+## 4. Summary
+
+The **Suny Virtual Machine (VM)** is the backbone of the language, responsible for executing bytecode instructions generated from Suny source code. It uses a **stack-based architecture**, where values are pushed and popped from a stack to perform computations, manage variables, and handle control flow.
+
+Key points covered in this chapter:
+
+* **Stack-Based Execution:** Most operations, including arithmetic, comparisons, and function calls, are performed using a stack.
+* **Instruction Set:** The VM supports a variety of opcodes for **arithmetic, logic, jumps, function calls, and data manipulation**.
+* **Variables:** The VM differentiates between **global** and **local variables**, providing efficient access and storage through dedicated opcodes.
+* **Data Structures:** Lists, strings, and user-defined objects can be manipulated via `LOAD_ITEM`, `STORE_ITEM`, `BUILD_LIST`, and `LEN_OF`.
+* **Function Calls:** User-defined and builtin functions are executed using a **call context (`Scall_context`)**, enabling recursion and isolated execution frames.
+* **Error Handling:** The VM performs runtime checks (e.g., index out of range) to ensure safe and predictable execution.
+* **Portability:** Suny programs run consistently across different systems as long as the VM is provided.
+
+Overall, the Suny VM provides a **robust, flexible, and efficient runtime environment**, combining simplicity for educational purposes with enough power to support advanced language features, including user-defined libraries and the Suny Game Library (SGL).
+
+---
+
 # 14. Standard Libraries
+
+Suny provides a collection of standard libraries that extend the core language with useful features.
+These libraries are always available and can be imported into your program to simplify common tasks such as mathematics, string processing, input/output, and more.
+
+## 14.1 The `stdlib` Library
+
+The **`stdlib`** library is one of the most powerful and essential components of Suny’s standard libraries. It provides a rich collection of **mathematical functions** and **advanced datatypes** that allow developers to write complex programs with ease and efficiency.
+
+### Key Features
+
+1. **Mathematical Functions**
+   The `stdlib` library includes a wide range of mathematical functions commonly used in scientific and engineering applications. Examples include:
+
+   * `sin(x)` – Compute the sine of an angle (in radians).
+   * `cos(x)` – Compute the cosine of an angle.
+   * `tan(x)` – Compute the tangent of an angle.
+   * `cot(x)` – Compute the cotangent of an angle.
+
+   These functions are optimized for performance and provide accurate results suitable for both everyday calculations and advanced computations.
+
+2. **Datatypes Provided**
+   In addition to math utilities, `stdlib` also extends the language with several important datatypes:
+
+   * **Vector** – Represents a sequence of numbers with built-in operations like addition, subtraction, and dot product. Useful in linear algebra and graphics.
+   * **Complex** – Provides native support for complex numbers, including arithmetic operations and magnitude/phase calculations.
+   * **BigInt** – Arbitrary precision integer type for working with numbers larger than standard machine integers. Essential for cryptography, number theory, or very large computations.
+
+### Example Usage
+
+```suny
+import "stdlib"
+
+# Using math functions
+let angle = 1.5708   # approx π/2
+let s = sin(angle)   # -> 1.0
+let c = cos(angle)   # -> 0.0
+
+# Working with vectors
+let v1 = vector([1, 2, 3])
+let v2 = vector([4, 5, 6])
+let v3 = v1 + v2     # -> [5, 7, 9]
+
+# Complex numbers
+let z1 = complex(2, 3)    # 2 + 3i
+let z2 = complex(1, -1)   # 1 - i
+let z3 = z1 * z2                 # -> 5 + i
+
+# Big integers
+let big = bigint("12345678901234567890")
+let big2 = big * 100
+```
+
+### Why `stdlib` Matters
+
+The `stdlib` library is designed to be **general-purpose and foundational**, making it the go-to library for a wide variety of programming tasks. Whether you are writing simple scripts, performing scientific computations, or handling large-scale numerical problems, `stdlib` provides the building blocks you need.
+
+---
+
+## 14.2 The `random` Library
+
+The **`random`** library provides functionality for generating random numbers and making random selections. It is useful in applications such as simulations, games, randomized testing, and procedural generation.
+
+Unlike some libraries that are entirely written in Suny, the `random` library integrates with a **native DLL (`random.dll`)**, which provides the core random number generator. Suny code then builds convenient wrappers on top of this functionality.
+
+### Key Functions
+
+1. **`random()`**
+
+   * **Description:** Returns a floating-point number between `0.0` and `1.0`.
+   * **Implementation:** Internally calls `Srandom` from the `random.dll`.
+   * **Example:**
+
+     ```suny
+     let x = random()  
+     print(x)   # -> 0.731293...
+     ```
+
+2. **`randint(a, b)`**
+
+   * **Description:** Returns a random integer between `a` and `b` (inclusive).
+   * **Details:**
+
+     * If `a > b`, the values are swapped to ensure correctness.
+     * Uses `random()` internally to generate the result.
+   * **Example:**
+
+     ```suny
+     let n = randint(1, 6)  
+     print(n)   # -> a number between 1 and 6, simulating a dice roll
+     ```
+
+3. **`choice(l)`**
+
+   * **Description:** Returns a random element from the list `l`.
+   * **Details:**
+
+     * Uses `randint` to pick a valid index from the list.
+     * Works with any list, regardless of element type.
+   * **Example:**
+
+     ```suny
+     let fruits = ["apple", "banana", "cherry"]
+     let pick = choice(fruits)
+     print(pick)   # -> randomly "apple", "banana", or "cherry"
+     ```
+
+### Example Program
+
+```suny
+import random
+
+# Generate a random float
+let r = random()
+print(r)
+
+# Roll a dice
+let dice = randint(1, 6)
+print(dice)
+
+# Random choice from a list
+let colors = ["red", "green", "blue", "yellow"]
+print(choice(colors))
+```
+
+### Why `random` Matters
+
+The `random` library makes it simple to **add unpredictability** to programs. Whether simulating dice rolls, shuffling game states, or generating random test data, it provides an easy-to-use API while still leveraging a native DLL backend for performance and reliability.
+
+---
 
 # 15. SGL (Suny Game Library)
 
+The **Suny Game Library (SGL)** is a high-level framework built on top of Suny, designed for creating **2D games and interactive graphics applications**. It provides developers with a collection of APIs for **window management, rendering, input handling, and sound**, making it easier to build games without needing to interact directly with low-level system APIs.
+
+SGL is modeled after popular game libraries such as **Pygame, SDL, and LOVE2D**, but is fully integrated into the Suny ecosystem. This means developers can leverage Suny syntax, Suny’s object system, and standard libraries alongside SGL.
+
+---
+
+## 15.1 Features of SGL
+
+* **Window Management**: Create and manage application windows.
+* **Rendering API**: Draw primitives (rectangles, circles, lines), images, and text.
+* **Input Handling**: Keyboard, mouse, and controller support.
+* **Audio Support**: Play background music and sound effects.
+* **Timing Utilities**: Control game loops, frame rates, and animations.
+* **Event System**: Handle quit events, key presses, and mouse actions.
+
+---
+
+## 15.2 Basic Example: Moving a Cube
+
+The following example demonstrates how to create a **game window** and control a simple **cube** using the W, A, S, D keys.
+
+```suny
+include "random"
+include "SGL"
+
+# Window settings
+width = 700
+height = 700
+init("Limbo", width, height)
+
+# Colors
+screen_color = [255, 255, 255]   # white background
+cube_color = [0, 0, 0]           # black cube
+
+# Cube properties
+cube_x = 0
+cube_y = 0
+cube_size = 20
+cube_vel = 20
+
+running = true
+
+# Main game loop
+while running do
+    # Clear screen
+    screen_fill(screen_color[0], screen_color[1], screen_color[2])
+    
+    # Draw cube
+    draw_square(cube_x, cube_y, cube_size,
+                cube_color[0], cube_color[1], cube_color[2])
+    
+    # Handle input
+    key = get_key()
+    if key == "a" then cube_x = cube_x - cube_vel end
+    if key == "d" then cube_x = cube_x + cube_vel end
+    if key == "w" then cube_y = cube_y - cube_vel end
+    if key == "s" then cube_y = cube_y + cube_vel end
+    
+    # Keep cube inside window
+    if cube_x < 0 then cube_x = 0 end
+    if cube_x > width - cube_size then cube_x = width - cube_size end
+    if cube_y < 0 then cube_y = 0 end
+    if cube_y > height - cube_size then cube_y = height - cube_size end
+    
+    # Update screen
+    flip()
+end
+
+close()
+```
+
+**Explanation:**
+
+* `init(title, width, height)` → Opens a new game window.
+* `screen_fill(r, g, b)` → Fills the window with a background color.
+* `draw_square(x, y, size, r, g, b)` → Draws a square on the screen.
+* `get_key()` → Returns the last key pressed.
+* `flip()` → Refreshes the screen after drawing.
+* `close()` → Closes the game window.
+
+---
+
+## 15.3 Core Modules
+
+### 15.3.1 Window & Events
+
+* `init(title, width, height)` → Open a new game window.
+* `is_open()` → Returns `true` if the window is open.
+* `close()` → Closes the window.
+
+### 15.3.2 Rendering
+
+* `screen_fill(r, g, b)` → Clear the screen with a color.
+* `draw_square(x, y, size, r, g, b)` → Draw a square.
+* `draw_circle(x, y, radius, r, g, b)` → Draw a circle.
+* `draw_line(x1, y1, x2, y2, r, g, b)` → Draw a line.
+* `draw_text(x, y, text, size, r, g, b)` → Draw text.
+* `draw_image(x, y, file_path)` → Draw an image from a file.
+
+---
+
 # 16. End
+
+by dinhsonhai132
