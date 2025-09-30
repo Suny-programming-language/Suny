@@ -66,7 +66,6 @@ jump_to(struct Sframe *frame, int address) {
     int index = pos.indexof;
     frame->f_code_index = index - 1;
 
-
     return frame->f_code->code[frame->f_code_index];
 }
 
@@ -184,7 +183,9 @@ Svm_run_program(struct Sframe *frame) {
 
             else if (op == LOAD_FALSE) {
                 frame = Svm_evaluate_LOAD_FALSE(frame);
-            } else {
+            } 
+            
+            else {
                 printf("Invalid program %s\n", print_op(op));
                 done = 1;
             }
@@ -452,7 +453,6 @@ Svm_evaluate_FUNCTION_CALL
     Svm_run_call_context(context);
     Scall_context_free(context);
 
-
     Sgc_dec_ref(f_obj, frame->gc_pool);
 
     return frame;
@@ -599,6 +599,22 @@ Svm_evaluate_POP_JUMP_IF_FALSE
         return frame;
     }
 
+    return frame;
+}
+
+struct Sframe *
+Svm_evaluate_POP_JUMP_IF_TRUE
+(struct Sframe *frame) {
+    int address = get_next_code(frame);
+
+    struct Sobj *obj = Sframe_pop(frame);
+
+    Sgc_dec_ref(obj, frame->gc_pool);
+
+    if (obj->value->value) {
+        jump_to(frame, address);
+        return frame;
+    }
 
     return frame;
 }
@@ -737,18 +753,14 @@ Svm_evaluate_LEN_OF
 struct Sframe *
 Svm_evaluate_LOAD_TRUE
 (struct Sframe *frame) {
-    struct Sobj *obj = Sobj_set_int(1);
-    obj->type = TRUE_OBJ;
-    PUSH_OBJ(obj);
+    Sframe_push_bool(frame, 1);
     return frame;
 }
 
 struct Sframe *
 Svm_evaluate_LOAD_FALSE
 (struct Sframe *frame) {
-    struct Sobj *obj = Sobj_set_int(0);
-    obj->type = FALSE_OBJ;
-    PUSH_OBJ(obj);
+    Sframe_push_bool(frame, 0);
     return frame;
 }
 
@@ -811,7 +823,6 @@ Svm_evaluate_CLASS_BEGIN
         else if (op == STORE_GLOBAL) {
             int address = get_next_code(frame);
             sclass = Sclass_store_object(sclass, frame, address);
-        
         }
 
         else if (op == CLASS_BEGIN) {
@@ -894,7 +905,7 @@ Svm_evaluate_NOT_LOG
 
     int value = !obj->value->value;
 
-    Sframe_push(frame, Sobj_make_bool(value));
+    Sframe_push_bool(frame, value);
 
     return frame;
 }
@@ -911,7 +922,7 @@ Svm_evaluate_AND_LOG
 
     int value = obj1->value->value && obj2->value->value;
 
-    Sframe_push(frame, Sobj_make_bool(value));
+    Sframe_push_bool(frame, value);
 
     return frame;
 }
@@ -926,8 +937,8 @@ Svm_evaluate_OR_LOG
     Sgc_dec_ref(obj2, frame->gc_pool);
 
     int value = obj1->value->value || obj2->value->value;
-
-    Sframe_push(frame, Sobj_make_bool(value));
+    
+    Sframe_push_bool(frame, value);
 
     return frame;
 }

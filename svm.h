@@ -7,6 +7,7 @@
 #include "sobj.h"
 #include "sfunc.h"
 #include "sstr.h"
+#include "smem.h"
 #include "scopy.h"
 #include "sinitialize.h"
 #include "seval.h"
