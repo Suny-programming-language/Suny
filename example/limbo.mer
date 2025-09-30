@@ -1,0 +1,62 @@
+include "SGL"
+
+width = 700
+height = 700
+
+screen_color = [255, 255, 255]
+
+cube_x = 0
+cube_y = 0
+cube_size = 20
+
+cube_vel = 20
+
+cube_color = [0, 0, 0]
+
+init("Limbo", width, height)
+
+running = true
+
+while running do
+    screen_fill(screen_color[0], screen_color[1], screen_color[2])
+    
+    draw_square(cube_x, cube_y, cube_size, cube_color[0], cube_color[1], cube_color[2])
+    
+    key = get_key()
+    
+    if key == "a" then
+        cube_x = cube_x - cube_vel
+    end
+
+    if key == "d" then
+        cube_x = cube_x + cube_vel
+    end
+
+    if key == "w" then
+        cube_y = cube_y - cube_vel
+    end
+
+    if key == "s" then
+        cube_y = cube_y + cube_vel
+    end
+
+    if cube_x >= width - cube_size then
+        cube_x = width - cube_size
+    end
+
+    if cube_x <= 0 then
+        cube_x = 0
+    end
+
+    if cube_y >= height - cube_size then
+        cube_y = height - cube_size
+    end
+
+    if cube_y <= 0 then
+        cube_y = 0
+    end
+
+    flip()
+end
+
+close()
