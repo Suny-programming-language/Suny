@@ -441,18 +441,117 @@ struct Sobj* Sget_key_api(struct Sframe* frame) {
     return Sobj_make_char(key);
 }
 
+struct Slist* Slist_creat_multi_value(int size, struct Sobj* value) {
+    struct Slist* list = Slist_new();
+
+    for (int i = 0; i < size; i++) {
+        struct Sobj* deep_copy = Sobj_deep_copy(value);
+        inc_ref(deep_copy);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+        Slist_add(list, deep_copy);
+    }
+
+    return list;
+}
+
+struct Sobj* Sobj_get_key_states(struct Sframe* frame) {
+    struct Sobj* fobj = Sobj_make_false();
+    struct Slist* list = Slist_creat_multi_value(MAX_KEYS_LAPTOP, fobj);
+    
+    int numKeys;
+    const Uint8* state = SDL_GetKeyboardState(&numKeys);
+
+    int sdl_to_sgl[MAX_KEYS_LAPTOP] = {0};
+
+    sdl_to_sgl[SDL_SCANCODE_F1] = KEY_F1;
+    sdl_to_sgl[SDL_SCANCODE_F2] = KEY_F2;
+    sdl_to_sgl[SDL_SCANCODE_F3] = KEY_F3;
+    sdl_to_sgl[SDL_SCANCODE_F4] = KEY_F4;
+    sdl_to_sgl[SDL_SCANCODE_F5] = KEY_F5;
+    sdl_to_sgl[SDL_SCANCODE_F6] = KEY_F6;
+    sdl_to_sgl[SDL_SCANCODE_F7] = KEY_F7;
+    sdl_to_sgl[SDL_SCANCODE_F8] = KEY_F8;
+    sdl_to_sgl[SDL_SCANCODE_F9] = KEY_F9;
+    sdl_to_sgl[SDL_SCANCODE_F10] = KEY_F10;
+    sdl_to_sgl[SDL_SCANCODE_F11] = KEY_F11;
+    sdl_to_sgl[SDL_SCANCODE_F12] = KEY_F12;
+
+    sdl_to_sgl[SDL_SCANCODE_Q] = KEY_Q;
+    sdl_to_sgl[SDL_SCANCODE_W] = KEY_W;
+    sdl_to_sgl[SDL_SCANCODE_E] = KEY_E;
+    sdl_to_sgl[SDL_SCANCODE_R] = KEY_R;
+    sdl_to_sgl[SDL_SCANCODE_T] = KEY_T;
+    sdl_to_sgl[SDL_SCANCODE_Y] = KEY_Y;
+    sdl_to_sgl[SDL_SCANCODE_U] = KEY_U;
+    sdl_to_sgl[SDL_SCANCODE_I] = KEY_I;
+    sdl_to_sgl[SDL_SCANCODE_O] = KEY_O;
+    sdl_to_sgl[SDL_SCANCODE_P] = KEY_P;
+
+    sdl_to_sgl[SDL_SCANCODE_A] = KEY_A;
+    sdl_to_sgl[SDL_SCANCODE_S] = KEY_S;
+    sdl_to_sgl[SDL_SCANCODE_D] = KEY_D;
+    sdl_to_sgl[SDL_SCANCODE_F] = KEY_F;
+    sdl_to_sgl[SDL_SCANCODE_G] = KEY_G;
+    sdl_to_sgl[SDL_SCANCODE_H] = KEY_H;
+    sdl_to_sgl[SDL_SCANCODE_J] = KEY_J;
+    sdl_to_sgl[SDL_SCANCODE_K] = KEY_K;
+    sdl_to_sgl[SDL_SCANCODE_L] = KEY_L;
+
+    sdl_to_sgl[SDL_SCANCODE_Z] = KEY_Z;
+    sdl_to_sgl[SDL_SCANCODE_X] = KEY_X;
+    sdl_to_sgl[SDL_SCANCODE_C] = KEY_C;
+    sdl_to_sgl[SDL_SCANCODE_V] = KEY_V;
+    sdl_to_sgl[SDL_SCANCODE_B] = KEY_B;
+    sdl_to_sgl[SDL_SCANCODE_N] = KEY_N;
+    sdl_to_sgl[SDL_SCANCODE_M] = KEY_M;
+
+    sdl_to_sgl[SDL_SCANCODE_ESCAPE] = KEY_ESC;
+    sdl_to_sgl[SDL_SCANCODE_SPACE] = KEY_SPACE;
+    sdl_to_sgl[SDL_SCANCODE_TAB] = KEY_TAB;
+    sdl_to_sgl[SDL_SCANCODE_RETURN] = KEY_ENTER;
+    sdl_to_sgl[SDL_SCANCODE_BACKSPACE] = KEY_BACKSPACE;
+
+    sdl_to_sgl[SDL_SCANCODE_UP] = KEY_UP;
+    sdl_to_sgl[SDL_SCANCODE_DOWN] = KEY_DOWN;
+    sdl_to_sgl[SDL_SCANCODE_LEFT] = KEY_LEFT;
+    sdl_to_sgl[SDL_SCANCODE_RIGHT] = KEY_RIGHT;
+
+    sdl_to_sgl[SDL_SCANCODE_0] = KEY_0;
+    sdl_to_sgl[SDL_SCANCODE_1] = KEY_1;
+    sdl_to_sgl[SDL_SCANCODE_2] = KEY_2;
+    sdl_to_sgl[SDL_SCANCODE_3] = KEY_3;
+    sdl_to_sgl[SDL_SCANCODE_4] = KEY_4;
+    sdl_to_sgl[SDL_SCANCODE_5] = KEY_5;
+    sdl_to_sgl[SDL_SCANCODE_6] = KEY_6;
+    sdl_to_sgl[SDL_SCANCODE_7] = KEY_7;
+    sdl_to_sgl[SDL_SCANCODE_8] = KEY_8;
+    sdl_to_sgl[SDL_SCANCODE_9] = KEY_9;
+
+    for (int i = 0; i < numKeys; i++) {
+        if (state[i] && sdl_to_sgl[i] >= 0 && sdl_to_sgl[i] < MAX_KEYS_LAPTOP) {
+            struct Sobj* boolen = Sobj_make_true();
+            inc_ref(boolen);
+            Slist_change_item(list, sdl_to_sgl[i], boolen);
+        }
+    }
+
+    struct Sobj* ret = Sobj_make_list(list);
+    return ret;
+}
+
 SUNY_API struct Sframe* Smain(struct Sframe* frame, struct Scompiler* compiler) {
-    SunyInitialize_c_api_func(frame, compiler, 51, "init", 3, Sinit);
-    SunyInitialize_c_api_func(frame, compiler, 52, "screen_fill", 3, Sscreen_fill);
-    SunyInitialize_c_api_func(frame, compiler, 53, "flip", 0, Sflip);
-    SunyInitialize_c_api_func(frame, compiler, 54, "close", 0, Sclose);
-    SunyInitialize_c_api_func(frame, compiler, 55, "draw_square", 6, Sdraw_square_api);
-    SunyInitialize_c_api_func(frame, compiler, 56, "draw_rect", 7, Sdraw_rect_api);
-    SunyInitialize_c_api_func(frame, compiler, 57, "draw_line", 7, Sdraw_line_api);
-    SunyInitialize_c_api_func(frame, compiler, 58, "get_key", 0, Sget_key_api);
+    SunyInitialize_c_api_func(frame, compiler, 51, "SGL_init", 3, Sinit);
+    SunyInitialize_c_api_func(frame, compiler, 52, "SGL_screen_fill", 3, Sscreen_fill);
+    SunyInitialize_c_api_func(frame, compiler, 53, "SGL_flip", 0, Sflip);
+    SunyInitialize_c_api_func(frame, compiler, 54, "SGL_close", 0, Sclose);
+    SunyInitialize_c_api_func(frame, compiler, 55, "SGL_draw_square", 6, Sdraw_square_api);
+    SunyInitialize_c_api_func(frame, compiler, 56, "SGL_draw_rect", 7, Sdraw_rect_api);
+    SunyInitialize_c_api_func(frame, compiler, 57, "SGL_draw_line", 7, Sdraw_line_api);
+    SunyInitialize_c_api_func(frame, compiler, 58, "SGL_get_key", 0, Sget_key_api);
 
     SunyInitialize_c_api_func(frame, compiler, 59, "SGL_rect", 0, Sobj_make_rect);
     SunyInitialize_c_api_func(frame, compiler, 60, "SGL_draw_rect", 0, Sdraw_rect_api_with_SGL_rect);
+
+    SunyInitialize_c_api_func(frame, compiler, 61, "SGL_get_key_states", 0, Sobj_get_key_states);
 
     return frame;
 }

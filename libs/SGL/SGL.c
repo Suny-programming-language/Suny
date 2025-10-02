@@ -113,6 +113,11 @@ GUI_API char SGL_get_key() {
     return 0;
 }
 
+GUI_API Uint8* Sget_keyState() {
+    const Uint8* state = SDL_GetKeyboardState(NULL);
+    return (Uint8*)state;
+}
+
 GUI_API SDL_Rect *Screat_rect(float x, float y, float w, float h) {
     SDL_Rect* rect = malloc(sizeof(SDL_Rect));
     rect->x = (int)x;

@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "SGL_keys.h"
+
 #if !defined(GUI)
     #define GUI extern
     #ifdef WIN32
@@ -46,6 +48,8 @@ GUI_API void Sdraw_line(float x1, float y1, float x2, float y2, float r, float g
 GUI_API SDL_Rect *Screat_rect(float x, float y, float w, float h);
 
 GUI_API int Scollision(SDL_Rect* rect1, SDL_Rect* rect2);
+
+GUI_API Uint8* Sget_keyState();
 
 GUI_API char SGL_get_key();
 

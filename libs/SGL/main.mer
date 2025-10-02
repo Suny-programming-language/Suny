@@ -1,5 +1,114 @@
 import "C:\\Suny\\libs\\SGL\\SGL"
 
+# let W_f1 = 0
+# let W_f2 = 1
+# let W_f3 = 2
+# let W_f4 = 3
+# let W_f5 = 4
+# let W_f6 = 5
+# let W_f7 = 6
+# let W_f8 = 7
+# let W_f9 = 8
+# let W_f10 = 9
+# let W_f11 = 10
+# let W_f12 = 11
+
+# let W_q = 12
+# let W_w = 13
+# let W_e = 14
+# let W_r = 15
+# let W_t = 16
+# let W_y = 17
+# let W_u = 18
+# let W_i = 19
+# let W_o = 20
+# let W_p = 21
+
+# let W_a = 22
+# let W_s = 23
+# let W_d = 24
+# let W_f = 25
+# let W_g = 26
+# let W_h = 27
+# let W_j = 28
+# let W_k = 29
+# let W_l = 30
+
+# let W_z = 31
+# let W_x = 32
+# let W_c = 33
+# let W_v = 34
+# let W_b = 35
+# let W_n = 36
+# let W_m = 37
+
+# let W_esc = 38
+# let W_space = 39
+# let W_tab = 40
+# let W_enter = 41
+# let W_backspace = 42
+
+# let W_up = 43
+# let W_down = 44
+# let W_left = 45
+# let W_right = 46
+
+# let W_key0 = 47
+# let W_key1 = 48
+# let W_key2 = 49
+# let W_key3 = 50
+# let W_key4 = 51
+# let W_key5 = 52
+# let W_key6 = 53
+# let W_key7 = 54
+# let W_key8 = 55
+# let W_key9 = 56
+
+# let W_minus = 57
+# let W_equal = 58
+# let W_semicolon = 59
+# let W_apostrophe = 60
+# let W_comma = 61
+# let W_period = 62
+# let W_slash = 63
+# let W_backslash = 64
+
+# let W_lshift = 65
+# let W_rshift = 66
+# let W_lctrl = 67
+# let W_rctrl = 68
+# let W_lalt = 69
+# let W_ralt = 70
+# let W_caps = 71
+
+# let W_insert = 72
+# let W_delete = 73
+# let W_home = 74
+# let W_end = 75
+# let W_pgup = 76
+# let W_pgdn = 77
+
+# let W_lwin = 78
+# let W_rwin = 79
+# let W_menu = 80
+
+# let W_numpad0 = 81
+# let W_numpad1 = 82
+# let W_numpad2 = 83
+# let W_numpad3 = 84
+# let W_numpad4 = 85
+# let W_numpad5 = 86
+# let W_numpad6 = 87
+# let W_numpad7 = 88
+# let W_numpad8 = 89
+# let W_numpad9 = 90
+# let W_numpad_add = 91
+# let W_numpad_sub = 92
+# let W_numpad_mul = 93
+# let W_numpad_div = 94
+# let W_numpad_decimal = 95
+# let W_numpad_enter = 96
+
 function hue_to_rgb(h) do
     while h >= 360 do
         h = h - 360
@@ -42,3 +151,4 @@ function hue_to_rgb(h) do
 
     return [r, g, b]
 end
+

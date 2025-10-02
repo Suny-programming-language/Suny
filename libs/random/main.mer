@@ -12,3 +12,10 @@ function randint(a, b) do
     end
     return a + int(random() * (b - a + 1))
 end
+
+function choice(l) do
+    n = size(l) - 1
+    i = 0
+
+    return l[randint(n, i)]
+end
