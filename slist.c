@@ -47,6 +47,7 @@ struct Sobj* Sobj_make_list(struct Slist* list) {
 }
 
 struct Slist* Slist_change_item(struct Slist* list, int index, struct Sobj* obj) {
+    struct Sobj* old_obj = list->array[index];
     list->array[index] = obj;
     return list;
 }

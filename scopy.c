@@ -7,7 +7,8 @@ struct Sobj* Sobj_deep_copy(struct Sobj* obj) {
     new_obj->value->value = obj->value->value;
     new_obj->size = obj->size;
     new_obj->address = obj->address;
-
+    new_obj->gc = Sgc_new();
+    
     if (obj->type == STRING_OBJ) {
         new_obj->f_type->f_str = Sstr_new_from_char(obj->f_type->f_str->string, obj->f_type->f_str->size);
         new_obj->f_type->f_str->size = obj->f_type->f_str->size;

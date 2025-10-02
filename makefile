@@ -23,7 +23,7 @@ lib: $(LIB)
 
 $(OUT)$(EXT): $(SRC)
 	@echo Building release exe...
-	@$(CC) $(SRC) -o $@
+	@$(CC) --static $(SRC) -o $@
 
 $(DEBUG)$(EXT): $(SRC)
 	@echo Building debug exe...

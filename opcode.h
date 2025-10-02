@@ -3,7 +3,8 @@
 
 #define PUSH_FLOAT '\x01'
 
-#define BINARY_ADD '\x02'
+#define BINARY_ADD '\x02' 
+
 #define BINARY_SUB '\x03'
 #define BINARY_MUL '\x04'
 #define BINARY_DIV '\x05'
@@ -76,5 +77,10 @@
 #define STORE_ATTR '\x47'
 
 #define LOAD_METHOD '\x48'
+
+#define LOAD_VARARGS '\x49'
+#define STORE_VARARGS '\x50'
+
+#define FUNCTION_CALL_VARARGS '\x51'
 
 #endif // OPCODE_H
